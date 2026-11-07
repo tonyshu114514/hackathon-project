@@ -162,8 +162,8 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <p class="hint">The ten best sites to check first are listed on the right. Numbered green markers on the map match the list.</p>
 
   <h2><span class="dot" style="background:var(--bad)"></span>Likely already used</h2>
-  <label class="toggle"><input type="checkbox" id="hideUsed" checked> <span id="hideUsedLabel">Hide likely-used sites</span></label>
-  <p class="hint">Sites with permit activity reported to HCD on the APN since 2021, or a building dated 2021 or later. They are never ranked. Untick to show them in red and review them; signals can be wrong.</p>
+  <label class="toggle"><input type="checkbox" id="hideUsed"> <span id="hideUsedLabel">Hide likely-used sites</span></label>
+  <p class="hint">Shown in red: sites with permit activity reported to HCD on the APN since 2021, or a building dated 2021 or later. They are never ranked. Tick to hide them; signals can be wrong.</p>
   <ul class="notes" id="notes"></ul>
 
   <details><summary>Data checks</summary><div id="validation"></div></details>
@@ -352,8 +352,8 @@ function rhnaHtml(c, showName) {
 
 // "Likely used" is exactly apr_hit || new_build (no numeric threshold); the ranked red top 5 stay visible regardless.
 const likelyUsed = s => Boolean(s.apr_hit || s.new_build);
-const HIDE_KEY = 'findit.hideUsed';
-function loadHideUsed() { try { const v = localStorage.getItem(HIDE_KEY); return v === null ? true : v === '1'; } catch (e) { return true; } }
+const HIDE_KEY = 'findit.hideUsed.v2';  // default changed to "show everything"; old key ignored
+function loadHideUsed() { try { return localStorage.getItem(HIDE_KEY) === '1'; } catch (e) { return false; } }
 function saveHideUsed(on) { try { localStorage.setItem(HIDE_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable: keep the default */ } }
 
 function draw(opts = {}) {
