@@ -81,7 +81,7 @@ summary{cursor:pointer;font-weight:600;font-size:13px}
 details p,details li{font-size:12px;color:var(--muted)}
 details ul{padding-left:18px;margin:6px 0}
 details a{color:var(--ink);word-break:break-all}
-.chip.pending{background:var(--warn);color:#fff;border:0}
+.chip.pending{background:var(--bad);color:#fff;border:0}
 .flags{margin:6px 0 0;padding:0;list-style:none}
 .flags li{font-size:11.5px;margin-top:3px}
 .vtable{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0 8px}
@@ -113,8 +113,8 @@ details a{color:var(--ink);word-break:break-all}
 .pop .chk .detail{color:var(--muted);font-size:12px}
 .pop .srcs{border-top:1px solid var(--line);margin-top:10px;padding:8px 0 0}
 .pop .srcs summary{font-size:12px}.pop .srcs p{margin:4px 0;font-size:11px;word-break:break-word}
-.pending-banner{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;background:var(--warn-bg);color:var(--warn);border:1.5px solid var(--warn);border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:12px}
-.pending-icon{width:22px;height:22px;border-radius:50%;background:var(--warn);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.pending-banner{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;background:var(--bad-bg);color:var(--bad);border:1.5px solid var(--bad);border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:12px}
+.pending-icon{width:22px;height:22px;border-radius:50%;background:var(--bad);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
 .pending-mark{width:18px;height:18px;border-radius:50%;background:var(--warn);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .leaflet-container{background:var(--bg);font:inherit}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
@@ -137,8 +137,8 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
   <div class="tabs" id="tabs" role="group" aria-label="Cities (select one or more)"></div>
   <p class="hint">Click cities to add or remove them. Rankings cover every selected city together.</p>
-  <label class="toggle"><input type="checkbox" id="rankPending" checked> Rank sites with a pending project <span class="chip pending">! pending project</span></label>
-  <p class="hint">Pending sites are outlined in amber on the map: the city already reports a project proposed there.</p>
+  <label class="toggle"><input type="checkbox" id="hidePending"> <span id="hidePendingLabel">Hide pending projects</span> <span class="chip pending">pending</span></label>
+  <p class="hint">Every pending site shows a small red dot: the city already reports a project proposed there. Hiding removes them from the map and the rankings.</p>
   <div class="stats" id="stats"></div>
   <div id="rhna"></div>
 
@@ -198,9 +198,10 @@ const map = L.map('map', {zoomControl: true});
 map.createPane('context'); map.getPane('context').style.zIndex = 350;
 map.createPane('border'); map.getPane('border').style.zIndex = 360;
 map.createPane('shade'); map.getPane('shade').style.zIndex = 340;  // under the context layers
+map.createPane('pending'); map.getPane('pending').style.zIndex = 450;  // dots above site polygons, below rank markers
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
-let boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
+let pendingLayer = L.layerGroup().addTo(map), boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
   return keys.split(',').map(k => DATA.sources[k] ? `${esc(DATA.sources[k].label)} (fetched ${esc(DATA.sources[k].fetched)})` : esc(k)).join('; ');
@@ -292,10 +293,10 @@ const cityColor = slug => css(`--city-${slug}`) || css('--border');
 function rankSelected(cities) {
   const sites = cities.flatMap(c => c.sites);
   sites.forEach(s => { s.promising_rank = s.stale_rank = null; });
-  const rankPending = document.getElementById('rankPending').checked;
-  sites.filter(s => !s.new_build && !s.apr_hit && (rankPending || !s.pending)).sort((a, b) => b.promising - a.promising)
+  const hidePending = document.getElementById('hidePending').checked;
+  sites.filter(s => !s.new_build && !s.apr_hit && !(hidePending && s.pending)).sort((a, b) => b.promising - a.promising)
     .slice(0, 5).forEach((s, i) => { s.promising_rank = i + 1; });
-  sites.filter(s => s.stale).sort((a, b) => (b.stale - a.stale) || ((b.coverage || 0) - (a.coverage || 0)))
+  sites.filter(s => s.stale && !(hidePending && s.pending)).sort((a, b) => (b.stale - a.stale) || ((b.coverage || 0) - (a.coverage || 0)))
     .slice(0, 5).forEach((s, i) => { s.stale_rank = i + 1; });
   return sites;
 }
@@ -348,6 +349,9 @@ function rhnaHtml(c, showName) {
 const likelyUsed = s => Boolean(s.apr_hit || s.new_build);
 const HIDE_KEY = 'findit.hideUsed';
 function loadHideUsed() { try { const v = localStorage.getItem(HIDE_KEY); return v === null ? true : v === '1'; } catch (e) { return true; } }
+const PEND_KEY = 'findit.hidePending';
+function loadHidePending() { try { return localStorage.getItem(PEND_KEY) === '1'; } catch (e) { return false; } }
+function saveHidePending(on) { try { localStorage.setItem(PEND_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable */ } }
 function saveHideUsed(on) { try { localStorage.setItem(HIDE_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable: keep the default */ } }
 
 function draw(opts = {}) {
@@ -375,19 +379,29 @@ function draw(opts = {}) {
   const sites = rankSelected(cities);
   const hideUsed = document.getElementById('hideUsed').checked;
   const nUsed = sites.filter(likelyUsed).length;
+  const hidePending = document.getElementById('hidePending').checked;
+  const nPending = sites.filter(s => s.pending).length;
+  document.getElementById('hidePendingLabel').textContent = `Hide pending projects (${nPending})`;
+  pendingLayer.clearLayers();
   document.getElementById('hideUsedLabel').textContent = `Hide likely-used sites (${nUsed})`;
   const bounds = [];
   sites.forEach(s => {
     s.polys.forEach(p => p[0].forEach(([x, y]) => bounds.push([y, x])));
     const top = s.promising_rank || s.stale_rank;
+    if (hidePending && s.pending) return;  // hidden everywhere: not drawn, not ranked
     if (!top && hideUsed && likelyUsed(s)) return;  // hidden: not drawn, not in byId, lists unchanged
     const color = s.promising_rank ? good : s.stale_rank ? bad : grey;
-    const poly = L.polygon(ll(s.polys), s.pending && !top
-      ? {color: css('--warn'), weight: 1.5, dashArray: '4 3', fillColor: css('--warn'), fillOpacity: 0.18}
-      : {color, weight: top ? 2.5 : 1, fillOpacity: top ? 0.35 : 0.15, dashArray: s.pending ? '6 3' : null});
+    const poly = L.polygon(ll(s.polys), {color, weight: top ? 2.5 : 1, fillOpacity: top ? 0.35 : 0.15});
     poly.bindPopup(popupHtml(s), {maxWidth: 340});
     (top ? topLayer : allLayer).addLayer(poly);
     byId[s.id] = {s, poly};
+    if (s.pending) {
+      const dot = L.circleMarker([s.lat, s.lon], {pane: 'pending', radius: 4.5, color: css('--panel'), weight: 1.5,
+        fillColor: css('--bad'), fillOpacity: 1, keyboard: true});
+      dot.bindTooltip(`Pending project: ${esc(s.name)}`, {direction: 'top'});
+      dot.on('click', () => poly.openPopup());
+      pendingLayer.addLayer(dot);
+    }
     if (top) {
       const n = s.promising_rank || s.stale_rank;
       const m = L.marker([s.lat, s.lon], {icon: L.divIcon({className: '', iconSize: [24, 24],
@@ -468,7 +482,9 @@ function init() {
     el.addEventListener('click', go);
     el.addEventListener('keydown', e => { if (e.key === 'Enter') go(e); });
   });
-  document.getElementById('rankPending').addEventListener('change', () => draw());
+  const pend = document.getElementById('hidePending');
+  pend.checked = loadHidePending();
+  pend.addEventListener('change', () => { saveHidePending(pend.checked); draw({keepView: true}); });
   const hide = document.getElementById('hideUsed');
   hide.checked = loadHideUsed();
   hide.addEventListener('change', () => { saveHideUsed(hide.checked); draw({keepView: true}); });
