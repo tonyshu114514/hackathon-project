@@ -1,7 +1,9 @@
 """Score every cached housing-element site and write the map page.
 
-    python build.py        # writes site/index.html, site/artifact.html and data/results.json
+    python build.py                          # all cached cities -> site/index.html, site/artifact.html, data/results.json
+    python build.py --city irvine --city brea --out demo/index.html   # a subset, written elsewhere
 """
+import argparse
 import json
 import pathlib
 import re
@@ -538,6 +540,14 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--city", choices=list(CITIES), action="append", help="limit to these cities (default: all cached)")
+    ap.add_argument("--out", default=str(OUT_HTML), help="where to write the page (default site/index.html)")
+    args = ap.parse_args()
+    out_html = pathlib.Path(args.out)
+    out_artifact = out_html.with_name("artifact.html") if out_html == OUT_HTML else None
+    out_json = OUT_JSON if out_html == OUT_HTML else out_html.with_suffix(".json")
+    wanted = args.city or [k for k in CITIES if (CACHE / f"{k}_sites.json").exists() or (CACHE / f"{k}_boundary.json").exists()]
     meta = json.loads((CACHE / "meta.json").read_text()) if (CACHE / "meta.json").exists() else {}
     notes = {}
     apr_rows = load("apr_a2")
@@ -545,7 +555,7 @@ def main():
     if apr_rows is not None:
         apr_idx, info = apr.index_by_apn(apr_rows)
         print(f"APR: {len(apr_rows)} rows, {len(apr_idx)} APNs. Columns used: {info}")
-    cities = {slug: c for slug in CITIES if (c := build_city(slug, meta, notes, apr_idx, apr_names))}
+    cities = {slug: c for slug in wanted if (c := build_city(slug, meta, notes, apr_idx, apr_names))}
     if not cities:
         raise SystemExit("Nothing to build. Run fetch.py first.")
     sources = {k: {"label": SOURCES[k]["label"], "url": meta.get(k, {}).get("url") or
@@ -554,19 +564,22 @@ def main():
     payload = {"built": date.today().isoformat(), "test_data": bool(meta.get("synthetic")),
                "cities": cities, "sources": sources,
                "assumptions": ASSUMPTIONS}
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(json.dumps(payload))
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps(payload))
     here = pathlib.Path(__file__).parent
     page = here.joinpath("map_template.html").read_text()
     page = page.replace("/*__LEAFLET_CSS__*/", here.joinpath("findit", "leaflet.css").read_text())
     page = page.replace("/*__DATA__*/null", json.dumps(payload).replace("</", "<\\/"))
-    OUT_HTML.parent.mkdir(parents=True, exist_ok=True)
-    OUT_HTML.write_text(page)
-    # The Artifact host adds its own document skeleton, so strip ours for that copy.
-    body = page.split("<!--ARTIFACT-START-->", 1)[1].split("<!--ARTIFACT-END-->", 1)[0]
-    OUT_ARTIFACT.write_text(body)
+    out_html.parent.mkdir(parents=True, exist_ok=True)
+    out_html.write_text(page)
     mb = len(page.encode()) / 1e6
-    print(f"\nWrote {OUT_HTML} ({mb:.1f} MB), {OUT_ARTIFACT} and {OUT_JSON}. Open {OUT_HTML} in a browser.")
+    if out_artifact:
+        # The Artifact host adds its own document skeleton, so strip ours for that copy.
+        body = page.split("<!--ARTIFACT-START-->", 1)[1].split("<!--ARTIFACT-END-->", 1)[0]
+        out_artifact.write_text(body)
+        print(f"\nWrote {out_html} ({mb:.1f} MB), {out_artifact} and {out_json}. Open {out_html} in a browser.")
+    else:
+        print(f"\nWrote {out_html} ({mb:.1f} MB) and {out_json}. Open {out_html} in a browser.")
     if mb > 15:
         print("! The page is over 15 MB; artifacts cap at 16 MB. Raise the simplify tolerance in overlays().")
 

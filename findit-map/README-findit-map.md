@@ -19,24 +19,35 @@ ASSUMPTION listed in `findit/sources.py` and on the map page.
 
 ## Try it
 
-Python 3.10+.
+Python 3.10+ and internet access for the first run. No accounts or API keys.
 
 ```bash
-pip install -r requirements.txt
-python fetch.py          # downloads public layers into data/cache/ (a few minutes; resumable)
-python build.py          # scores sites, writes site/index.html, site/artifact.html, data/results.json
-open site/index.html     # macOS; on Windows: start site\index.html
+cd findit-map
+./run.sh                 # four demo cities, about 10 minutes; opens site/index.html when done
+./run.sh --city brea     # one city, a minute or two
+./run.sh --all           # all 30 jurisdictions, 30 to 60 minutes
 ```
 
-`fetch.py --skip-apr` skips the statewide permit download if it is slow. The permit check then
-shows "unknown".
+`run.sh` creates `.venv`, installs the pinned requirements, runs `fetch.py` then `build.py`.
+On Windows, or to run the steps by hand:
 
-`site/index.html` is the version to demo: it adds an OpenStreetMap street basemap. `site/artifact.html`
-is the same page without the document wrapper, for publishing as a Claude artifact (artifacts block
-map tiles, so the drawn layers give the geography there).
+```bash
+python -m venv .venv && .venv/Scripts/pip install -r requirements.txt   # macOS/Linux: .venv/bin/pip
+python fetch.py --city irvine --skip footprints   # downloads public layers into data/cache/ (resumable)
+python build.py                                   # scores sites, writes site/index.html and data/results.json
+start site\index.html                             # macOS: open site/index.html
+```
 
-`fetch.py` only reads public ArcGIS services and caches everything. Re-running skips what is cached.
-To refresh one layer, delete its file in `data/cache/`.
+No time to fetch? `demo/index.html` is a prebuilt page for Irvine, Santa Ana, Costa Mesa and
+Anaheim (real data, built 2026-11-07). Open it in any browser.
+
+`--skip footprints` leaves out the OC building-footprint layer, whose server was returning errors on
+event day; open land is then scored from the existing use each city reported (an ASSUMPTION shown on
+the page). Drop the flag to try the footprints. `fetch.py --skip-apr` skips the statewide permit
+download if it is slow; the permit check then shows "unknown". Re-running skips anything cached; delete
+a file in `data/cache/` to refresh it.
+
+`build.py --city X --city Y --out demo/index.html` builds a page for a subset of cached cities.
 
 ## Check these after the first run
 
