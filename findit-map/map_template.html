@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find It Site Screener</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --bg:#f7f6f2;--panel:#ffffff;--ink:#1d1d1b;--muted:#6b6a65;--line:#e3e1da;
+  --good:#1f7a4d;--good-bg:#e4f3ea;--bad:#b3261e;--bad-bg:#fbe7e5;
+  --warn:#8a5a00;--warn-bg:#fdf0d6;--unk:#55606e;--unk-bg:#eceef1;--accent:#1d1d1b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.app{display:grid;grid-template-columns:380px 1fr;height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:18px 16px 28px}
+#map{height:100%}
+h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.proto{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
+  font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
+.tabs button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.stats{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:10px}
+.stats b{color:var(--ink);font-size:15px;display:block}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+h2 .dot{width:10px;height:10px;border-radius:50%}
+.hint{color:var(--muted);font-size:12px;margin:0 0 8px}
+ol.rank{list-style:none;margin:0;padding:0}
+ol.rank li{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:start;padding:8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+ol.rank li:hover,ol.rank li:focus{background:var(--bg);border-color:var(--line);outline:none}
+.num{width:22px;height:22px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center}
+.why{font-size:12px;color:var(--muted)}
+.score{font-variant-numeric:tabular-nums;font-weight:600;font-size:12px}
+.empty{color:var(--muted);font-size:12.5px;padding:6px 8px}
+.notes{margin:10px 0 0;padding:0;list-style:none}
+.notes li{background:var(--unk-bg);color:var(--unk);font-size:12px;border-radius:6px;padding:6px 8px;margin-top:6px}
+details{border-top:1px solid var(--line);padding:10px 0}
+summary{cursor:pointer;font-weight:600;font-size:13px}
+details p,details li{font-size:12px;color:var(--muted)}
+details ul{padding-left:18px;margin:6px 0}
+details a{color:var(--ink);word-break:break-all}
+.toggles{display:flex;gap:12px;font-size:12.5px;margin:4px 0 4px}
+.chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.pass{background:var(--good-bg);color:var(--good)}.fail{background:var(--bad-bg);color:var(--bad)}
+.caution{background:var(--warn-bg);color:var(--warn)}.unknown,.info{background:var(--unk-bg);color:var(--unk)}
+.pop h3{margin:0 0 4px;font-size:14px}
+.pop table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+.pop td{padding:3px 4px;border-top:1px solid var(--line);vertical-align:top}
+.pop .kv{font-size:12px;color:var(--muted);margin:0}
+.pop .src{font-size:10.5px;color:var(--muted)}
+.leaflet-popup-content{width:320px!important;max-height:360px;overflow:auto}
+.marker{width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
+  #map{height:55vh;order:-1}aside{border-right:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <h1>Find It: Site Screener</h1>
+  <p class="sub">Housing-element sites in Irvine, Santa Ana and Costa Mesa, ranked two ways.</p>
+  <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
+  <div class="tabs" id="tabs" role="group" aria-label="City"></div>
+  <div class="stats" id="stats"></div>
+  <div class="toggles">
+    <label><input type="checkbox" id="showAll" checked> All listed sites</label>
+  </div>
+
+  <h2><span class="dot" style="background:var(--good)"></span>Top 5 to check first</h2>
+  <p class="hint">Open land, lower-income capacity, size and transit, minus hazard penalties. Sites with a recent building are left out.</p>
+  <ol class="rank" id="listPromising"></ol>
+
+  <h2><span class="dot" style="background:var(--bad)"></span>Top 5 likely stale</h2>
+  <p class="hint">Listed sites that may already be built on: a building dated at or after the cutoff year, then high footprint coverage.</p>
+  <ol class="rank" id="listStale"></ol>
+  <ul class="notes" id="notes"></ul>
+
+  <details><summary>Assumptions</summary><ul id="assumptions"></ul></details>
+  <details><summary>Sources and dates</summary><ul id="sources"></ul></details>
+  <details><summary>What this does not check</summary>
+    <ul>
+      <li>Ownership and willingness to sell. Parcel data has no owner field here.</li>
+      <li>Which state law (SB 9, SB 684, AB 2011, SB 4) applies. Hazard flags are screening signals, not each law's legal tests.</li>
+      <li>Contamination, water and sewer capacity, and city objective standards.</li>
+      <li>Whether a site was permitted after listing (HCD Annual Progress Report data is a good next check).</li>
+    </ul>
+  </details>
+  <p class="sub" id="built"></p>
+</aside>
+<div id="map" aria-label="Map of sites"></div>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const COLORS = {good: getComputedStyle(document.documentElement).getPropertyValue('--good').trim(),
+                bad: getComputedStyle(document.documentElement).getPropertyValue('--bad').trim()};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (v, f) => v === null || v === undefined || v === '' ? '<i>unknown</i>' : f ? f(v) : esc(v);
+const pct = v => Math.round(v * 100) + '%';
+
+const map = L.map('map', {zoomControl: true});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
+let allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map);
+let current = null, byId = {};
+
+function srcLabel(keys) {
+  return keys.split(',').map(k => DATA.sources[k] ? `${esc(DATA.sources[k].label)} (fetched ${esc(DATA.sources[k].fetched)})` : esc(k)).join('; ');
+}
+
+function popupHtml(s) {
+  const tags = [];
+  if (s.promising_rank) tags.push(`<span class="chip pass">#${s.promising_rank} to check</span>`);
+  if (s.stale_rank) tags.push(`<span class="chip fail">#${s.stale_rank} likely stale</span>`);
+  const cap = [['Lower', s.lower], ['Moderate', s.moderate], ['Above mod.', s.above]]
+    .map(([k, v]) => `${k}: ${fmt(v)}`).join(' · ');
+  const rows = s.checks.map(c => `<tr><td><b>${esc(c.name)}</b><br><span class="chip ${c.status}">${c.status}</span></td>
+    <td>${esc(c.detail)}<div class="src">${srcLabel(c.source)}</div></td></tr>`).join('');
+  const parts = Object.entries(s.promising_parts).map(([k, v]) => `${esc(k.replace(/_/g, ' '))} ${v > 0 ? '+' : ''}${v}`).join(', ');
+  return `<div class="pop"><h3>APN ${fmt(s.apn)}</h3>${tags.join(' ')}
+    <p class="kv">${fmt(s.acres)} acres · coverage ${fmt(s.coverage, pct)} · newest building ${fmt(s.newest_year)}</p>
+    <p class="kv">Zoning ${fmt(s.zoning_local)} (SCAG: ${fmt(s.zoning_scag)}) · slope ${fmt(s.slope)}</p>
+    <p class="kv">Listed capacity, units. ${cap}</p>
+    <p class="kv">Screen score ${s.promising} = ${parts || 'no components'} <i>(ASSUMPTION weights)</i></p>
+    <table>${rows}</table>
+    <p class="src">Site from ${srcLabel('he_sites')}. Site centroid ${s.lat}, ${s.lon}.</p></div>`;
+}
+
+function whyPromising(s) {
+  const bits = [];
+  if (s.coverage !== null) bits.push(`${pct(s.coverage)} built`);
+  if (s.lower !== null) bits.push(`${s.lower} lower-inc. units`);
+  bits.push(`${s.acres} ac`);
+  if (s.promising_parts.transit) bits.push('transit');
+  const flags = s.checks.filter(c => c.status === 'fail' || c.status === 'caution').map(c => c.name.toLowerCase());
+  if (flags.length) bits.push('flags: ' + flags.join(', '));
+  return bits.join(' · ');
+}
+function whyStale(s) {
+  const bits = [];
+  if (s.new_build) bits.push(`building from ${s.newest_year}`);
+  else if (s.newest_year) bits.push(`newest building ${s.newest_year}`);
+  if (s.coverage !== null) bits.push(`${pct(s.coverage)} covered`);
+  return bits.join(' · ') || 'weak signal';
+}
+
+function drawCity(slug) {
+  current = slug;
+  const c = DATA.cities[slug];
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.slug === slug));
+  allLayer.clearLayers(); topLayer.clearLayers(); byId = {};
+  const bounds = [];
+  c.sites.forEach(s => {
+    s.rings.forEach(r => r.forEach(([x, y]) => bounds.push([y, x])));
+    const top = s.promising_rank || s.stale_rank;
+    const color = s.promising_rank ? COLORS.good : s.stale_rank ? COLORS.bad : '#8a8a85';
+    const poly = L.polygon(s.rings.map(r => r.map(([x, y]) => [y, x])),
+      {color, weight: top ? 2.5 : 1, fillOpacity: top ? 0.35 : 0.12});
+    poly.bindPopup(popupHtml(s), {maxWidth: 340});
+    (top ? topLayer : allLayer).addLayer(poly);
+    byId[s.id] = {s, poly};
+    if (top) {
+      const n = s.promising_rank || s.stale_rank;
+      const m = L.marker([s.lat, s.lon], {icon: L.divIcon({className: '', iconSize: [24, 24],
+        html: `<div class="marker" style="background:${color}">${n}</div>`}),
+        title: `${s.promising_rank ? 'To check' : 'Likely stale'} #${n}, APN ${s.apn ?? 'unknown'}`, keyboard: true});
+      m.on('click', () => poly.openPopup());
+      topLayer.addLayer(m);
+    }
+  });
+  if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]}); else map.setView(c.center, 13);
+
+  const nRecent = c.sites.filter(s => s.new_build).length;
+  document.getElementById('stats').innerHTML =
+    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${nRecent}</b>with a recent building</div>
+     <div><b>${c.sites.filter(s => s.checks.some(k => k.status === 'fail')).length}</b>with a fail flag</div>`;
+
+  const fill = (id, key, why) => {
+    const rows = c.sites.filter(s => s[key]).sort((a, b) => a[key] - b[key]);
+    const el = document.getElementById(id);
+    el.innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
+      <span class="num" style="background:${key === 'promising_rank' ? COLORS.good : COLORS.bad}">${s[key]}</span>
+      <span><b>APN ${fmt(s.apn)}</b><br><span class="why">${why(s)}</span></span>
+      <span class="score">${key === 'promising_rank' ? s.promising : s.stale}</span></li>`).join('')
+      : '<li class="empty">No sites with enough data to rank.</li>';
+  };
+  fill('listPromising', 'promising_rank', whyPromising);
+  fill('listStale', 'stale_rank', whyStale);
+  document.getElementById('notes').innerHTML = c.notes.map(n => `<li>${esc(n)}</li>`).join('');
+  allLayer[document.getElementById('showAll').checked ? 'addTo' : 'remove'](map);
+}
+
+function focusSite(id) {
+  const hit = byId[id]; if (!hit) return;
+  map.fitBounds(hit.poly.getBounds(), {maxZoom: 18, padding: [40, 40]});
+  hit.poly.openPopup();
+}
+
+function init() {
+  if (!DATA) { document.body.innerHTML = '<p style="padding:20px">No data. Run <code>python build.py</code>.</p>'; return; }
+  const tabs = document.getElementById('tabs');
+  Object.entries(DATA.cities).forEach(([slug, c]) => {
+    const b = document.createElement('button');
+    b.textContent = c.name; b.dataset.slug = slug; b.onclick = () => drawCity(slug);
+    tabs.appendChild(b);
+  });
+  ['listPromising', 'listStale'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); });
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); } });
+  });
+  document.getElementById('showAll').onchange = e => e.target.checked ? allLayer.addTo(map) : allLayer.remove();
+  document.getElementById('assumptions').innerHTML = Object.entries(DATA.assumptions).map(([k, a]) =>
+    `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
+  document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
+    `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
+  document.getElementById('built').textContent = `Built ${DATA.built}. Data: public layers listed above.`;
+  drawCity(Object.keys(DATA.cities)[0]);
+}
+init();
+</script>
+</body>
+</html>
