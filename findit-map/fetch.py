@@ -10,13 +10,14 @@ import argparse
 import json
 import pathlib
 import re
+import time
 from datetime import date
 
 import requests
 
-from findit import apr, arcgis, gtfs
+from findit import apr, arcgis, ckan, gtfs
 from findit.geom import to_shape
-from findit.sources import CITIES, FIELD_OVERRIDES, SOURCES
+from findit.sources import AREA_LAYERS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
 CACHE.mkdir(parents=True, exist_ok=True)
@@ -144,6 +145,51 @@ def fetch_city(slug, meta):
             print(f"  {key}: {len(rows)} polygons")
         except Exception as e:
             print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+    # Tract and nearby-point layers: a wider box so points just outside a site still count.
+    wide = (bbox[0] - 0.012, bbox[1] - 0.012, bbox[2] + 0.012, bbox[3] + 0.012)
+    for key in AREA_LAYERS:
+        try:
+            lurl, _ = layer(key, meta)
+            rows = cached(f"{slug}_{key}", lambda lurl=lurl: arcgis.query_all(
+                lurl, spatial=arcgis.envelope(wide), max_offset=0.00005))
+            print(f"  {key}: {len(rows)} features")
+        except Exception as e:
+            print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+    # City RHNA progress (HCD, data.ca.gov).
+    try:
+        rows = cached(f"{slug}_rhna", lambda: ckan.search_all(SOURCES["rhna"]["ckan"], {"Jurisdiction": city["match"]}))
+        if "rhna" not in meta:
+            meta["rhna"] = {"url": SOURCES["rhna"]["page"], "label": SOURCES["rhna"]["label"],
+                            "fetched": date.today().isoformat()}
+            save_meta(meta)
+        print(f"  rhna: {len(rows)} rows")
+    except Exception as e:
+        print(f"  ! rhna failed ({e}). RHNA progress will be left off.")
+
+    # Place names from OpenStreetMap (Nominatim), used to label sites with no assessor address.
+    # Nominatim's policy is at most one request per second, so this takes about a minute per city.
+    def places():
+        out = {}
+        for s, sh in zip(sites, shapes):
+            if sh is None:
+                continue
+            pt = sh.representative_point()
+            try:
+                r = requests.get("https://nominatim.openstreetmap.org/reverse", headers=arcgis.UA, timeout=30,
+                                 params={"lat": pt.y, "lon": pt.x, "format": "jsonv2", "zoom": 17}).json()
+                out[str(s["attributes"].get(oid))] = {"road": r.get("address", {}).get("road"),
+                                                      "display_name": r.get("display_name")}
+            except Exception as e:
+                print(f"  place lookup failed for site {s['attributes'].get(oid)}: {e}")
+            time.sleep(1.1)
+        return out
+    if "places" not in meta:
+        meta["places"] = {"url": SOURCES["places"]["page"], "label": SOURCES["places"]["label"],
+                          "fetched": date.today().isoformat()}
+        save_meta(meta)
+    print(f"  places: {len(cached(f'{slug}_places', places))} sites named")
 
 
 def fetch_gtfs(meta):

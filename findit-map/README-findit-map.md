@@ -1,14 +1,17 @@
 # Find It: Site Screener map
 
-A map of Irvine, Santa Ana and Costa Mesa housing-element sites, ranked two ways:
+A map of Irvine housing-element sites, ranked two ways:
 
-- **Top 5 to check first**: open land, lower-income capacity, size and transit, minus hazard penalties.
+- **Top 5 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
+  minus hazard, contamination and pollution-burden penalties.
 - **Top 5 likely already used**: listed sites that may no longer be available. The signals are, in
   order of weight: permit activity the city reported to HCD on that APN, a building dated at or
   after the cutoff year, then high footprint coverage.
 
 The map also draws context layers you can switch on and off: OCTA bus routes, FEMA flood zones,
-fire hazard zones, landslide zones and high-quality transit areas.
+fire hazard zones, landslide zones, high-quality transit areas, DTSC cleanup sites and existing LIHTC
+housing. Each city shows its RHNA progress, and each site is named by its HCD project name, county
+assessor address or, failing those, an OpenStreetMap place name.
 
 Prototype for screening only. Not legal, zoning or real estate advice. Every weight and cutoff is an
 ASSUMPTION listed in `findit/sources.py` and on the map page.
@@ -60,6 +63,13 @@ Also watch for these lines from `fetch.py`:
 | Transit | Caltrans High Quality Transit Areas |
 | Bus routes | OCTA GTFS feed |
 | Permit activity | HCD Housing Element Annual Progress Report, Table A2 (data.ca.gov) |
+| City RHNA progress | HCD 6th Cycle RHNA Progress Report (data.ca.gov) |
+| Opportunity area | CTCAC/HCD 2025 Opportunity Map (statewide copy, CA Coastal Commission) |
+| Pollution burden | OEHHA CalEnviroScreen 5.0 (final) |
+| Tax credit boost | HUD 2026 Qualified Census Tracts and Difficult Development Areas |
+| Contamination | DTSC EnviroStor cleanup sites |
+| Existing affordable | HUD LIHTC properties |
+| Site names | OC Survey Parcels site address; OpenStreetMap Nominatim for unaddressed parcels |
 
 URLs and fetch dates are in `data/cache/meta.json` and on the page under "Sources and dates".
 
@@ -68,10 +78,15 @@ URLs and fetch dates are in `data/cache/meta.json` and on the page under "Source
 - Ownership or willingness to sell.
 - Which law (SB 9 / SB 684 / AB 2011 / SB 4) applies. Hazard flags are screening signals, not
   legal tests.
-- Contamination, utilities, or city objective standards.
+- GeoTracker leak sites, utilities, or city objective standards.
 - APR rows are typed in by city staff, so an APN that does not match is not proof of no activity.
 
 ## Third-party code
 
 Leaflet 1.9.4 (BSD 2-Clause, see `findit/LEAFLET-LICENSE`). Its stylesheet is bundled in
 `findit/leaflet.css`; the script loads from cdnjs.
+
+## Known gap
+
+SCAG's HousingElementSite_poly_scag layer has no Santa Ana or Costa Mesa records (checked 2026-11-07), so
+only Irvine has sites. The other two cities stay in `CITIES` and will fill in if SCAG adds them.
