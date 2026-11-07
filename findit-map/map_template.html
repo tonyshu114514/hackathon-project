@@ -160,7 +160,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <div class="layers" id="layers"></div>
 
 
-  <p class="hint">Every site in the selected cities is listed on the right, best first. Numbered green markers on the map mark the top 10.</p>
+  <p class="hint">The map shows every site. The ten best to check first are listed on the right and numbered in green on the map.</p>
 
   <h2><span class="dot" style="background:var(--bad)"></span>Likely already used</h2>
   <label class="toggle"><input type="checkbox" id="hideUsed"> <span id="hideUsedLabel">Hide likely-used sites</span></label>
@@ -183,9 +183,9 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 </aside>
 <div id="map" aria-label="Map of sites"></div>
 <aside class="right" aria-label="Top 10 sites">
-  <h1 id="rightTitle">All sites, best first</h1>
+  <h1 id="rightTitle">Top 10 sites to check first</h1>
   <p class="rightstats" id="rightstats"></p>
-  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are not ranked and sit at the end. Click a site to go to it on the map and see its details.</p>
+  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are never ranked. The map shows every site; only the ten best appear here. Click a site to go to it on the map and see its details.</p>
   <ol class="top" id="top10"></ol>
 </aside>
 </div>
@@ -433,10 +433,10 @@ function draw(opts = {}) {
      <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div>`;
 
   const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
-  const usedShown = hideUsed ? [] : sites.filter(likelyUsed).sort((a, b) => (b.stale || 0) - (a.stale || 0));
-  document.getElementById('rightTitle').textContent = `All ${ranked.length + usedShown.length} sites, best first`;
+  const top = ranked.slice(0, TOP_N);
+  document.getElementById('rightTitle').textContent = `Top ${top.length} sites to check first`;
   document.getElementById('rightstats').textContent = ranked.length
-    ? `${ranked.length} ranked sites in ${cities.map(c => c.name).join(', ')}${usedShown.length ? `, plus ${usedShown.length} likely already used` : ''}.`
+    ? `Ranked from ${ranked.length} eligible sites in ${cities.map(c => c.name).join(', ')}. The map shows all ${sites.length}.`
     : 'No sites with enough data to rank in the selected cities.';
   const card = (s, numHtml) => `<li data-id="${esc(s.id)}">
     <button type="button" class="head" aria-expanded="false">
@@ -446,11 +446,7 @@ function draw(opts = {}) {
       <span class="score">${s.promising.toFixed(2)}</span>
     </button>
     <div class="detail"></div></li>`;
-  document.getElementById('top10').innerHTML =
-    ranked.map((s, i) => (i === TOP_N ? `<li class="divider">Below the top ${TOP_N}</li>` : '') +
-      card(s, `<span class="num" style="background:${s.promising_rank <= TOP_N ? good : grey}">${s.promising_rank}</span>`)).join('') +
-    (usedShown.length ? `<li class="divider">Likely already used (not ranked)</li>` +
-      usedShown.map(s => card(s, `<span class="num" style="background:${bad}">!</span>`)).join('') : '');
+  document.getElementById('top10').innerHTML = top.map(s => card(s, `<span class="num" style="background:${good}">${s.promising_rank}</span>`)).join('');
   document.getElementById('notes').innerHTML = cities.flatMap(c => c.notes.map(t => `<li>${multi ? '<b>' + esc(c.name) + ':</b> ' : ''}${esc(t)}</li>`)).join('');
 }
 
