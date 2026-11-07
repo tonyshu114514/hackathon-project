@@ -13,6 +13,7 @@ from shapely.strtree import STRtree
 from findit import apr, gtfs
 from findit.arcgis import find_field
 from findit.geom import to_feet, to_polys, to_shape, union
+from findit.validate import validate_sites
 from findit.sources import ASSUMPTIONS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
@@ -171,6 +172,15 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         f_mod = None
     f_abv = FIELD_OVERRIDES["site_above_cap"] or find_field(sf, (), (("above",),))
     print(f"{city['name']}: site fields -> APN={f_apn} lower={f_low} moderate={f_mod} above={f_abv}")
+
+    # Validate before scoring: drop unusable or duplicate records, blank impossible values, flag pending sites.
+    f_tot = find_field(sf, ("Total_HE_Capacity",), (("total",),))
+    sites, site_flags, vreport = validate_sites(
+        sites, {"apn": f_apn, "lower": f_low, "moderate": f_mod, "above": f_abv, "total": f_tot}, oid, bshape)
+    print(f"  validation: {vreport['input']} in, {vreport['kept']} kept, {vreport['dropped']} dropped; {vreport['counts']}")
+    if vreport["dropped"]:
+        notes.append(f"Data checks dropped {vreport['dropped']} of {vreport['input']} site records "
+                     "(no outline or duplicate APN). See 'Data checks'.")
 
     # Footprints
     fps = load(f"{slug}_footprints") or {}
@@ -478,6 +488,8 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
             "lower": low, "moderate": num(a.get(f_mod)) if f_mod else None,
             "above": num(a.get(f_abv)) if f_abv else None,
             "zoning_local": z.get("ZN24_CITY"), "zoning_scag": z.get("ZN24_SCAG"), "slope": z.get("SLOPE"),
+            "flags": site_flags.get(key, []),
+            "pending": any(f["code"] == "pending_project" for f in site_flags.get(key, [])),
             "checks": checks, "promising": promising, "promising_parts": {k: round(v, 3) for k, v in parts.items()},
             "stale": stale, "lat": round(c.y, 6), "lon": round(c.x, 6), "polys": to_polys(shape, 0, 6),
         })
@@ -516,7 +528,10 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
                                                 "year": a.get("YR_PIS")})
     rhna = rhna and {k: rhna.get(k) for k in ("Planning Period", "VLI UNITS", "RHNA VLI", "LI UNITS", "RHNA LI",
                                               "MOD UNITS", "RHNA MOD", "ABOVE MOD UNITS", "RHNA ABOVE MOD")}
+    dropped = [{"id": k, **f} for k, fl in site_flags.items() for f in fl if f["level"] == "error" and "dropped" in f["msg"]]
+    vreport["dropped_records"] = dropped
     return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out, "overlays": ov, "rhna": rhna,
+            "validation": vreport,
             "boundary": to_polys(bshape, 0.0002, 6) if bshape is not None else None,
             "fields": {"apn": f_apn, "lower": f_low, "moderate": f_mod, "above": f_abv,
                        "parcel_year": p_year, "flood_zone": f_fld, "fire_class": f_fire}}

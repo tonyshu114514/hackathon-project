@@ -98,3 +98,21 @@ Set `sites` per city in `findit/sources.py` to switch.
 Santa Ana's inventory marks every site "Pending Project" with no capacity by income level, so its
 "check first" scores leave the capacity term out. Max density and acreage are present if a team wants
 to estimate capacity (label it as an estimate).
+
+## Data checks before ranking
+
+`findit/validate.py` runs on every city's site records before anything is scored:
+
+| Check | What happens |
+|---|---|
+| No usable outline | Dropped |
+| Duplicate APN | One record kept (the one with the most listed capacity), the rest dropped |
+| Negative capacity | Value blanked |
+| Income-level capacities exceed the total | Warning |
+| No capacity listed | Warning; the capacity term is left out of that site's score |
+| Listed acres differ from the outline by more than 50% | Warning (often a consolidated multi-parcel site) |
+| Site outside the city boundary | Warning |
+| Missing or short APN | Warning (parcel data cannot be joined) |
+| Status "Pending Project" | Flag: shown on the site and in the lists; a switch on the page leaves these out of "check first" |
+
+Counts per city print during `build.py` and appear on the page under "Data checks".
