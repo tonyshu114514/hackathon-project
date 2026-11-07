@@ -1,20 +1,23 @@
 """Score every cached housing-element site and write the map page.
 
-    python build.py        # writes site/index.html and data/results.json
+    python build.py        # writes site/index.html, site/artifact.html and data/results.json
 """
 import json
 import pathlib
 import re
 from datetime import date
 
+from shapely.geometry import box
 from shapely.strtree import STRtree
 
+from findit import apr, gtfs
 from findit.arcgis import find_field
-from findit.geom import to_feet, to_rings, to_shape, union
+from findit.geom import to_feet, to_polys, to_shape, union
 from findit.sources import ASSUMPTIONS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
 OUT_HTML = pathlib.Path("site/index.html")
+OUT_ARTIFACT = pathlib.Path("site/artifact.html")
 OUT_JSON = pathlib.Path("data/results.json")
 A = {k: v["value"] for k, v in ASSUMPTIONS.items()}
 SFHA = re.compile(r"^(A|AE|AH|AO|AR|A99|V|VE)$")
@@ -72,7 +75,41 @@ def check(name, status, detail, source):
     return {"name": name, "status": status, "detail": detail, "source": source}
 
 
-def build_city(slug, meta, notes_all):
+def overlays(layers, f_fld, f_fire, bbox):
+    """Layers already fetched, merged and simplified for drawing. Shapes only; nothing is scored here."""
+    clip = box(*bbox)
+    tol = 0.00008  # ~8 m: plenty for a city-scale map
+
+    def merged(pairs):
+        u = union([s.intersection(clip) for s, _ in pairs])
+        return to_polys(u, tol) if u is not None else []
+
+    out = {}
+    fl = layers["flood"]
+    if fl.ok:
+        sfha = [(s, a) for s, a in zip(fl.shapes, fl.attrs) if SFHA.match(str(a.get(f_fld, "")).strip().upper())]
+        other = [(s, a) for s, a in zip(fl.shapes, fl.attrs) if not SFHA.match(str(a.get(f_fld, "")).strip().upper())]
+        out["flood_sfha"], out["flood_other"] = merged(sfha), merged(other)
+    fire_vh, fire_other = [], []
+    for k in ("fire_lra", "fire_sra"):
+        l = layers[k]
+        for s, a in zip(l.shapes, l.attrs):
+            (fire_vh if "VERY HIGH" in str(a.get(f_fire[k], "")).upper() else fire_other).append((s, a))
+    if layers["fire_lra"].ok or layers["fire_sra"].ok:
+        out["fire_vh"], out["fire_other"] = merged(fire_vh), merged(fire_other)
+    for k in ("landslide", "hqta"):
+        if layers[k].ok:
+            out[k] = merged(list(zip(layers[k].shapes, layers[k].attrs)))
+    gz = CACHE / "octa_gtfs.zip"
+    if gz.exists():
+        try:
+            out["bus"] = gtfs.routes_in_bbox(gz, bbox)
+        except Exception as e:
+            print(f"  ! could not read OCTA GTFS ({e})")
+    return out
+
+
+def build_city(slug, meta, notes_all, apr_idx):
     city = CITIES[slug]
     sites = load(f"{slug}_sites")
     if not sites:
@@ -170,6 +207,23 @@ def build_city(slug, meta, notes_all):
                                 (f" At or after {A['stale_year_cutoff']} (ASSUMPTION cutoff): the site may already be used."
                                  if new_build else ""), "parcels"))
 
+        # Permit activity reported by the city (HCD APR Table A2)
+        acts = [x for x in apr_idx.get(apn_d[:8], []) if x["year"] is None or x["year"] >= A["apr_min_year"]] \
+            if apr_idx is not None and len(apn_d) >= 8 else []
+        apr_hit = bool(acts)
+        if apr_idx is None:
+            checks.append(check("Permit activity (APR)", "unknown", "APR data not loaded.", "apr"))
+        elif apr_hit:
+            yrs_r = sorted({x["year"] for x in acts if x["year"]})
+            stg = sorted({s for x in acts for s in x["stages"]})
+            checks.append(check("Permit activity (APR)", "fail",
+                                f"City reported activity on this APN in {', '.join(map(str, yrs_r)) or 'an APR year'}"
+                                + (f" ({', '.join(stg)})" if stg else "") + ". The site may already be in use.", "apr"))
+        else:
+            checks.append(check("Permit activity (APR)", "pass" if len(apn_d) >= 8 else "unknown",
+                                f"No APR row from {A['apr_min_year']} on matched this APN. Cities type APNs by hand, "
+                                "so a miss is not proof of no activity." if len(apn_d) >= 8 else "No usable APN.", "apr"))
+
         # Flood
         fl = layers["flood"]
         if not fl.ok:
@@ -252,35 +306,39 @@ def build_city(slug, meta, notes_all):
 
         ws = A["weights_stale"]
         stale = None
-        if newest is not None or cov is not None:
-            stale = round(ws["new_building"] * new_build +
+        if newest is not None or cov is not None or apr_hit:
+            stale = round(ws["apr_activity"] * apr_hit + ws["new_building"] * new_build +
                           ws["coverage"] * (min(cov / A["coverage_full"], 1) if cov is not None else 0), 3)
 
         c = shape.centroid
         out.append({
             "id": key, "apn": apn, "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
-            "newest_year": newest, "new_build": new_build,
+            "newest_year": newest, "new_build": new_build, "apr_hit": apr_hit,
             "lower": low, "moderate": num(a.get(f_mod)) if f_mod else None,
             "above": num(a.get(f_abv)) if f_abv else None,
             "zoning_local": z.get("ZN24_CITY"), "zoning_scag": z.get("ZN24_SCAG"), "slope": z.get("SLOPE"),
             "checks": checks, "promising": promising, "promising_parts": {k: round(v, 3) for k, v in parts.items()},
-            "stale": stale, "lat": round(c.y, 6), "lon": round(c.x, 6), "rings": to_rings(shape),
+            "stale": stale, "lat": round(c.y, 6), "lon": round(c.x, 6), "polys": to_polys(shape, 0, 6),
         })
 
-    pool = [s for s in out if not s["new_build"]]
+    pool = [s for s in out if not s["new_build"] and not s["apr_hit"]]
     for r, s in enumerate(sorted(pool, key=lambda s: -s["promising"])[:5], 1):
         s["promising_rank"] = r
     st = [s for s in out if s["stale"]]
     for r, s in enumerate(sorted(st, key=lambda s: (-s["stale"], -(s["coverage"] or 0)))[:5], 1):
         s["stale_rank"] = r
-    if not any(s["new_build"] for s in out) and st:
-        notes.append("No site has a building from the cutoff year or later; the 'stale' list is ranked on coverage only.")
+    if not any(s["new_build"] or s["apr_hit"] for s in out) and st:
+        notes.append("No site has a recent building or APR permit activity; the 'stale' list is ranked on coverage only.")
 
     lat = sum(s["lat"] for s in out) / len(out)
     lon = sum(s["lon"] for s in out) / len(out)
+    xs = [x for s in out for poly in s["polys"] for ring in poly for x, _ in ring]
+    ys = [y for s in out for poly in s["polys"] for ring in poly for _, y in ring]
+    bbox = (min(xs) - 0.01, min(ys) - 0.01, max(xs) + 0.01, max(ys) + 0.01)
+    ov = overlays(layers, f_fld, f_fire, bbox)
     print(f"  {len(out)} sites scored; {sum(s['new_build'] for s in out)} with a recent building")
     notes_all[slug] = notes
-    return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out,
+    return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out, "overlays": ov,
             "fields": {"apn": f_apn, "lower": f_low, "moderate": f_mod, "above": f_abv,
                        "parcel_year": p_year, "flood_zone": f_fld, "fire_class": f_fire}}
 
@@ -288,20 +346,35 @@ def build_city(slug, meta, notes_all):
 def main():
     meta = json.loads((CACHE / "meta.json").read_text()) if (CACHE / "meta.json").exists() else {}
     notes = {}
-    cities = {slug: c for slug in CITIES if (c := build_city(slug, meta, notes))}
+    apr_rows = load("apr_a2")
+    apr_idx = None
+    if apr_rows is not None:
+        apr_idx, info = apr.index_by_apn(apr_rows)
+        print(f"APR: {len(apr_rows)} rows, {len(apr_idx)} APNs. Columns used: {info}")
+    cities = {slug: c for slug in CITIES if (c := build_city(slug, meta, notes, apr_idx))}
     if not cities:
         raise SystemExit("Nothing to build. Run fetch.py first.")
     sources = {k: {"label": SOURCES[k]["label"], "url": meta.get(k, {}).get("url") or
                    SOURCES[k].get("layer") or SOURCES[k].get("service"),
                    "fetched": meta.get(k, {}).get("fetched", "not fetched")} for k in SOURCES}
-    payload = {"built": date.today().isoformat(), "cities": cities, "sources": sources,
+    payload = {"built": date.today().isoformat(), "test_data": bool(meta.get("synthetic")),
+               "cities": cities, "sources": sources,
                "assumptions": ASSUMPTIONS}
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(payload))
-    tpl = pathlib.Path(__file__).with_name("map_template.html").read_text()
+    here = pathlib.Path(__file__).parent
+    page = here.joinpath("map_template.html").read_text()
+    page = page.replace("/*__LEAFLET_CSS__*/", here.joinpath("findit", "leaflet.css").read_text())
+    page = page.replace("/*__DATA__*/null", json.dumps(payload).replace("</", "<\\/"))
     OUT_HTML.parent.mkdir(parents=True, exist_ok=True)
-    OUT_HTML.write_text(tpl.replace("/*__DATA__*/null", json.dumps(payload).replace("</", "<\\/")))
-    print(f"\nWrote {OUT_HTML} and {OUT_JSON}. Open {OUT_HTML} in a browser.")
+    OUT_HTML.write_text(page)
+    # The Artifact host adds its own document skeleton, so strip ours for that copy.
+    body = page.split("<!--ARTIFACT-START-->", 1)[1].split("<!--ARTIFACT-END-->", 1)[0]
+    OUT_ARTIFACT.write_text(body)
+    mb = len(page.encode()) / 1e6
+    print(f"\nWrote {OUT_HTML} ({mb:.1f} MB), {OUT_ARTIFACT} and {OUT_JSON}. Open {OUT_HTML} in a browser.")
+    if mb > 15:
+        print("! The page is over 15 MB; artifacts cap at 16 MB. Raise the simplify tolerance in overlays().")
 
 
 if __name__ == "__main__":

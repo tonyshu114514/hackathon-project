@@ -12,7 +12,9 @@ import pathlib
 import re
 from datetime import date
 
-from findit import arcgis
+import requests
+
+from findit import apr, arcgis, gtfs
 from findit.geom import to_shape
 from findit.sources import CITIES, FIELD_OVERRIDES, SOURCES
 
@@ -144,13 +146,49 @@ def fetch_city(slug, meta):
             print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
 
 
+def fetch_gtfs(meta):
+    path = CACHE / "octa_gtfs.zip"
+    if path.exists():
+        return
+    print("\n== OCTA bus routes (GTFS)")
+    try:
+        r = requests.get(gtfs.URL, headers=arcgis.UA, timeout=180)
+        r.raise_for_status()
+        path.write_bytes(r.content)
+        meta["gtfs"] = {"url": gtfs.URL, "label": "OCTA GTFS feed (bus routes)", "fetched": date.today().isoformat()}
+        save_meta(meta)
+        print(f"  saved {len(r.content) // 1024} KB")
+    except Exception as e:
+        print(f"  ! OCTA GTFS failed ({e}). Bus routes will be left off the map.")
+
+
+def fetch_apr(meta):
+    path = CACHE / "apr_a2.json"
+    if path.exists():
+        return
+    print("\n== HCD Annual Progress Report, Table A2 (permits by APN)")
+    try:
+        res, rows = apr.fetch_rows([c["match"] for c in CITIES.values()])
+        path.write_text(json.dumps(rows))
+        meta["apr"] = {"url": apr.PAGE, "label": f"HCD Housing Element APR data ({res.get('name')})",
+                       "fetched": date.today().isoformat(), "resource_id": res["id"]}
+        save_meta(meta)
+        print(f"  kept {len(rows)} rows for our three cities")
+    except Exception as e:
+        print(f"  ! APR failed ({e}). The permit check will show unknown.")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--city", choices=list(CITIES), action="append")
+    ap.add_argument("--skip-apr", action="store_true", help="skip the statewide permit data")
     args = ap.parse_args()
     meta = load_meta()
     for slug in args.city or list(CITIES):
         fetch_city(slug, meta)
+    fetch_gtfs(meta)
+    if not args.skip_apr:
+        fetch_apr(meta)
     print("\nDone. Now run: python build.py")
 
 

@@ -47,3 +47,17 @@ def to_rings(shape, ndigits=6):
             continue
         out.append([[round(x, ndigits), round(y, ndigits)] for x, y in p.exterior.coords])
     return out
+
+
+def to_polys(shape, tol=0.0, ndigits=5):
+    """Leaflet multipolygon: [[outer, hole, ...], ...] as [lon, lat] pairs."""
+    if shape is None or shape.is_empty:
+        return []
+    if tol:
+        shape = shape.simplify(tol, preserve_topology=True)
+    polys = [shape] if shape.geom_type == "Polygon" else [g for g in getattr(shape, "geoms", []) if g.geom_type == "Polygon"]
+    out = []
+    for p in polys:
+        rings = [p.exterior] + list(p.interiors)
+        out.append([[[round(x, ndigits), round(y, ndigits)] for x, y in r.coords] for r in rings])
+    return out

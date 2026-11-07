@@ -48,6 +48,14 @@ SOURCES = {
         "label": "Caltrans High Quality Transit Areas",
         "layer": "https://caltrans-gis.dot.ca.gov/arcgis/rest/services/CHrailroad/CA_HQ_Transit_Areas/FeatureServer/0",
     },
+    "gtfs": {
+        "label": "OCTA GTFS feed (bus routes)",
+        "layer": "https://octa.net/current/google_transit.zip",
+    },
+    "apr": {
+        "label": "HCD Housing Element Annual Progress Report, Table A2 (activity by APN)",
+        "layer": "https://data.ca.gov/@california-department-of-housing-and-community-development/housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year",
+    },
 }
 
 # If build.py picks the wrong column, put the exact column name here and re-run build.py.
@@ -84,7 +92,11 @@ ASSUMPTIONS = {
     "size_full_acres": {"value": 3.0, "why": "Sites of 3+ acres get full size credit."},
     "capacity_full_units": {"value": 100, "why": "100+ lower-income units of capacity get full capacity credit."},
     "weights_stale": {
-        "value": {"new_building": 0.7, "coverage": 0.3},
-        "why": "A recent building is the strong signal; coverage alone is weak because many listed sites are intentionally non-vacant.",
+        "value": {"apr_activity": 0.5, "new_building": 0.35, "coverage": 0.15},
+        "why": "A city-reported entitlement, permit or completion on the APN is the strongest sign; a recent building is next; coverage alone is weak because many listed sites are intentionally non-vacant.",
+    },
+    "apr_min_year": {
+        "value": 2021,
+        "why": "APR rows from report year 2021 on count, matching the stale cutoff. Earlier activity predates the 6th-cycle list.",
     },
 }

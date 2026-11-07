@@ -2,49 +2,74 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--ARTIFACT-START-->
 <title>Find It Site Screener</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>/*__LEAFLET_CSS__*/</style>
 <style>
+/* Layout: one-screen tool. Ranked lists and layer switches on the left, map on the right; stacks on phones. */
 :root{
-  --bg:#f7f6f2;--panel:#ffffff;--ink:#1d1d1b;--muted:#6b6a65;--line:#e3e1da;
+  --bg:#f5f5f1;--panel:#ffffff;--ink:#1b1d1c;--muted:#666a66;--line:#e1e2dc;
+  --accent:#1b1d1c;--on-accent:#ffffff;
   --good:#1f7a4d;--good-bg:#e4f3ea;--bad:#b3261e;--bad-bg:#fbe7e5;
-  --warn:#8a5a00;--warn-bg:#fdf0d6;--unk:#55606e;--unk-bg:#eceef1;--accent:#1d1d1b;
+  --warn:#8a5a00;--warn-bg:#fdf0d6;--unk:#55606e;--unk-bg:#eceef1;
+  --site:#8a8c86;
+  --flood:#2f6fb3;--flood-soft:#7fa8d6;--fire:#c2410c;--fire-soft:#e8913a;
+  --slide:#7c5a3a;--hqta:#7b4fb3;--bus:#3d4451;
 }
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141618;--panel:#1c1f22;--ink:#eceae4;--muted:#a19f98;--line:#33373b;
+  --accent:#eceae4;--on-accent:#141618;
+  --good:#4fbf85;--good-bg:#173525;--bad:#f0857b;--bad-bg:#3e1c1a;
+  --warn:#e8b85c;--warn-bg:#3a2c12;--unk:#b0b8c3;--unk-bg:#2a2e34;
+  --site:#8d9096;--flood:#5e9be0;--flood-soft:#3d6a9c;--fire:#f07a45;--fire-soft:#b9762f;
+  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141618;--panel:#1c1f22;--ink:#eceae4;--muted:#a19f98;--line:#33373b;
+  --accent:#eceae4;--on-accent:#141618;
+  --good:#4fbf85;--good-bg:#173525;--bad:#f0857b;--bad-bg:#3e1c1a;
+  --warn:#e8b85c;--warn-bg:#3a2c12;--unk:#b0b8c3;--unk-bg:#2a2e34;
+  --site:#8d9096;--flood:#5e9be0;--flood-soft:#3d6a9c;--fire:#f07a45;--fire-soft:#b9762f;
+  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
-  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.app{display:grid;grid-template-columns:380px 1fr;height:100vh}
-aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:18px 16px 28px}
-#map{height:100%}
-h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.app{display:grid;grid-template-columns:380px minmax(0,1fr);height:100%}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;min-width:0;
+  padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
+#map{height:100%;min-height:320px}
+h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
 .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 .proto{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:14px}
+.testdata{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;margin-bottom:8px}
 .tabs{display:flex;gap:6px;margin-bottom:12px}
 .tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
   font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
-.tabs button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
-.stats{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:10px}
-.stats b{color:var(--ink);font-size:15px;display:block}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
+.tabs button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.stats{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+.stats b{color:var(--ink);font-size:15px;display:block;font-variant-numeric:tabular-nums}
+h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
 h2 .dot{width:10px;height:10px;border-radius:50%}
 .hint{color:var(--muted);font-size:12px;margin:0 0 8px}
 ol.rank{list-style:none;margin:0;padding:0}
-ol.rank li{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:start;padding:8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
-ol.rank li:hover,ol.rank li:focus{background:var(--bg);border-color:var(--line);outline:none}
-.num{width:22px;height:22px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center}
+ol.rank li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:8px;align-items:start;padding:8px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+ol.rank li:hover,ol.rank li:focus-visible{background:var(--bg);border-color:var(--line);outline:none}
+.num{width:22px;height:22px;border-radius:50%;color:var(--on-accent);font-weight:700;font-size:12px;display:grid;place-items:center}
 .why{font-size:12px;color:var(--muted)}
 .score{font-variant-numeric:tabular-nums;font-weight:600;font-size:12px}
-.empty{color:var(--muted);font-size:12.5px;padding:6px 8px}
+.empty{color:var(--muted);font-size:12.5px;padding:6px 8px;cursor:default}
 .notes{margin:10px 0 0;padding:0;list-style:none}
 .notes li{background:var(--unk-bg);color:var(--unk);font-size:12px;border-radius:6px;padding:6px 8px;margin-top:6px}
+.layers{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12.5px;margin:0 0 4px}
+.layers label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.layers label.off{color:var(--muted);cursor:not-allowed}
+.sw{width:14px;height:10px;border-radius:2px;flex:none;border:1.5px solid}
+.sw.line{height:0;border-width:2px 0 0;border-radius:0}
 details{border-top:1px solid var(--line);padding:10px 0}
 summary{cursor:pointer;font-weight:600;font-size:13px}
 details p,details li{font-size:12px;color:var(--muted)}
 details ul{padding-left:18px;margin:6px 0}
 details a{color:var(--ink);word-break:break-all}
-.toggles{display:flex;gap:12px;font-size:12.5px;margin:4px 0 4px}
 .chip{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;white-space:nowrap}
 .pass{background:var(--good-bg);color:var(--good)}.fail{background:var(--bad-bg);color:var(--bad)}
 .caution{background:var(--warn-bg);color:var(--warn)}.unknown,.info{background:var(--unk-bg);color:var(--unk)}
@@ -53,30 +78,37 @@ details a{color:var(--ink);word-break:break-all}
 .pop td{padding:3px 4px;border-top:1px solid var(--line);vertical-align:top}
 .pop .kv{font-size:12px;color:var(--muted);margin:0}
 .pop .src{font-size:10.5px;color:var(--muted)}
-.leaflet-popup-content{width:320px!important;max-height:360px;overflow:auto}
-.marker{width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
+.leaflet-container{background:var(--bg);font:inherit}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
+.leaflet-popup-content{width:320px!important;max-width:72vw;max-height:360px;overflow:auto}
+.leaflet-bar a{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.leaflet-control-attribution{background:var(--panel)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--ink)}
+.marker{width:24px;height:24px;border-radius:50%;color:var(--on-accent);font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){html,body{height:auto}.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
   #map{height:55vh;order:-1}aside{border-right:0}}
 </style>
-</head>
-<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
 <div class="app">
 <aside>
   <h1>Find It: Site Screener</h1>
   <p class="sub">Housing-element sites in Irvine, Santa Ana and Costa Mesa, ranked two ways.</p>
+  <div class="testdata" id="testBanner" hidden></div>
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
   <div class="tabs" id="tabs" role="group" aria-label="City"></div>
   <div class="stats" id="stats"></div>
-  <div class="toggles">
-    <label><input type="checkbox" id="showAll" checked> All listed sites</label>
-  </div>
+
+  <h2>Map layers</h2>
+  <div class="layers" id="layers"></div>
 
   <h2><span class="dot" style="background:var(--good)"></span>Top 5 to check first</h2>
-  <p class="hint">Open land, lower-income capacity, size and transit, minus hazard penalties. Sites with a recent building are left out.</p>
+  <p class="hint">Open land, lower-income capacity, size and transit, minus hazard penalties. Sites with a recent building or reported permit activity are left out.</p>
   <ol class="rank" id="listPromising"></ol>
 
-  <h2><span class="dot" style="background:var(--bad)"></span>Top 5 likely stale</h2>
-  <p class="hint">Listed sites that may already be built on: a building dated at or after the cutoff year, then high footprint coverage.</p>
+  <h2><span class="dot" style="background:var(--bad)"></span>Top 5 likely already used</h2>
+  <p class="hint">Listed sites that may no longer be available: permit activity the city reported to HCD, a building dated at or after the cutoff year, then high footprint coverage.</p>
   <ol class="rank" id="listStale"></ol>
   <ul class="notes" id="notes"></ul>
 
@@ -87,7 +119,7 @@ details a{color:var(--ink);word-break:break-all}
       <li>Ownership and willingness to sell. Parcel data has no owner field here.</li>
       <li>Which state law (SB 9, SB 684, AB 2011, SB 4) applies. Hazard flags are screening signals, not each law's legal tests.</li>
       <li>Contamination, water and sewer capacity, and city objective standards.</li>
-      <li>Whether a site was permitted after listing (HCD Annual Progress Report data is a good next check).</li>
+      <li>APR rows are typed by city staff. An APN that does not match is not proof of no activity.</li>
     </ul>
   </details>
   <p class="sub" id="built"></p>
@@ -97,17 +129,28 @@ details a{color:var(--ink);word-break:break-all}
 
 <script>
 const DATA = /*__DATA__*/null;
-const COLORS = {good: getComputedStyle(document.documentElement).getPropertyValue('--good').trim(),
-                bad: getComputedStyle(document.documentElement).getPropertyValue('--bad').trim()};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = (v, f) => v === null || v === undefined || v === '' ? '<i>unknown</i>' : f ? f(v) : esc(v);
 const pct = v => Math.round(v * 100) + '%';
+const ll = polys => polys.map(p => p.map(r => r.map(([x, y]) => [y, x])));
+
+const LAYERS = [
+  {key: 'bus', label: 'Bus routes', color: '--bus', line: true, on: true, src: 'gtfs'},
+  {key: 'flood_sfha', label: 'Flood (SFHA)', color: '--flood', fill: .28, on: true, src: 'flood'},
+  {key: 'flood_other', label: 'Other flood zone', color: '--flood-soft', fill: .12, on: false, src: 'flood'},
+  {key: 'fire_vh', label: 'Fire: very high', color: '--fire', fill: .25, on: true, src: 'fire_lra'},
+  {key: 'fire_other', label: 'Fire: other', color: '--fire-soft', fill: .14, on: false, src: 'fire_lra'},
+  {key: 'landslide', label: 'Landslide zone', color: '--slide', fill: .22, on: false, src: 'landslide'},
+  {key: 'hqta', label: 'Transit area', color: '--hqta', fill: .07, dash: '4 4', on: false, src: 'hqta'},
+];
+const layerOn = Object.fromEntries(LAYERS.map(l => [l.key, l.on]));
 
 const map = L.map('map', {zoomControl: true});
+map.createPane('context'); map.getPane('context').style.zIndex = 350;
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
-let allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map);
-let current = null, byId = {};
+let ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
   return keys.split(',').map(k => DATA.sources[k] ? `${esc(DATA.sources[k].label)} (fetched ${esc(DATA.sources[k].fetched)})` : esc(k)).join('; ');
@@ -116,9 +159,8 @@ function srcLabel(keys) {
 function popupHtml(s) {
   const tags = [];
   if (s.promising_rank) tags.push(`<span class="chip pass">#${s.promising_rank} to check</span>`);
-  if (s.stale_rank) tags.push(`<span class="chip fail">#${s.stale_rank} likely stale</span>`);
-  const cap = [['Lower', s.lower], ['Moderate', s.moderate], ['Above mod.', s.above]]
-    .map(([k, v]) => `${k}: ${fmt(v)}`).join(' · ');
+  if (s.stale_rank) tags.push(`<span class="chip fail">#${s.stale_rank} likely used</span>`);
+  const cap = [['Lower', s.lower], ['Moderate', s.moderate], ['Above mod.', s.above]].map(([k, v]) => `${k}: ${fmt(v)}`).join(' · ');
   const rows = s.checks.map(c => `<tr><td><b>${esc(c.name)}</b><br><span class="chip ${c.status}">${c.status}</span></td>
     <td>${esc(c.detail)}<div class="src">${srcLabel(c.source)}</div></td></tr>`).join('');
   const parts = Object.entries(s.promising_parts).map(([k, v]) => `${esc(k.replace(/_/g, ' '))} ${v > 0 ? '+' : ''}${v}`).join(', ');
@@ -128,7 +170,7 @@ function popupHtml(s) {
     <p class="kv">Listed capacity, units. ${cap}</p>
     <p class="kv">Screen score ${s.promising} = ${parts || 'no components'} <i>(ASSUMPTION weights)</i></p>
     <table>${rows}</table>
-    <p class="src">Site from ${srcLabel('he_sites')}. Site centroid ${s.lat}, ${s.lon}.</p></div>`;
+    <p class="src">Site from ${srcLabel('he_sites')}. Centroid ${s.lat}, ${s.lon}.</p></div>`;
 }
 
 function whyPromising(s) {
@@ -143,24 +185,53 @@ function whyPromising(s) {
 }
 function whyStale(s) {
   const bits = [];
+  if (s.apr_hit) bits.push('APR permit activity');
   if (s.new_build) bits.push(`building from ${s.newest_year}`);
   else if (s.newest_year) bits.push(`newest building ${s.newest_year}`);
   if (s.coverage !== null) bits.push(`${pct(s.coverage)} covered`);
   return bits.join(' · ') || 'weak signal';
 }
 
+function drawContext(c) {
+  Object.values(ctxGroups).forEach(g => g.remove());
+  ctxGroups = {};
+  const ov = c.overlays || {};
+  LAYERS.forEach(l => {
+    const g = L.layerGroup();
+    const col = css(l.color);
+    if (l.line) {
+      (ov.bus || []).forEach(r => r.lines.forEach(line => g.addLayer(
+        L.polyline(line.map(([x, y]) => [y, x]), {pane: 'context', color: col, weight: 1.6, opacity: .65, interactive: true})
+          .bindTooltip(`OCTA route ${esc(r.name)}`, {sticky: true}))));
+    } else if ((ov[l.key] || []).length) {
+      g.addLayer(L.polygon(ll(ov[l.key]), {pane: 'context', color: col, weight: 1, opacity: .7,
+        fillOpacity: l.fill, dashArray: l.dash || null, interactive: false}));
+    }
+    ctxGroups[l.key] = g;
+    if (layerOn[l.key]) g.addTo(map);
+  });
+  const box = document.getElementById('layers');
+  box.innerHTML = LAYERS.map(l => {
+    const has = l.line ? (ov.bus || []).length > 0 : (ov[l.key] || []).length > 0;
+    const loaded = l.line ? 'bus' in ov : l.key in ov;
+    const title = !loaded ? 'Not loaded for this city' : !has ? 'None in this area' : '';
+    return `<label class="${loaded ? '' : 'off'}" title="${title}"><input type="checkbox" id="ly-${l.key}" data-k="${l.key}" ${layerOn[l.key] ? 'checked' : ''} ${loaded ? '' : 'disabled'}>
+      <span class="sw ${l.line ? 'line' : ''}" style="border-color:var(${l.color});background:${l.line ? 'transparent' : `color-mix(in srgb, var(${l.color}) 35%, transparent)`}"></span>${l.label}${loaded && !has ? ' (none)' : ''}</label>`;
+  }).join('');
+}
+
 function drawCity(slug) {
-  current = slug;
   const c = DATA.cities[slug];
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.slug === slug));
   allLayer.clearLayers(); topLayer.clearLayers(); byId = {};
+  drawContext(c);
+  const good = css('--good'), bad = css('--bad'), grey = css('--site');
   const bounds = [];
   c.sites.forEach(s => {
-    s.rings.forEach(r => r.forEach(([x, y]) => bounds.push([y, x])));
+    s.polys.forEach(p => p[0].forEach(([x, y]) => bounds.push([y, x])));
     const top = s.promising_rank || s.stale_rank;
-    const color = s.promising_rank ? COLORS.good : s.stale_rank ? COLORS.bad : '#8a8a85';
-    const poly = L.polygon(s.rings.map(r => r.map(([x, y]) => [y, x])),
-      {color, weight: top ? 2.5 : 1, fillOpacity: top ? 0.35 : 0.12});
+    const color = s.promising_rank ? good : s.stale_rank ? bad : grey;
+    const poly = L.polygon(ll(s.polys), {color, weight: top ? 2.5 : 1, fillOpacity: top ? 0.35 : 0.15});
     poly.bindPopup(popupHtml(s), {maxWidth: 340});
     (top ? topLayer : allLayer).addLayer(poly);
     byId[s.id] = {s, poly};
@@ -168,61 +239,69 @@ function drawCity(slug) {
       const n = s.promising_rank || s.stale_rank;
       const m = L.marker([s.lat, s.lon], {icon: L.divIcon({className: '', iconSize: [24, 24],
         html: `<div class="marker" style="background:${color}">${n}</div>`}),
-        title: `${s.promising_rank ? 'To check' : 'Likely stale'} #${n}, APN ${s.apn ?? 'unknown'}`, keyboard: true});
+        title: `${s.promising_rank ? 'To check' : 'Likely used'} #${n}, APN ${s.apn ?? 'unknown'}`, keyboard: true});
       m.on('click', () => poly.openPopup());
       topLayer.addLayer(m);
     }
   });
   if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]}); else map.setView(c.center, 13);
 
-  const nRecent = c.sites.filter(s => s.new_build).length;
+  const n = f => c.sites.filter(f).length;
   document.getElementById('stats').innerHTML =
-    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${nRecent}</b>with a recent building</div>
-     <div><b>${c.sites.filter(s => s.checks.some(k => k.status === 'fail')).length}</b>with a fail flag</div>`;
+    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div>
+     <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div>`;
 
-  const fill = (id, key, why) => {
+  const fill = (id, key, why, col) => {
     const rows = c.sites.filter(s => s[key]).sort((a, b) => a[key] - b[key]);
-    const el = document.getElementById(id);
-    el.innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
-      <span class="num" style="background:${key === 'promising_rank' ? COLORS.good : COLORS.bad}">${s[key]}</span>
+    document.getElementById(id).innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
+      <span class="num" style="background:${col}">${s[key]}</span>
       <span><b>APN ${fmt(s.apn)}</b><br><span class="why">${why(s)}</span></span>
       <span class="score">${key === 'promising_rank' ? s.promising : s.stale}</span></li>`).join('')
       : '<li class="empty">No sites with enough data to rank.</li>';
   };
-  fill('listPromising', 'promising_rank', whyPromising);
-  fill('listStale', 'stale_rank', whyStale);
-  document.getElementById('notes').innerHTML = c.notes.map(n => `<li>${esc(n)}</li>`).join('');
-  allLayer[document.getElementById('showAll').checked ? 'addTo' : 'remove'](map);
+  fill('listPromising', 'promising_rank', whyPromising, good);
+  fill('listStale', 'stale_rank', whyStale, bad);
+  document.getElementById('notes').innerHTML = c.notes.map(t => `<li>${esc(t)}</li>`).join('');
 }
 
 function focusSite(id) {
   const hit = byId[id]; if (!hit) return;
-  map.fitBounds(hit.poly.getBounds(), {maxZoom: 18, padding: [40, 40]});
+  map.fitBounds(hit.poly.getBounds(), {maxZoom: 17, padding: [40, 40]});
   hit.poly.openPopup();
 }
 
 function init() {
-  if (!DATA) { document.body.innerHTML = '<p style="padding:20px">No data. Run <code>python build.py</code>.</p>'; return; }
+  if (!DATA) { document.querySelector('.app').innerHTML = '<p style="padding:20px">No data. Run <code>python build.py</code>.</p>'; return; }
+  if (DATA.test_data) {
+    const b = document.getElementById('testBanner');
+    b.textContent = 'TEST DATA. Every site, APN, number and map shape here is made up to show how the tool works. Run fetch.py and build.py for real sites.';
+    b.hidden = false;
+  }
   const tabs = document.getElementById('tabs');
   Object.entries(DATA.cities).forEach(([slug, c]) => {
     const b = document.createElement('button');
-    b.textContent = c.name; b.dataset.slug = slug; b.onclick = () => drawCity(slug);
+    b.type = 'button'; b.textContent = c.name; b.dataset.slug = slug; b.onclick = () => drawCity(slug);
     tabs.appendChild(b);
   });
   ['listPromising', 'listStale'].forEach(id => {
     const el = document.getElementById(id);
-    el.addEventListener('click', e => { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); });
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); } });
+    const go = e => { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); };
+    el.addEventListener('click', go);
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') go(e); });
   });
-  document.getElementById('showAll').onchange = e => e.target.checked ? allLayer.addTo(map) : allLayer.remove();
+  document.getElementById('layers').addEventListener('change', e => {
+    const k = e.target.dataset.k; if (!k) return;
+    layerOn[k] = e.target.checked;
+    e.target.checked ? ctxGroups[k]?.addTo(map) : ctxGroups[k]?.remove();
+  });
   document.getElementById('assumptions').innerHTML = Object.entries(DATA.assumptions).map(([k, a]) =>
     `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
-  document.getElementById('built').textContent = `Built ${DATA.built}. Data: public layers listed above.`;
+  document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
   drawCity(Object.keys(DATA.cities)[0]);
 }
 init();
 </script>
-</body>
+<!--ARTIFACT-END-->
 </html>
