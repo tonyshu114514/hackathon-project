@@ -24,7 +24,7 @@ A static web map (`findit-map/`) that:
 - Marks "likely already used" sites (HCD-reported permit activity since 2021, or a building dated 2021+) and pending projects, with a filter to hide them.
 - Draws every check's source and fetch date on the page, and labels every weight and cutoff as an ASSUMPTION.
 
-**Demo video:** [link, or "uploaded on the hub"]
+**Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
 **Live demo:** open `findit-map/demo/index.html` from this repo in any browser (prebuilt, four cities, real data).
 
 ## How Claude is used
