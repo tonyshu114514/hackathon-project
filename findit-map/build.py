@@ -101,6 +101,18 @@ def points_feet(feats):
     return out
 
 
+def place_name(place, city):
+    """'Orange County Great Park, Barranca Parkway' from an OpenStreetMap reverse lookup."""
+    if not place or not place.get("display_name"):
+        return None
+    parts = [x.strip() for x in place["display_name"].split(",")]
+    road = place.get("road")
+    area = next((x for x in parts if x not in (road, city) and not x[:1].isdigit()), None)
+    if area in (None, city, "Orange County", "California"):
+        area = None
+    return ", ".join(x for x in (area, road) if x) or None
+
+
 def check(name, status, detail, source):
     return {"name": name, "status": status, "detail": detail, "source": source}
 
@@ -126,10 +138,11 @@ def build_city(slug, meta, notes_all):
     # Footprints
     fps = load(f"{slug}_footprints") or {}
     fp_total = sum(len(v or []) for v in fps.values())
-    fp_year = None
+    fp_year = fp_addr = None
     if fp_total:
         any_fp = next(f for v in fps.values() if v for f in v)
         fp_year = find_field(list(any_fp["attributes"].keys()), (), (("year",),))
+        fp_addr = find_field(list(any_fp["attributes"].keys()), ("Address",), (("addr",),))
     else:
         notes.append("Building footprints returned nothing for this city, so coverage is unknown.")
 
@@ -138,9 +151,13 @@ def build_city(slug, meta, notes_all):
     parcels = load(f"{slug}_parcels") or []
     p_apn = FIELD_OVERRIDES["parcel_apn"] or find_field(pm.get("fields", []), ("ASSESSMENT_NO",), (("apn",),))
     p_year = FIELD_OVERRIDES["parcel_year"] or find_field(pm.get("fields", []), ("YEAR_BUILT",), (("year",),))
-    year_by_apn = {}
+    year_by_apn, addr_by_apn = {}, {}
+    p_addr = find_field(pm.get("fields", []), ("SITE_ADDRESS",), (("addr",),))
     for r in parcels:
         a = r["attributes"]
+        ad = str(a.get(p_addr) or "").strip() if p_addr else ""
+        if ad and "NOT AVAILABLE" not in ad.upper() and digits(a.get(p_apn)):
+            addr_by_apn.setdefault(digits(a.get(p_apn)), ad)
         y = year(a.get(p_year)) if p_year else None
         k = digits(a.get(p_apn)) if p_apn else ""
         if k:
@@ -157,6 +174,7 @@ def build_city(slug, meta, notes_all):
 
     layers = {k: Layer(load(f"{slug}_{k}")) for k in ("flood", "fire_lra", "fire_sra", "landslide", "hqta",
                                                       "opportunity", "ces", "qct", "dda")}
+    places = load(f"{slug}_places") or {}
     apr_rows = load(f"{slug}_apr_a2")
     apr = apr_by_apn(apr_rows)
     cleanup_raw = load(f"{slug}_envirostor")
@@ -363,6 +381,24 @@ def build_city(slug, meta, notes_all):
                             f"{len(nearby)} LIHTC propert{'y' if len(nearby) == 1 else 'ies'} ({li_units} low-income units) "
                             f"within 1/2 mile." if nearby else "No LIHTC property within 1/2 mile.", "lihtc"))
 
+        # Display name: HCD project name, then assessor address, then a footprint address on the site.
+        proj = sorted((r for r in recs or [] if str(r.get("PROJECT_NAME") or "").strip()),
+                      key=lambda r: -((num(r.get("NO_BUILDING_PERMITS")) or 0) + (num(r.get("NO_ENTITLEMENTS")) or 0)))
+        address = addr_by_apn.get(apn_d)
+        fp_addrs = sorted({str(f["attributes"].get(fp_addr) or "").strip() for f in flist or []} - {""}) if fp_addr else []
+        if address:
+            address = re.sub(rf"\s+{city['name'].upper()}$", "", address).title()
+        if proj:
+            name = str(proj[0]["PROJECT_NAME"]).strip()
+        elif address:
+            name = address
+        elif place_name(places.get(key), city["name"]):
+            name = place_name(places.get(key), city["name"])
+        elif fp_addrs:
+            name = f"Near {fp_addrs[0].title()}"
+        else:
+            name = f"Unaddressed parcel {apn or ''}".strip()
+
         z = zoning.get(apn_d, {})
         low = num(a.get(f_low)) if f_low else None
 
@@ -404,7 +440,7 @@ def build_city(slug, meta, notes_all):
 
         c = shape.centroid
         out.append({
-            "id": key, "apn": apn, "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
+            "id": key, "apn": apn, "name": name, "address": address, "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
             "newest_year": newest, "new_build": new_build, "apr_status": apr_status,
             "apr": {"entitled": apr_ent, "permitted": apr_bp, "permitted_lower": apr_low_bp, "completed": apr_co},
             "oppcat": oppcat, "ces_pctl": ces_p, "lihtc_nearby": len(nearby),

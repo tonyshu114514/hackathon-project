@@ -10,7 +10,10 @@ import argparse
 import json
 import pathlib
 import re
+import time
 from datetime import date
+
+import requests
 
 from findit import arcgis, ckan
 from findit.geom import to_shape
@@ -153,6 +156,25 @@ def fetch_city(slug, meta):
             print(f"  {key}: {len(rows)} features")
         except Exception as e:
             print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+    # Place names from OpenStreetMap (Nominatim), used to label sites with no assessor address.
+    # Nominatim's policy is at most one request per second, so this takes about a minute per city.
+    def places():
+        out = {}
+        for s, sh in zip(sites, shapes):
+            if sh is None:
+                continue
+            pt = sh.representative_point()
+            try:
+                r = requests.get("https://nominatim.openstreetmap.org/reverse", headers=arcgis.UA, timeout=30,
+                                 params={"lat": pt.y, "lon": pt.x, "format": "jsonv2", "zoom": 17}).json()
+                out[str(s["attributes"].get(oid))] = {"road": r.get("address", {}).get("road"),
+                                                      "display_name": r.get("display_name")}
+            except Exception as e:
+                print(f"  place lookup failed for site {s['attributes'].get(oid)}: {e}")
+            time.sleep(1.1)
+        return out
+    print(f"  places: {len(cached(f'{slug}_places', places))} sites named")
 
     # HCD tables on data.ca.gov, matched by jurisdiction name.
     for key, filt, fields in (

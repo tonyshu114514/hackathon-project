@@ -82,6 +82,10 @@ SOURCES = {
         "label": "HUD LIHTC properties (existing tax-credit affordable housing)",
         "layer": "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/LIHTC/FeatureServer/0",
     },
+    "places": {
+        "label": "OpenStreetMap place names (Nominatim reverse geocoding), used only when a site has no assessor address",
+        "page": "https://nominatim.openstreetmap.org/",
+    },
 }
 
 # Tract-level and nearby-point layers, fetched over a wider box than the hazard layers.

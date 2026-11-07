@@ -143,7 +143,8 @@ function popupHtml(s) {
   const rows = s.checks.map(c => `<tr><td><b>${esc(c.name)}</b><br><span class="chip ${c.status}">${c.status}</span></td>
     <td>${esc(c.detail)}<div class="src">${srcLabel(c.source)}</div></td></tr>`).join('');
   const parts = Object.entries(s.promising_parts).map(([k, v]) => `${esc(k.replace(/_/g, ' '))} ${v > 0 ? '+' : ''}${v}`).join(', ');
-  return `<div class="pop"><h3>APN ${fmt(s.apn)}</h3>${tags.join(' ')}
+  return `<div class="pop"><h3>${esc(s.name)}</h3>
+    <p class="kv">APN ${fmt(s.apn)}${s.address && s.address !== s.name ? ' · ' + esc(s.address) : ''}</p>${tags.join(' ')}
     <p class="kv">${fmt(s.acres)} acres · coverage ${fmt(s.coverage, pct)} · newest building ${fmt(s.newest_year)}</p>
     <p class="kv">Zoning ${fmt(s.zoning_local)} (SCAG: ${fmt(s.zoning_scag)}) · slope ${fmt(s.slope)}</p>
     <p class="kv">Listed capacity, units. ${cap}</p>
@@ -193,7 +194,7 @@ function drawCity(slug) {
       const n = s.promising_rank || s.stale_rank;
       const m = L.marker([s.lat, s.lon], {icon: L.divIcon({className: '', iconSize: [24, 24],
         html: `<div class="marker" style="background:${color}">${n}</div>`}),
-        title: `${s.promising_rank ? 'To check' : 'Likely stale'} #${n}, APN ${s.apn ?? 'unknown'}`, keyboard: true});
+        title: `${s.promising_rank ? 'To check' : 'Likely stale'} #${n}: ${s.name}`, keyboard: true});
       m.on('click', () => poly.openPopup());
       topLayer.addLayer(m);
     }
@@ -222,7 +223,7 @@ function drawCity(slug) {
     const el = document.getElementById(id);
     el.innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
       <span class="num" style="background:${key === 'promising_rank' ? COLORS.good : COLORS.bad}">${s[key]}</span>
-      <span><b>APN ${fmt(s.apn)}</b><br><span class="why">${why(s)}</span></span>
+      <span><b>${esc(s.name)}</b><br><span class="why">APN ${fmt(s.apn)} · ${why(s)}</span></span>
       <span class="score">${key === 'promising_rank' ? s.promising : s.stale}</span></li>`).join('')
       : '<li class="empty">No sites with enough data to rank.</li>';
   };
