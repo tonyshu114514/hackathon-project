@@ -37,7 +37,18 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-.app{display:grid;grid-template-columns:380px minmax(0,1fr);height:100%}
+.app{display:grid;grid-template-columns:360px minmax(0,1fr) 380px;height:100%}
+aside.right{border-right:0;border-left:1px solid var(--line);padding-right:max(16px,env(safe-area-inset-right,0px));padding-left:16px}
+ol.top{list-style:none;margin:0;padding:0}
+ol.top>li{border:1px solid var(--line);border-radius:10px;margin-top:8px;overflow:hidden}
+ol.top>li.sel{border-color:var(--good);box-shadow:0 0 0 1px var(--good)}
+ol.top .head{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px;cursor:pointer;background:none;border:0;width:100%;text-align:left;font:inherit;color:var(--ink)}
+ol.top .head:hover,ol.top .head:focus-visible{background:var(--bg);outline:none}
+ol.top .head .city{font-size:11.5px;color:var(--muted)}
+ol.top .detail{display:none;padding:0 10px 10px;border-top:1px solid var(--line)}
+ol.top>li.sel .detail{display:block}
+ol.top .detail .pop{font-size:12.5px}
+.rightstats{font-size:12px;color:var(--muted);margin:0 0 6px}
 aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;min-width:0;
   padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
 #map{height:100%;min-height:320px}
@@ -124,7 +135,10 @@ details a{color:var(--ink);word-break:break-all}
 .leaflet-control-attribution a{color:var(--ink)}
 .marker{width:24px;height:24px;border-radius:50%;color:var(--on-accent);font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.35)}
 button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:760px){html,body{height:auto}.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
+@media (max-width:1100px){.app{grid-template-columns:320px minmax(0,1fr) 340px}}
+@media (max-width:900px){html,body{height:auto}.app{grid-template-columns:1fr;grid-template-rows:55vh auto auto;height:auto}
+  #map{height:55vh;order:-1}aside{border-right:0}aside.right{border-left:0;border-top:1px solid var(--line);order:1}}
+@media (max-width:760px){html,body{height:auto}.app{grid-template-columns:1fr;grid-template-rows:55vh auto auto;height:auto}
   #map{height:55vh;order:-1}aside{border-right:0}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -145,9 +159,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <div class="layers" id="layers"></div>
 
 
-  <h2><span class="dot" style="background:var(--good)"></span>Top 5 to check first</h2>
-  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Sites with a recent building or reported permit activity are left out.</p>
-  <ol class="rank" id="listPromising"></ol>
+  <p class="hint">The ten best sites to check first are listed on the right. Numbered green markers on the map match the list.</p>
 
   <h2><span class="dot" style="background:var(--bad)"></span>Likely already used</h2>
   <label class="toggle"><input type="checkbox" id="hideUsed" checked> <span id="hideUsedLabel">Hide likely-used sites</span></label>
@@ -169,6 +181,12 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <p class="sub" id="built"></p>
 </aside>
 <div id="map" aria-label="Map of sites"></div>
+<aside class="right" aria-label="Top 10 sites">
+  <h1>Top 10 sites to check first</h1>
+  <p class="rightstats" id="rightstats"></p>
+  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are left out. Click a site to go to it on the map and see its details.</p>
+  <ol class="top" id="top10"></ol>
+</aside>
 </div>
 
 <script>
@@ -284,7 +302,7 @@ function rankSelected(cities) {
   const sites = cities.flatMap(c => c.sites);
   sites.forEach(s => { s.promising_rank = null; });
   sites.filter(s => !likelyUsed(s)).sort((a, b) => b.promising - a.promising)
-    .slice(0, 5).forEach((s, i) => { s.promising_rank = i + 1; });
+    .slice(0, 10).forEach((s, i) => { s.promising_rank = i + 1; });
   return sites;
 }
 
@@ -374,6 +392,7 @@ function draw(opts = {}) {
     const color = top ? good : used ? bad : grey;
     const poly = L.polygon(ll(s.polys), {color, weight: top ? 2.5 : used ? 1.5 : 1, fillOpacity: top ? 0.35 : used ? 0.25 : 0.15});
     poly.bindPopup(popupHtml(s), {maxWidth: 340});
+    if (top) poly.on('popupopen', () => selectCard(s.id, true));
     (top ? topLayer : allLayer).addLayer(poly);
     byId[s.id] = {s, poly};
     if (s.pending) {
@@ -411,15 +430,18 @@ function draw(opts = {}) {
     `<div><b>${sites.length}</b>listed sites${multi ? ` in ${cities.length} cities` : ''}</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div><div><b>${n(s => s.pending)}</b>pending</div>
      <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div>`;
 
-  const fill = (id, key, why, col) => {
-    const rows = sites.filter(s => s[key]).sort((a, b) => a[key] - b[key]);
-    document.getElementById(id).innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
-      <span class="num" style="background:${col}">${s[key]}</span>
-      <span><b>${esc(s.name)}</b>${s.pending ? ' <span class="chip pending">! pending project</span>' : ''}${multi ? ` <span class="why">· ${esc(cityOf[s.id])}</span>` : ''}<br><span class="why">APN ${fmt(s.apn)} · ${why(s)}</span></span>
-      <span class="score">${s.promising}</span></li>`).join('')
-      : `<li class="empty">${sites.length ? 'No sites with enough data to rank.' : `No ${cities.map(c => esc(c.name)).join(' or ')} sites in the housing-element inventory.`}</li>`;
-  };
-  fill('listPromising', 'promising_rank', whyPromising, good);
+  const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
+  document.getElementById('rightstats').textContent = ranked.length
+    ? `Ranked from ${sites.filter(s => !likelyUsed(s)).length} eligible sites in ${cities.map(c => c.name).join(', ')}.`
+    : 'No sites with enough data to rank in the selected cities.';
+  document.getElementById('top10').innerHTML = ranked.map(s => `<li data-id="${esc(s.id)}">
+    <button type="button" class="head" aria-expanded="false">
+      <span class="num" style="background:${good}">${s.promising_rank}</span>
+      <span><b>${esc(s.name)}</b>${s.pending ? ' <span class="chip pending">pending</span>' : ''}<br>
+        <span class="city">${esc(cityOf[s.id])} · APN ${fmt(s.apn)}</span><br><span class="why">${whyPromising(s)}</span></span>
+      <span class="score">${s.promising.toFixed(2)}</span>
+    </button>
+    <div class="detail"></div></li>`).join('');
   document.getElementById('notes').innerHTML = cities.flatMap(c => c.notes.map(t => `<li>${multi ? '<b>' + esc(c.name) + ':</b> ' : ''}${esc(t)}</li>`)).join('');
 }
 
@@ -429,10 +451,21 @@ function toggleCity(slug) {
   draw();
 }
 
+function selectCard(id, scroll) {
+  document.querySelectorAll('#top10 > li').forEach(li => {
+    const on = li.dataset.id === id;
+    li.classList.toggle('sel', on);
+    li.querySelector('.head').setAttribute('aria-expanded', on);
+    const d = li.querySelector('.detail');
+    if (on && !d.innerHTML) d.innerHTML = popupHtml(byId[id].s);
+    if (on && scroll) li.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+  });
+}
 function focusSite(id) {
   const hit = byId[id]; if (!hit) return;
-  map.fitBounds(hit.poly.getBounds(), {maxZoom: 17, padding: [40, 40]});
-  hit.poly.openPopup();
+  selectCard(id, false);
+  hit.poly.openPopup();  // open first; the popup stays anchored to the site during the fly
+  map.flyToBounds(hit.poly.getBounds(), {maxZoom: 17, padding: [40, 40], duration: .8});
 }
 
 function init() {
@@ -456,11 +489,11 @@ function init() {
   all.type = 'button'; all.textContent = 'All'; all.className = 'all'; all.title = 'Select every city';
   all.onclick = () => { Object.keys(DATA.cities).forEach(k => selected.add(k)); draw(); };
   tabs.appendChild(all);
-  ['listPromising'].forEach(id => {
-    const el = document.getElementById(id);
-    const go = e => { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); };
-    el.addEventListener('click', go);
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') go(e); });
+  document.getElementById('top10').addEventListener('click', e => {
+    const head = e.target.closest('.head'); if (!head) return;
+    const li = head.closest('li[data-id]');
+    if (li.classList.contains('sel')) { li.classList.remove('sel'); head.setAttribute('aria-expanded', 'false'); map.closePopup(); return; }
+    focusSite(li.dataset.id);
   });
   const hide = document.getElementById('hideUsed');
   hide.checked = loadHideUsed();
@@ -475,7 +508,7 @@ function init() {
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
   document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
-  selected.add(Object.keys(DATA.cities)[0]);
+  Object.keys(DATA.cities).forEach(k => selected.add(k));
   draw();
 }
 init();
