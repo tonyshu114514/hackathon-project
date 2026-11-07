@@ -12,6 +12,16 @@
   --good:#1f7a4d;--good-bg:#e4f3ea;--bad:#b3261e;--bad-bg:#fbe7e5;
   --warn:#8a5a00;--warn-bg:#fdf0d6;--unk:#55606e;--unk-bg:#eceef1;--accent:#1d1d1b;
 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161615;--panel:#1f1f1d;--ink:#ecebe6;--muted:#a3a29b;--line:#34332f;
+  --good:#5cc08a;--good-bg:#183a28;--bad:#f0857c;--bad-bg:#43201d;
+  --warn:#e8b65a;--warn-bg:#3d2f12;--unk:#b3bcc8;--unk-bg:#2a2d31;--accent:#ecebe6}}
+:root[data-theme="dark"]{
+  --bg:#161615;--panel:#1f1f1d;--ink:#ecebe6;--muted:#a3a29b;--line:#34332f;
+  --good:#5cc08a;--good-bg:#183a28;--bad:#f0857c;--bad-bg:#43201d;
+  --warn:#e8b65a;--warn-bg:#3d2f12;--unk:#b3bcc8;--unk-bg:#2a2d31;--accent:#ecebe6}
+.tabs button[aria-pressed=true]{color:var(--bg)!important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -54,6 +64,12 @@ details a{color:var(--ink);word-break:break-all}
 .pop .kv{font-size:12px;color:var(--muted);margin:0}
 .pop .src{font-size:10.5px;color:var(--muted)}
 .leaflet-popup-content{width:320px!important;max-height:360px;overflow:auto}
+.rhna{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:12px}
+.rhna .row{display:grid;grid-template-columns:78px 1fr 92px;gap:8px;align-items:center;margin-top:5px}
+.bar{height:8px;background:var(--unk-bg);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--good)}
+.rhna .lbl{color:var(--muted)}.rhna .val{text-align:right;font-variant-numeric:tabular-nums}
+.legend-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .marker{width:24px;height:24px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:55vh auto;height:auto}
   #map{height:55vh;order:-1}aside{border-right:0}}
@@ -63,20 +79,23 @@ details a{color:var(--ink);word-break:break-all}
 <div class="app">
 <aside>
   <h1>Find It: Site Screener</h1>
-  <p class="sub">Housing-element sites in Irvine, Santa Ana and Costa Mesa, ranked two ways.</p>
+  <p class="sub">Housing-element sites, ranked two ways, with HCD permit, opportunity, pollution and contamination checks.</p>
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
   <div class="tabs" id="tabs" role="group" aria-label="City"></div>
   <div class="stats" id="stats"></div>
+  <div class="rhna" id="rhna"></div>
   <div class="toggles">
     <label><input type="checkbox" id="showAll" checked> All listed sites</label>
+    <label><input type="checkbox" id="showCleanups"> <span class="legend-dot" style="background:#7b3fa0"></span>Cleanup sites</label>
+    <label><input type="checkbox" id="showLihtc"> <span class="legend-dot" style="background:#1f5fa8"></span>LIHTC housing</label>
   </div>
 
   <h2><span class="dot" style="background:var(--good)"></span>Top 5 to check first</h2>
-  <p class="hint">Open land, lower-income capacity, size and transit, minus hazard penalties. Sites with a recent building are left out.</p>
+  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Sites with a recent building, or permitted or entitled since 2021 per HCD, are left out.</p>
   <ol class="rank" id="listPromising"></ol>
 
   <h2><span class="dot" style="background:var(--bad)"></span>Top 5 likely stale</h2>
-  <p class="hint">Listed sites that may already be built on: a building dated at or after the cutoff year, then high footprint coverage.</p>
+  <p class="hint">Listed sites that may already be used: a building dated at or after the cutoff year, units the city reported to HCD as permitted, completed or entitled, then high footprint coverage.</p>
   <ol class="rank" id="listStale"></ol>
   <ul class="notes" id="notes"></ul>
 
@@ -86,8 +105,9 @@ details a{color:var(--ink);word-break:break-all}
     <ul>
       <li>Ownership and willingness to sell. Parcel data has no owner field here.</li>
       <li>Which state law (SB 9, SB 684, AB 2011, SB 4) applies. Hazard flags are screening signals, not each law's legal tests.</li>
-      <li>Contamination, water and sewer capacity, and city objective standards.</li>
-      <li>Whether a site was permitted after listing (HCD Annual Progress Report data is a good next check).</li>
+      <li>Contamination beyond DTSC EnviroStor (State Water Board GeoTracker leak sites are not loaded), and any Phase I review.</li>
+      <li>Water and sewer capacity, and city objective standards.</li>
+      <li>Permits the city has not yet reported to HCD; APR data lags by up to a year, and matching is by APN only.</li>
     </ul>
   </details>
   <p class="sub" id="built"></p>
@@ -107,6 +127,7 @@ const map = L.map('map', {zoomControl: true});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
 let allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map);
+let cleanupLayer = L.layerGroup(), lihtcLayer = L.layerGroup();
 let current = null, byId = {};
 
 function srcLabel(keys) {
@@ -126,6 +147,7 @@ function popupHtml(s) {
     <p class="kv">${fmt(s.acres)} acres · coverage ${fmt(s.coverage, pct)} · newest building ${fmt(s.newest_year)}</p>
     <p class="kv">Zoning ${fmt(s.zoning_local)} (SCAG: ${fmt(s.zoning_scag)}) · slope ${fmt(s.slope)}</p>
     <p class="kv">Listed capacity, units. ${cap}</p>
+    <p class="kv">Opportunity ${fmt(s.oppcat)} · CalEnviroScreen pctl ${fmt(s.ces_pctl, v => Math.round(v))} · LIHTC within ½ mi ${fmt(s.lihtc_nearby)}</p>
     <p class="kv">Screen score ${s.promising} = ${parts || 'no components'} <i>(ASSUMPTION weights)</i></p>
     <table>${rows}</table>
     <p class="src">Site from ${srcLabel('he_sites')}. Site centroid ${s.lat}, ${s.lon}.</p></div>`;
@@ -137,12 +159,15 @@ function whyPromising(s) {
   if (s.lower !== null) bits.push(`${s.lower} lower-inc. units`);
   bits.push(`${s.acres} ac`);
   if (s.promising_parts.transit) bits.push('transit');
+  if (s.promising_parts.high_opportunity) bits.push(s.oppcat.toLowerCase());
   const flags = s.checks.filter(c => c.status === 'fail' || c.status === 'caution').map(c => c.name.toLowerCase());
   if (flags.length) bits.push('flags: ' + flags.join(', '));
   return bits.join(' · ');
 }
 function whyStale(s) {
   const bits = [];
+  if (s.apr_status === 'built' || s.apr_status === 'small') bits.push(`${s.apr.permitted + s.apr.completed} units permitted/completed (HCD)`);
+  else if (s.apr_status === 'entitled') bits.push(`${s.apr.entitled} units entitled (HCD)`);
   if (s.new_build) bits.push(`building from ${s.newest_year}`);
   else if (s.newest_year) bits.push(`newest building ${s.newest_year}`);
   if (s.coverage !== null) bits.push(`${pct(s.coverage)} covered`);
@@ -175,9 +200,21 @@ function drawCity(slug) {
   });
   if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]}); else map.setView(c.center, 13);
 
-  const nRecent = c.sites.filter(s => s.new_build).length;
+  cleanupLayer.clearLayers(); lihtcLayer.clearLayers();
+  (c.context.cleanups || []).forEach(p => L.circleMarker([p.lat, p.lon], {radius: 5, color: '#7b3fa0', weight: 1.5, fillOpacity: .6})
+    .bindTooltip(`EnviroStor: ${esc(p.name)}<br>${esc(p.type)}, ${esc(p.status)}`).addTo(cleanupLayer));
+  (c.context.lihtc || []).forEach(p => L.circleMarker([p.lat, p.lon], {radius: 6, color: '#1f5fa8', weight: 1.5, fillOpacity: .6})
+    .bindTooltip(`LIHTC: ${esc(p.name)}<br>${fmt(p.units)} low-income units, in service ${fmt(p.year)}`).addTo(lihtcLayer));
+  const r = c.context.rhna;
+  document.getElementById('rhna').innerHTML = r ? `<b>RHNA progress, ${esc(r['Planning Period'])}</b> <span class="lbl">(HCD, units permitted / goal)</span>` +
+    [['Very low', 'VLI UNITS', 'RHNA VLI'], ['Low', 'LI UNITS', 'RHNA LI'], ['Moderate', 'MOD UNITS', 'RHNA MOD'], ['Above mod.', 'ABOVE MOD UNITS', 'RHNA ABOVE MOD']]
+      .map(([n, a, b]) => { const pc = r[b] ? Math.min(r[a] / r[b], 1) : 0;
+        return `<div class="row"><span class="lbl">${n}</span><span class="bar"><span style="width:${(pc * 100).toFixed(1)}%"></span></span>
+          <span class="val">${(+r[a]).toLocaleString()} / ${(+r[b]).toLocaleString()}</span></div>`; }).join('')
+    : '<span class="lbl">RHNA progress not available.</span>';
+  const nRecent = c.sites.filter(s => s.new_build || s.apr_status === 'built').length;
   document.getElementById('stats').innerHTML =
-    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${nRecent}</b>with a recent building</div>
+    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${nRecent}</b>built or permitted since 2021</div>
      <div><b>${c.sites.filter(s => s.checks.some(k => k.status === 'fail')).length}</b>with a fail flag</div>`;
 
   const fill = (id, key, why) => {
@@ -215,6 +252,8 @@ function init() {
     el.addEventListener('keydown', e => { if (e.key === 'Enter') { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); } });
   });
   document.getElementById('showAll').onchange = e => e.target.checked ? allLayer.addTo(map) : allLayer.remove();
+  document.getElementById('showCleanups').onchange = e => e.target.checked ? cleanupLayer.addTo(map) : cleanupLayer.remove();
+  document.getElementById('showLihtc').onchange = e => e.target.checked ? lihtcLayer.addTo(map) : lihtcLayer.remove();
   document.getElementById('assumptions').innerHTML = Object.entries(DATA.assumptions).map(([k, a]) =>
     `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>

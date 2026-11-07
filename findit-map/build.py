@@ -11,7 +11,7 @@ from shapely.strtree import STRtree
 
 from findit.arcgis import find_field
 from findit.geom import to_feet, to_rings, to_shape, union
-from findit.sources import ASSUMPTIONS, CITIES, FIELD_OVERRIDES, SOURCES
+from findit.sources import AREA_LAYERS, ASSUMPTIONS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
 OUT_HTML = pathlib.Path("site/index.html")
@@ -68,6 +68,39 @@ class Layer:
         return sorted(out, key=lambda t: -t[0])
 
 
+def apr_by_apn(rows):
+    """APR Table A2 rows from the cutoff year on, indexed by every APN digit string they mention."""
+    out = {}
+    for r in rows or []:
+        if (num(r.get("YEAR")) or 0) < A["stale_year_cutoff"]:
+            continue
+        for part in re.split(r"[,;&/]| and ", f"{r.get('APN') or ''},{r.get('PRIOR_APN') or ''}"):
+            if len(d := digits(part)) >= 7:
+                out.setdefault(d, []).append(r)
+    return out
+
+
+def units(r, prefix, kinds):
+    return int(sum(num(r.get(f"{prefix}{k}")) or 0 for k in kinds))
+
+
+LOWER = ("ACUTELY_LOW_INCOME_DR", "ACUTELY_LOW_INCOME_NDR", "EXTREMELY_LOW_INCOME_DR", "EXTREMELY_LOW_INCOME_NDR",
+         "VLOW_INCOME_DR", "VLOW_INCOME_NDR", "LOW_INCOME_DR", "LOW_INCOME_NDR")
+CO_ALL = ("ACUTELY_LOW_INCOME_DR", "ACUTELY_LOW_INCOME_NDR", "EXTREMELY_LOW_INCOME_DR", "EXTREMELY_LOW_INCOME_NDR",
+          "VLOW_INCOME_DR", "VLOW_INCOME_NDR", "LOW_INCOME_DR", "LOW_INCOME_NDR", "MOD_INCOME_DR",
+          "MOD_INCOME_NDR", "ABOVE_MOD_INCOME")
+
+
+def points_feet(feats):
+    """[(point in feet, attrs)] for a point layer."""
+    out = []
+    for f in feats or []:
+        sh = to_shape(f.get("geometry"))
+        if sh is not None and not sh.is_empty:
+            out.append((to_feet(sh), f.get("attributes", {})))
+    return out
+
+
 def check(name, status, detail, source):
     return {"name": name, "status": status, "detail": detail, "source": source}
 
@@ -122,7 +155,14 @@ def build_city(slug, meta, notes_all):
     zrows = load(f"{slug}_zoning") or []
     zoning = {digits(r["attributes"].get("APN24")): r["attributes"] for r in zrows}
 
-    layers = {k: Layer(load(f"{slug}_{k}")) for k in ("flood", "fire_lra", "fire_sra", "landslide", "hqta")}
+    layers = {k: Layer(load(f"{slug}_{k}")) for k in ("flood", "fire_lra", "fire_sra", "landslide", "hqta",
+                                                      "opportunity", "ces", "qct", "dda")}
+    apr_rows = load(f"{slug}_apr_a2")
+    apr = apr_by_apn(apr_rows)
+    cleanup_raw = load(f"{slug}_envirostor")
+    cleanups = points_feet(cleanup_raw)
+    lihtc = points_feet(load(f"{slug}_lihtc"))
+    rhna = (load(f"{slug}_rhna") or [None])[0]
     for k, l in layers.items():
         if not l.ok:
             notes.append(f"{SOURCES[k]['label']} did not download, so that check shows unknown.")
@@ -227,6 +267,102 @@ def build_city(slug, meta, notes_all):
                             "In a High Quality Transit Area." if transit else "Not in a High Quality Transit Area.",
                             "hqta"))
 
+        # Permits reported to HCD since the cutoff (APR Table A2), matched by APN
+        recs = apr.get(apn_d, []) if apr_rows is not None else None
+        apr_bp = apr_co = apr_ent = apr_low_bp = 0
+        if recs is None:
+            checks.append(check("Permits since listing", "unknown", "APR data not loaded.", "apr_a2"))
+        else:
+            apr_ent = sum(int(num(r.get("NO_ENTITLEMENTS")) or 0) for r in recs)
+            apr_bp = sum(int(num(r.get("NO_BUILDING_PERMITS")) or 0) for r in recs)
+            apr_co = sum(units(r, "CO_", CO_ALL) for r in recs)
+            apr_low_bp = sum(units(r, "BP_", LOWER) for r in recs)
+            names = sorted({str(r.get("PROJECT_NAME") or r.get("STREET_ADDRESS") or "").strip()[:70] for r in recs} - {""})
+            years = sorted({int(num(r["YEAR"])) for r in recs})
+            if apr_bp + apr_co:
+                big = apr_bp + apr_co >= A["apr_min_units"]
+                checks.append(check("Permits since listing", "fail" if big else "caution",
+                                    f"City reported {apr_bp} units permitted ({apr_low_bp} lower-income) and "
+                                    f"{apr_co} completed on this APN in {years[0]}-{years[-1]}"
+                                    + (f": {'; '.join(names[:2])}." if names else "."), "apr_a2"))
+            elif apr_ent:
+                checks.append(check("Permits since listing", "caution",
+                                    f"{apr_ent} units entitled on this APN ({years[0]}-{years[-1]}), no permit yet"
+                                    + (f": {'; '.join(names[:2])}." if names else "."), "apr_a2"))
+            else:
+                checks.append(check("Permits since listing", "pass",
+                                    f"No APR Table A2 record for this APN since {A['stale_year_cutoff']}.", "apr_a2"))
+        apr_status = ("built" if apr_bp + apr_co >= A["apr_min_units"] else "small" if apr_bp + apr_co
+                      else "entitled" if apr_ent else None)
+
+        # Contamination: DTSC EnviroStor cleanup sites on or near the site
+        on_site, near = [], []
+        for pt, at in cleanups:
+            dist = ft.distance(pt)
+            label = f"{at.get('project_name')} ({at.get('site_type')}, {at.get('status')})"
+            if dist == 0:
+                on_site.append(label)
+            elif dist <= A["cleanup_near_feet"]:
+                near.append((dist, label))
+        if cleanup_raw is None:
+            checks.append(check("Contamination", "unknown", "EnviroStor layer not loaded.", "envirostor"))
+        elif on_site:
+            checks.append(check("Contamination", "fail", f"EnviroStor cleanup site on the parcel: {on_site[0]}.", "envirostor"))
+        elif near:
+            dist, label = min(near)
+            checks.append(check("Contamination", "caution",
+                                f"{len(near)} EnviroStor cleanup site(s) within {A['cleanup_near_feet']} ft; nearest "
+                                f"{dist:.0f} ft: {label}.", "envirostor"))
+        else:
+            checks.append(check("Contamination", "pass",
+                                f"No EnviroStor cleanup site within {A['cleanup_near_feet']} ft.", "envirostor"))
+
+        # Neighborhood context: tract layers use the site centroid
+        cen = shape.representative_point()
+
+        def tract(key):
+            l = layers[key]
+            if not l.ok or not l.tree:
+                return None
+            for i in l.tree.query(cen):
+                if l.shapes[i].contains(cen):
+                    return l.attrs[i]
+            return {}
+
+        opp = tract("opportunity")
+        oppcat = (opp or {}).get("oppcat")
+        high_opp = oppcat in ("Highest Resource", "High Resource")
+        checks.append(check("Opportunity area", "unknown" if opp is None else "pass" if high_opp else "info",
+                            "Opportunity map not loaded." if opp is None else
+                            f"CTCAC/HCD 2025 category: {oppcat or 'not categorized'} (tract {opp.get('fips')})."
+                            + (" Favored for new family LIHTC housing." if high_opp else ""), "opportunity"))
+
+        ces = tract("ces")
+        ces_p = num((ces or {}).get("CIscoreP"))
+        burden = ces_p is not None and ces_p >= A["ces_burden_pctl"]
+        checks.append(check("Pollution burden", "unknown" if ces_p is None else "caution" if burden else "pass",
+                            "CalEnviroScreen score not available for this tract." if ces_p is None else
+                            f"CalEnviroScreen 5.0 percentile {ces_p:.0f}"
+                            + (" (disadvantaged community: pair housing with mitigation)." if burden else "."), "ces"))
+
+        qct, dda = tract("qct"), tract("dda")
+        boost = bool(qct) or bool(dda)
+        if qct is None and dda is None:
+            checks.append(check("Tax credit boost", "unknown", "HUD QCT/DDA layers not loaded.", "qct,dda"))
+        else:
+            kinds = [k for k, v in (("Qualified Census Tract", qct), ("Difficult Development Area", dda)) if v]
+            checks.append(check("Tax credit boost", "pass" if boost else "info",
+                                f"HUD 2026 {' and '.join(kinds)}: up to 30% more LIHTC eligible basis"
+                                + (" (DDAs here are ZIP-wide, so most nearby sites share this)." if not qct else ".")
+                                if boost else
+                                "Not in a 2026 HUD QCT or DDA.", "qct,dda"))
+
+        nearby = [at for pt, at in lihtc if ft.distance(pt) <= A["lihtc_radius_feet"]]
+        li_units = int(sum(num(at.get("LI_UNITS")) or 0 for at in nearby))
+        checks.append(check("Existing affordable", "info",
+                            f"{len(nearby)} LIHTC propert{'y' if len(nearby) == 1 else 'ies'} ({li_units} low-income units) "
+                            f"within 1/2 mile." if nearby else "No LIHTC property within 1/2 mile.", "lihtc"))
+
         z = zoning.get(apn_d, {})
         low = num(a.get(f_low)) if f_low else None
 
@@ -248,18 +384,30 @@ def build_city(slug, meta, notes_all):
             parts["fire_other"] = w["fire_other"]
         if slide:
             parts["landslide"] = w["landslide"]
+        if high_opp:
+            parts["high_opportunity"] = w["high_opportunity"]
+        if boost:
+            parts["tax_credit_boost"] = w["tax_credit_boost"]
+        if on_site:
+            parts["cleanup_on_site"] = w["cleanup_on_site"]
+        elif near:
+            parts["cleanup_nearby"] = w["cleanup_nearby"]
+        if burden:
+            parts["pollution_burden"] = w["pollution_burden"]
         promising = round(sum(parts.values()), 3)
 
         ws = A["weights_stale"]
         stale = None
-        if newest is not None or cov is not None:
-            stale = round(ws["new_building"] * new_build +
+        if newest is not None or cov is not None or recs is not None:
+            stale = round(ws["new_building"] * new_build + ws["apr_activity"] * {"built": 1, "entitled": 0.5, "small": 0.25}.get(apr_status, 0) +
                           ws["coverage"] * (min(cov / A["coverage_full"], 1) if cov is not None else 0), 3)
 
         c = shape.centroid
         out.append({
             "id": key, "apn": apn, "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
-            "newest_year": newest, "new_build": new_build,
+            "newest_year": newest, "new_build": new_build, "apr_status": apr_status,
+            "apr": {"entitled": apr_ent, "permitted": apr_bp, "permitted_lower": apr_low_bp, "completed": apr_co},
+            "oppcat": oppcat, "ces_pctl": ces_p, "lihtc_nearby": len(nearby),
             "lower": low, "moderate": num(a.get(f_mod)) if f_mod else None,
             "above": num(a.get(f_abv)) if f_abv else None,
             "zoning_local": z.get("ZN24_CITY"), "zoning_scag": z.get("ZN24_SCAG"), "slope": z.get("SLOPE"),
@@ -267,20 +415,32 @@ def build_city(slug, meta, notes_all):
             "stale": stale, "lat": round(c.y, 6), "lon": round(c.x, 6), "rings": to_rings(shape),
         })
 
-    pool = [s for s in out if not s["new_build"]]
+    pool = [s for s in out if not s["new_build"] and s["apr_status"] not in ("built", "entitled")]
+    if cleanup_raw is None:
+        notes.append("EnviroStor did not download, so contamination shows unknown.")
     for r, s in enumerate(sorted(pool, key=lambda s: -s["promising"])[:5], 1):
         s["promising_rank"] = r
     st = [s for s in out if s["stale"]]
     for r, s in enumerate(sorted(st, key=lambda s: (-s["stale"], -(s["coverage"] or 0)))[:5], 1):
         s["stale_rank"] = r
-    if not any(s["new_build"] for s in out) and st:
+    if not any(s["new_build"] or s["apr_status"] for s in out) and st:
         notes.append("No site has a building from the cutoff year or later; the 'stale' list is ranked on coverage only.")
 
     lat = sum(s["lat"] for s in out) / len(out)
     lon = sum(s["lon"] for s in out) / len(out)
     print(f"  {len(out)} sites scored; {sum(s['new_build'] for s in out)} with a recent building")
     notes_all[slug] = notes
-    return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out,
+    pts = lambda feats, f: [{"lat": round(g["y"], 6), "lon": round(g["x"], 6), **f(a)}
+                            for x in feats or [] if (g := x.get("geometry")) and "x" in g for a in [x["attributes"]]]
+    context = {
+        "cleanups": pts(cleanup_raw, lambda a: {"name": a.get("project_name"),
+                        "type": a.get("site_type"), "status": a.get("status")}),
+        "lihtc": pts(load(f"{slug}_lihtc"), lambda a: {"name": a.get("PROJECT"), "units": a.get("LI_UNITS"),
+                     "year": a.get("YR_PIS")}),
+        "rhna": rhna and {k: rhna.get(k) for k in ("Planning Period", "VLI UNITS", "RHNA VLI", "LI UNITS", "RHNA LI",
+                                                   "MOD UNITS", "RHNA MOD", "ABOVE MOD UNITS", "RHNA ABOVE MOD")},
+    }
+    return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out, "context": context,
             "fields": {"apn": f_apn, "lower": f_low, "moderate": f_mod, "above": f_abv,
                        "parcel_year": p_year, "flood_zone": f_fld, "fire_class": f_fire}}
 
@@ -292,7 +452,7 @@ def main():
     if not cities:
         raise SystemExit("Nothing to build. Run fetch.py first.")
     sources = {k: {"label": SOURCES[k]["label"], "url": meta.get(k, {}).get("url") or
-                   SOURCES[k].get("layer") or SOURCES[k].get("service"),
+                   SOURCES[k].get("layer") or SOURCES[k].get("service") or SOURCES[k].get("page"),
                    "fetched": meta.get(k, {}).get("fetched", "not fetched")} for k in SOURCES}
     payload = {"built": date.today().isoformat(), "cities": cities, "sources": sources,
                "assumptions": ASSUMPTIONS}

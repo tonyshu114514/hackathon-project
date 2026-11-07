@@ -12,9 +12,9 @@ import pathlib
 import re
 from datetime import date
 
-from findit import arcgis
+from findit import arcgis, ckan
 from findit.geom import to_shape
-from findit.sources import CITIES, FIELD_OVERRIDES, SOURCES
+from findit.sources import AREA_LAYERS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
 CACHE.mkdir(parents=True, exist_ok=True)
@@ -142,6 +142,43 @@ def fetch_city(slug, meta):
             print(f"  {key}: {len(rows)} polygons")
         except Exception as e:
             print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+    # Tract and nearby-point layers: a wider box so points just outside a site still count.
+    wide = (bbox[0] - 0.012, bbox[1] - 0.012, bbox[2] + 0.012, bbox[3] + 0.012)
+    for key in AREA_LAYERS:
+        try:
+            lurl, _ = layer(key, meta)
+            rows = cached(f"{slug}_{key}", lambda lurl=lurl: arcgis.query_all(
+                lurl, spatial=arcgis.envelope(wide), max_offset=0.00005))
+            print(f"  {key}: {len(rows)} features")
+        except Exception as e:
+            print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+    # HCD tables on data.ca.gov, matched by jurisdiction name.
+    for key, filt, fields in (
+            ("apr_a2", {"JURIS_NAME": city["match"]}, APR_FIELDS),
+            ("rhna", {"Jurisdiction": city["match"]}, None)):
+        try:
+            rows = cached(f"{slug}_{key}", lambda key=key, filt=filt, fields=fields:
+                          ckan.search_all(SOURCES[key]["ckan"], filt, fields))
+            if key not in meta:
+                meta[key] = {"url": SOURCES[key]["page"], "label": SOURCES[key]["label"],
+                             "fetched": date.today().isoformat()}
+                save_meta(meta)
+            print(f"  {key}: {len(rows)} rows")
+        except Exception as e:
+            print(f"  ! {key} failed ({e}). The map will show this check as unknown.")
+
+
+APR_FIELDS = ["YEAR", "APN", "PRIOR_APN", "STREET_ADDRESS", "PROJECT_NAME", "UNIT_CAT", "TENURE",
+              "NO_ENTITLEMENTS", "ENT_APPROVE_DT1", "NO_BUILDING_PERMITS", "BP_ISSUE_DT1", "CO_ISSUE_DT1",
+              "BP_ACUTELY_LOW_INCOME_DR", "BP_ACUTELY_LOW_INCOME_NDR", "BP_EXTREMELY_LOW_INCOME_DR",
+              "BP_EXTREMELY_LOW_INCOME_NDR", "BP_VLOW_INCOME_DR", "BP_VLOW_INCOME_NDR",
+              "BP_LOW_INCOME_DR", "BP_LOW_INCOME_NDR", "BP_MOD_INCOME_DR", "BP_MOD_INCOME_NDR",
+              "BP_ABOVE_MOD_INCOME", "CO_ACUTELY_LOW_INCOME_DR", "CO_ACUTELY_LOW_INCOME_NDR",
+              "CO_EXTREMELY_LOW_INCOME_DR", "CO_EXTREMELY_LOW_INCOME_NDR", "CO_VLOW_INCOME_DR", "CO_VLOW_INCOME_NDR", "CO_LOW_INCOME_DR",
+              "CO_LOW_INCOME_NDR", "CO_MOD_INCOME_DR", "CO_MOD_INCOME_NDR", "CO_ABOVE_MOD_INCOME",
+              "LATITUDE", "LONGITUDE"]
 
 
 def main():

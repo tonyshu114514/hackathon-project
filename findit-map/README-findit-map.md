@@ -1,6 +1,6 @@
 # Find It: Site Screener map
 
-A map of Irvine, Santa Ana and Costa Mesa housing-element sites, ranked two ways:
+A map of Irvine housing-element sites, ranked two ways:
 
 - **Top 5 to check first**: open land, lower-income capacity, size and transit, minus hazard penalties.
 - **Top 5 likely stale**: listed sites that may already be built on (a building dated at or after the
@@ -47,6 +47,13 @@ Also watch for these lines from `fetch.py`:
 | Fire | OC Fire Hazard Severity Zones LRA; CAL FIRE SRA (statewide, older vintage) |
 | Landslide | CGS Landslide Zones |
 | Transit | Caltrans High Quality Transit Areas |
+| Permits since listing | HCD APR Table A2 (data.ca.gov), matched by APN |
+| City RHNA progress | HCD 6th Cycle RHNA Progress Report (data.ca.gov) |
+| Opportunity area | CTCAC/HCD 2025 Opportunity Map (statewide copy, CA Coastal Commission) |
+| Pollution burden | OEHHA CalEnviroScreen 5.0 (final) |
+| Tax credit boost | HUD 2026 Qualified Census Tracts and Difficult Development Areas |
+| Contamination | DTSC EnviroStor cleanup sites |
+| Existing affordable | HUD LIHTC properties |
 
 URLs and fetch dates are in `data/cache/meta.json` and on the page under "Sources and dates".
 
@@ -55,5 +62,10 @@ URLs and fetch dates are in `data/cache/meta.json` and on the page under "Source
 - Ownership or willingness to sell.
 - Which law (SB 9 / SB 684 / AB 2011 / SB 4) applies. Hazard flags are screening signals, not
   legal tests.
-- Contamination, utilities, or city objective standards.
-- Permits issued after listing. The HCD APR data is the next cross-check for stale sites.
+- GeoTracker leak sites, utilities, or city objective standards.
+- Permits the city has not yet reported to HCD (APR data lags up to a year).
+
+## Known gap
+
+SCAG's HousingElementSite_poly_scag layer has no Santa Ana or Costa Mesa records (checked 2026-11-07), so
+only Irvine has sites. The other two cities stay in `CITIES` and will fill in if SCAG adds them.
