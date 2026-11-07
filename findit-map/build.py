@@ -155,10 +155,14 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     sites = sites or []
     notes = []
     if not sites:
-        notes.append(f"SCAG's housing-element inventory has no {city['name']} sites, so there is nothing to rank here. "
+        notes.append(f"The housing-element inventory has no {city['name']} sites, so there is nothing to rank here. "
                      "The map shows the city's hazard, transit, cleanup and affordable-housing context instead.")
     sm = meta.get("he_sites", {})
-    sf = sm.get("fields") or list(sites[0]["attributes"].keys())
+    site_src = city.get("sites", "he_sites")
+    sf = list(sites[0]["attributes"].keys()) if sites else sm.get("fields") or []
+    if sites and all(a["attributes"].get("Low_Income_HE_Capacity") is None for a in sites) and site_src == "hcd_sites":
+        notes.append(f"{city['name']}'s inventory lists no capacity by income level (every site is "
+                     f"'{sites[0]['attributes'].get('HE_Status') or 'unspecified'}'), so the capacity term is left out of its scores.")
     oid = sm.get("oid", "OBJECTID")
     f_apn = FIELD_OVERRIDES["site_apn"] or find_field(sf, ("Assessor_Parcel_Number",), (("apn",), ("parcel",)))
     f_low = FIELD_OVERRIDES["site_lower_cap"] or find_field(sf, (), (("lower",), ("low", "cap"), ("low", "inc")))
@@ -176,6 +180,9 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         any_fp = next(f for v in fps.values() if v for f in v)
         fp_year = find_field(list(any_fp["attributes"].keys()), (), (("year",),))
         fp_addr = find_field(list(any_fp["attributes"].keys()), ("Address",), (("addr",),))
+    elif sites and any(x["attributes"].get("HE_Existing_Use") for x in sites):
+        notes.append("Building footprints were not fetched for this city (the OC footprint server was unavailable), so "
+                     "open land is scored from the existing use the city reported in its inventory (ASSUMPTION).")
     elif sites:
         notes.append("Building footprints returned nothing for this city, so coverage is unknown.")
 
@@ -240,7 +247,15 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         if fp_total and flist is not None:
             u = union([to_shape(f.get("geometry")) for f in flist])
             cov = 0.0 if u is None else min(to_feet(u).intersection(ft).area / ft.area, 1.0) if ft.area else None
-        if cov is None:
+        he_use = str(a.get("HE_Existing_Use") or "").strip()
+        use_open = None
+        if cov is None and he_use:
+            u = A["use_as_open_land"]
+            use_open = u["vacant"] if "vacant" in he_use.lower() else u["parking"] if "parking" in he_use.lower() else u["other"]
+            checks.append(check("Building coverage", "info",
+                                f"No footprint data; the city lists the existing use as {he_use}, counted as "
+                                f"{use_open:.0%} open land (ASSUMPTION).", site_src))
+        elif cov is None:
             checks.append(check("Building coverage", "unknown", "Footprint data not available for this site.", "footprints"))
         else:
             checks.append(check("Building coverage", "info",
@@ -401,11 +416,14 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
                             f"{len(nearby)} LIHTC propert{'y' if len(nearby) == 1 else 'ies'} ({li_units} low-income units) "
                             f"within 1/2 mile." if nearby else "No LIHTC property within 1/2 mile.", "lihtc"))
 
-        # Display name: HCD project name, then assessor address, then an OpenStreetMap place, then a footprint address.
+        # Display name: HCD project name, the city's own site address, then assessor address, OpenStreetMap place, footprint address.
         address = addr_by_apn.get(apn_d)
         if address:
             address = re.sub(rf"\s+{city['name'].upper()}$", "", address).title()
         fp_addrs = sorted({str(f["attributes"].get(fp_addr) or "").strip() for f in flist or []} - {""}) if fp_addr else []
+        he_addr = str(a.get("HE_Address") or "").strip()
+        if he_addr and not address:
+            address = he_addr if any(ch.isupper() for ch in he_addr[1:]) else he_addr.title()
         name = (apr_names.get(apn_d[:8]) or address or place_name(places.get(key), city["name"])
                 or (f"Near {fp_addrs[0].title()}" if fp_addrs else f"Unaddressed parcel {apn or ''}".strip()))
 
@@ -417,6 +435,8 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         parts = {}
         if cov is not None:
             parts["open_land"] = w["open_land"] * (1 - min(cov / A["coverage_full"], 1))
+        elif use_open is not None:
+            parts["open_land"] = w["open_land"] * use_open
         if low is not None:
             parts["lower_income_capacity"] = w["lower_income_capacity"] * min(low / A["capacity_full_units"], 1)
         parts["size"] = w["size"] * min(acres / A["size_full_acres"], 1)
@@ -450,7 +470,9 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
 
         c = shape.centroid
         out.append({
-            "id": key, "apn": apn, "name": name, "address": address,
+            "id": key, "apn": apn, "name": name, "address": address, "site_source": site_src,
+            "he": {k[3:].lower(): a.get(k) for k in ("HE_Status", "HE_Existing_Use", "HE_Publicly_Owned", "HE_Zoning",
+                                                       "HE_Max_Density", "HE_Prior_Cycles") if a.get(k) not in (None, "")},
             "oppcat": oppcat, "ces_pctl": ces_p, "lihtc_nearby": len(nearby), "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
             "newest_year": newest, "new_build": new_build, "apr_hit": apr_hit,
             "lower": low, "moderate": num(a.get(f_mod)) if f_mod else None,

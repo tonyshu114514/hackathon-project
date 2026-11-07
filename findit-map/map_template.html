@@ -42,7 +42,8 @@ h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
 .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 .proto{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:14px}
 .testdata{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;margin-bottom:8px}
-.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tabs button.all{flex:0 0 auto;font-weight:500;color:var(--muted)}
 .tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
   font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
 .tabs button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
@@ -103,9 +104,10 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <p class="sub">Housing-element sites, ranked two ways, with HCD permit, opportunity, pollution and contamination checks.</p>
   <div class="testdata" id="testBanner" hidden></div>
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
-  <div class="tabs" id="tabs" role="group" aria-label="City"></div>
+  <div class="tabs" id="tabs" role="group" aria-label="Cities (select one or more)"></div>
+  <p class="hint">Click cities to add or remove them. Rankings cover every selected city together.</p>
   <div class="stats" id="stats"></div>
-  <div class="rhna" id="rhna"></div>
+  <div id="rhna"></div>
 
   <h2>Map layers</h2>
   <div class="layers" id="layers"></div>
@@ -179,10 +181,15 @@ function popupHtml(s) {
     <p class="kv">${fmt(s.acres)} acres · coverage ${fmt(s.coverage, pct)} · newest building ${fmt(s.newest_year)}</p>
     <p class="kv">Zoning ${fmt(s.zoning_local)} (SCAG: ${fmt(s.zoning_scag)}) · slope ${fmt(s.slope)}</p>
     <p class="kv">Listed capacity, units. ${cap}</p>
+    ${Object.keys(s.he || {}).length ? `<p class="kv">City lists it as: ${[
+      s.he.status && `status ${esc(s.he.status)}`, s.he.existing_use && `use ${esc(s.he.existing_use)}`,
+      s.he.publicly_owned && `publicly owned: ${esc(s.he.publicly_owned)}`, s.he.zoning && `zoning ${esc(s.he.zoning)}`,
+      s.he.max_density && `max ${esc(s.he.max_density)} du/ac`, s.he.prior_cycles && `in prior cycles: ${esc(s.he.prior_cycles)}`
+    ].filter(Boolean).join(' · ')}</p>` : ''}
     <p class="kv">Opportunity ${fmt(s.oppcat)} · CalEnviroScreen pctl ${fmt(s.ces_pctl, v => Math.round(v))} · LIHTC within ½ mi ${fmt(s.lihtc_nearby)}</p>
     <p class="kv">Screen score ${s.promising} = ${parts || 'no components'} <i>(ASSUMPTION weights)</i></p>
     <table>${rows}</table>
-    <p class="src">Site from ${srcLabel('he_sites')}. Centroid ${s.lat}, ${s.lon}.</p></div>`;
+    <p class="src">Site from ${srcLabel(s.site_source || 'he_sites')}. Centroid ${s.lat}, ${s.lon}.</p></div>`;
 }
 
 function whyPromising(s) {
@@ -205,10 +212,26 @@ function whyStale(s) {
   return bits.join(' · ') || 'weak signal';
 }
 
-function drawContext(c) {
+// Cities are multi-select. Ranks are computed here, over every selected city together, from the
+// per-site scores build.py wrote; a site's rank therefore depends on which cities are selected.
+const selected = new Set();
+const cityOf = {};
+
+function rankSelected(cities) {
+  const sites = cities.flatMap(c => c.sites);
+  sites.forEach(s => { s.promising_rank = s.stale_rank = null; });
+  sites.filter(s => !s.new_build && !s.apr_hit).sort((a, b) => b.promising - a.promising)
+    .slice(0, 5).forEach((s, i) => { s.promising_rank = i + 1; });
+  sites.filter(s => s.stale).sort((a, b) => (b.stale - a.stale) || ((b.coverage || 0) - (a.coverage || 0)))
+    .slice(0, 5).forEach((s, i) => { s.stale_rank = i + 1; });
+  return sites;
+}
+
+function drawContext(cities) {
   Object.values(ctxGroups).forEach(g => g.remove());
   ctxGroups = {};
-  const ov = c.overlays || {};
+  const ov = {};
+  cities.forEach(c => Object.entries(c.overlays || {}).forEach(([k, v]) => { ov[k] = (ov[k] || []).concat(v); }));
   LAYERS.forEach(l => {
     const g = L.layerGroup();
     const col = css(l.color);
@@ -232,22 +255,35 @@ function drawContext(c) {
   box.innerHTML = LAYERS.map(l => {
     const has = l.line ? (ov.bus || []).length > 0 : (ov[l.key] || []).length > 0;
     const loaded = l.line ? 'bus' in ov : l.key in ov;
-    const title = !loaded ? 'Not loaded for this city' : !has ? 'None in this area' : '';
+    const title = !loaded ? 'Not loaded for the selected cities' : !has ? 'None in this area' : '';
     return `<label class="${loaded ? '' : 'off'}" title="${title}"><input type="checkbox" id="ly-${l.key}" data-k="${l.key}" ${layerOn[l.key] ? 'checked' : ''} ${loaded ? '' : 'disabled'}>
       <span class="sw ${l.line ? 'line' : l.point ? 'dot' : ''}" style="border-color:var(${l.color});background:${l.line ? 'transparent' : l.point ? `var(${l.color})` : `color-mix(in srgb, var(${l.color}) 35%, transparent)`}"></span>${l.label}${loaded && !has ? ' (none)' : ''}</label>`;
   }).join('');
 }
 
-function drawCity(slug) {
-  const c = DATA.cities[slug];
-  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.slug === slug));
+function rhnaHtml(c, showName) {
+  const r = c.rhna;
+  if (!r) return `<div class="rhna"><span class="lbl">${showName ? esc(c.name) + ': ' : ''}RHNA progress not available.</span></div>`;
+  return `<div class="rhna"><b>${showName ? esc(c.name) + ' ' : ''}RHNA progress, ${esc(r['Planning Period'])}</b> <span class="lbl">(HCD, units permitted / goal)</span>` +
+    [['Very low', 'VLI UNITS', 'RHNA VLI'], ['Low', 'LI UNITS', 'RHNA LI'], ['Moderate', 'MOD UNITS', 'RHNA MOD'], ['Above mod.', 'ABOVE MOD UNITS', 'RHNA ABOVE MOD']]
+      .map(([lbl, a, b]) => { const pc = r[b] ? Math.min(r[a] / r[b], 1) : 0;
+        return `<div class="row"><span class="lbl">${lbl}</span><span class="bar"><span style="width:${(pc * 100).toFixed(1)}%"></span></span>
+          <span class="val">${(+r[a]).toLocaleString()} / ${(+r[b]).toLocaleString()}</span></div>`; }).join('') + '</div>';
+}
+
+function draw() {
+  const slugs = Object.keys(DATA.cities).filter(k => selected.has(k));
+  const cities = slugs.map(k => DATA.cities[k]);
+  const multi = cities.length > 1;
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', selected.has(b.dataset.slug)));
   allLayer.clearLayers(); topLayer.clearLayers(); boundaryLayer.clearLayers(); byId = {};
-  drawContext(c);
-  if (c.boundary) boundaryLayer.addLayer(L.polygon(ll(c.boundary), {pane: 'context', color: css('--ink'),
-    weight: 1.5, opacity: .5, dashArray: '6 4', fill: false, interactive: false}));
+  drawContext(cities);
+  cities.forEach(c => { if (c.boundary) boundaryLayer.addLayer(L.polygon(ll(c.boundary), {pane: 'context', color: css('--ink'),
+    weight: 1.5, opacity: .5, dashArray: '6 4', fill: false, interactive: false})); });
   const good = css('--good'), bad = css('--bad'), grey = css('--site');
+  const sites = rankSelected(cities);
   const bounds = [];
-  c.sites.forEach(s => {
+  sites.forEach(s => {
     s.polys.forEach(p => p[0].forEach(([x, y]) => bounds.push([y, x])));
     const top = s.promising_rank || s.stale_rank;
     const color = s.promising_rank ? good : s.stale_rank ? bad : grey;
@@ -264,33 +300,33 @@ function drawCity(slug) {
       topLayer.addLayer(m);
     }
   });
+  cities.forEach(c => { if (!c.sites.length && c.boundary) ll(c.boundary).flat(2).forEach(pt => bounds.push(pt)); });
   if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
-  else if (c.boundary) map.fitBounds(ll(c.boundary).flat(2), {padding: [20, 20]});
-  else map.setView(c.center, 13);
+  else if (cities[0]) map.setView(cities[0].center, 13);
 
-  const r = c.rhna;
-  document.getElementById('rhna').innerHTML = r ? `<b>RHNA progress, ${esc(r['Planning Period'])}</b> <span class="lbl">(HCD, units permitted / goal)</span>` +
-    [['Very low', 'VLI UNITS', 'RHNA VLI'], ['Low', 'LI UNITS', 'RHNA LI'], ['Moderate', 'MOD UNITS', 'RHNA MOD'], ['Above mod.', 'ABOVE MOD UNITS', 'RHNA ABOVE MOD']]
-      .map(([lbl, a, b]) => { const pc = r[b] ? Math.min(r[a] / r[b], 1) : 0;
-        return `<div class="row"><span class="lbl">${lbl}</span><span class="bar"><span style="width:${(pc * 100).toFixed(1)}%"></span></span>
-          <span class="val">${(+r[a]).toLocaleString()} / ${(+r[b]).toLocaleString()}</span></div>`; }).join('')
-    : '<span class="lbl">RHNA progress not available.</span>';
-  const n = f => c.sites.filter(f).length;
+  document.getElementById('rhna').innerHTML = cities.map(c => rhnaHtml(c, multi)).join('');
+  const n = f => sites.filter(f).length;
   document.getElementById('stats').innerHTML =
-    `<div><b>${c.sites.length}</b>listed sites</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div>
+    `<div><b>${sites.length}</b>listed sites${multi ? ` in ${cities.length} cities` : ''}</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div>
      <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div>`;
 
   const fill = (id, key, why, col) => {
-    const rows = c.sites.filter(s => s[key]).sort((a, b) => a[key] - b[key]);
+    const rows = sites.filter(s => s[key]).sort((a, b) => a[key] - b[key]);
     document.getElementById(id).innerHTML = rows.length ? rows.map(s => `<li tabindex="0" data-id="${esc(s.id)}">
       <span class="num" style="background:${col}">${s[key]}</span>
-      <span><b>${esc(s.name)}</b><br><span class="why">APN ${fmt(s.apn)} · ${why(s)}</span></span>
+      <span><b>${esc(s.name)}</b>${multi ? ` <span class="why">· ${esc(cityOf[s.id])}</span>` : ''}<br><span class="why">APN ${fmt(s.apn)} · ${why(s)}</span></span>
       <span class="score">${key === 'promising_rank' ? s.promising : s.stale}</span></li>`).join('')
-      : `<li class="empty">${c.sites.length ? 'No sites with enough data to rank.' : `No ${esc(c.name)} sites in SCAG's housing-element inventory.`}</li>`;
+      : `<li class="empty">${sites.length ? 'No sites with enough data to rank.' : `No ${cities.map(c => esc(c.name)).join(' or ')} sites in the housing-element inventory.`}</li>`;
   };
   fill('listPromising', 'promising_rank', whyPromising, good);
   fill('listStale', 'stale_rank', whyStale, bad);
-  document.getElementById('notes').innerHTML = c.notes.map(t => `<li>${esc(t)}</li>`).join('');
+  document.getElementById('notes').innerHTML = cities.flatMap(c => c.notes.map(t => `<li>${multi ? '<b>' + esc(c.name) + ':</b> ' : ''}${esc(t)}</li>`)).join('');
+}
+
+function toggleCity(slug) {
+  if (selected.has(slug)) { if (selected.size === 1) return; selected.delete(slug); }
+  else selected.add(slug);
+  draw();
 }
 
 function focusSite(id) {
@@ -308,10 +344,16 @@ function init() {
   }
   const tabs = document.getElementById('tabs');
   Object.entries(DATA.cities).forEach(([slug, c]) => {
+    c.sites.forEach(s => { cityOf[s.id] = c.name; });
     const b = document.createElement('button');
-    b.type = 'button'; b.textContent = c.name; b.dataset.slug = slug; b.onclick = () => drawCity(slug);
+    b.type = 'button'; b.textContent = c.name; b.dataset.slug = slug; b.setAttribute('aria-pressed', 'false');
+    b.onclick = () => toggleCity(slug);
     tabs.appendChild(b);
   });
+  const all = document.createElement('button');
+  all.type = 'button'; all.textContent = 'All'; all.className = 'all'; all.title = 'Select every city';
+  all.onclick = () => { Object.keys(DATA.cities).forEach(k => selected.add(k)); draw(); };
+  tabs.appendChild(all);
   ['listPromising', 'listStale'].forEach(id => {
     const el = document.getElementById(id);
     const go = e => { const li = e.target.closest('li[data-id]'); if (li) focusSite(li.dataset.id); };
@@ -328,7 +370,8 @@ function init() {
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
   document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
-  drawCity(Object.keys(DATA.cities)[0]);
+  selected.add(Object.keys(DATA.cities)[0]);
+  draw();
 }
 init();
 </script>

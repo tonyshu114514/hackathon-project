@@ -1,6 +1,6 @@
 # Find It: Site Screener map
 
-A map of Irvine housing-element sites, ranked two ways:
+A map of Irvine, Santa Ana, Costa Mesa and Anaheim housing-element sites, ranked two ways:
 
 - **Top 5 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
   minus hazard, contamination and pollution-burden penalties.
@@ -53,7 +53,8 @@ Also watch for these lines from `fetch.py`:
 
 | Layer | Source |
 |---|---|
-| Housing-element sites | SCAG HousingElementSite_poly_scag |
+| Housing-element sites (Irvine) | SCAG HousingElementSite_poly_scag |
+| Housing-element sites (Santa Ana, Costa Mesa, Anaheim) | HCD Sites Inventory Table A, state DGS feature service `SB6_ParcelsA_Pub_Join` |
 | Building coverage | OC Building Footprints |
 | Year built | OC Survey Parcels |
 | Zoning, slope | SCAG Zoning_poly_OR |
@@ -86,7 +87,14 @@ URLs and fetch dates are in `data/cache/meta.json` and on the page under "Source
 Leaflet 1.9.4 (BSD 2-Clause, see `findit/LEAFLET-LICENSE`). Its stylesheet is bundled in
 `findit/leaflet.css`; the script loads from cdnjs.
 
-## Known gap
+## Which inventory each city uses
 
 SCAG's HousingElementSite_poly_scag layer has no Santa Ana or Costa Mesa records (checked 2026-11-07), so
-only Irvine has sites. The other two cities stay in `CITIES` and will fill in if SCAG adds them.
+those cities, and Anaheim, read HCD's statewide Table A inventory instead. `fetch.py` renames its fields to
+the SCAG names `build.py` expects and keeps HCD's extras (site status, existing use, public ownership).
+Irvine stays on SCAG so its rankings match earlier runs; HCD lists 117 Irvine sites to SCAG's 44.
+Set `sites` per city in `findit/sources.py` to switch.
+
+Santa Ana's inventory marks every site "Pending Project" with no capacity by income level, so its
+"check first" scores leave the capacity term out. Max density and acreage are present if a team wants
+to estimate capacity (label it as an estimate).

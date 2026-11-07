@@ -21,6 +21,7 @@ from findit.sources import AREA_LAYERS, CITIES, FIELD_OVERRIDES, SOURCES
 
 CACHE = pathlib.Path("data/cache")
 CACHE.mkdir(parents=True, exist_ok=True)
+SKIP = set()  # layer keys to skip this run, from --skip
 META = CACHE / "meta.json"
 
 
@@ -64,6 +65,31 @@ def like_sample(sample, d):
     return "".join(next(it) if c.isdigit() else c for c in str(sample))
 
 
+def hcd_to_scag(f):
+    """Rename HCD Table A fields to the SCAG names build.py already reads, and keep HCD's extras.
+
+    HCD rows with every capacity at 0 (Santa Ana lists all sites as 'Pending Project' with no units)
+    get None, so capacity shows as unknown instead of zero.
+    """
+    a = f["attributes"]
+    caps = [a.get("Lower_Income_Capacity"), a.get("Moderate_Income_Capacity"),
+            a.get("Above_Moderate_Income_Capacity"), a.get("Total_Capacity")]
+    blank = all(not c for c in caps)
+    out = {
+        "OBJECTID": a.get("OBJECTID_1"), "Jurisdiction": a.get("jurisdiction_name"), "COUNTY": a.get("County_Name"),
+        "Assessor_Parcel_Number": a.get("AssessorParcelNumber"),
+        "Low_Income_HE_Capacity": None if blank else caps[0],
+        "Moderate_Income_HE_Capacity": None if blank else caps[1],
+        "Above_Moderate_Income_HE_Capacity": None if blank else caps[2],
+        "Total_HE_Capacity": None if blank else caps[3],
+        "HE_Address": a.get("Site_Address_Intersection"), "HE_Existing_Use": a.get("Existing_Use_Vacancy"),
+        "HE_Status": a.get("Site_Status"), "HE_Publicly_Owned": a.get("Publicly_Owned"),
+        "HE_Zoning": a.get("Zoning_Designation_Current"), "HE_Max_Density": a.get("Max_Density_Allowed_units_per_a"),
+        "HE_Acres": a.get("Parcel_Size_Acres"), "HE_Prior_Cycles": a.get("Identified_in_Last_Two_Planning"),
+    }
+    return {"attributes": out, "geometry": f.get("geometry")}
+
+
 def in_clauses(field, values, n=150):
     vals = sorted(set(values))
     for i in range(0, len(vals), n):
@@ -74,12 +100,19 @@ def fetch_city(slug, meta):
     city = CITIES[slug]
     print(f"\n== {city['name']}")
 
-    url, m = layer("he_sites", meta)
-    county = arcgis.find_field(m["fields"], exact=("COUNTY",))
-    juris = arcgis.find_field(m["fields"], exact=("Jurisdiction",), contains=(("juris",),))
-    where = f"UPPER({juris}) LIKE '%{city['match']}%'" + (f" AND UPPER({county}) = 'ORANGE'" if county else "")
-    sites = cached(f"{slug}_sites", lambda: arcgis.query_all(url, where))
-    print(f"  housing-element sites: {len(sites)}")
+    src = city.get("sites", "he_sites")
+    url, m = layer(src, meta)
+    if src == "hcd_sites":
+        where = f"UPPER(jurisdiction_name) = '{city['match']}'"
+        sites = cached(f"{slug}_sites", lambda: [hcd_to_scag(f) for f in arcgis.query_all(url, where)])
+        # Field detection below reads m["fields"]; point it at the renamed attributes.
+        m = dict(m, oid="OBJECTID", fields=list(sites[0]["attributes"]) if sites else m["fields"])
+    else:
+        county = arcgis.find_field(m["fields"], exact=("COUNTY",))
+        juris = arcgis.find_field(m["fields"], exact=("Jurisdiction",), contains=(("juris",),))
+        where = f"UPPER({juris}) LIKE '%{city['match']}%'" + (f" AND UPPER({county}) = 'ORANGE'" if county else "")
+        sites = cached(f"{slug}_sites", lambda: arcgis.query_all(url, where))
+    print(f"  housing-element sites: {len(sites)} ({SOURCES[src]['label'].split(' (')[0]})")
 
     # City boundary: the fallback extent when the inventory has no sites for this city.
     burl, _ = layer("boundary", meta)
@@ -105,7 +138,9 @@ def fetch_city(slug, meta):
     furl, _ = layer("footprints", meta)
     fp_path = CACHE / f"{slug}_footprints.json"
     fps = json.loads(fp_path.read_text()) if fp_path.exists() else {}
-    todo = [s for s in sites if str(s["attributes"].get(oid)) not in fps]
+    todo = [] if "footprints" in SKIP else [s for s in sites if str(s["attributes"].get(oid)) not in fps]
+    if "footprints" in SKIP:
+        print("  footprints: skipped (--skip footprints); coverage will be unknown")
     for i, s in enumerate(todo, 1):
         key = str(s["attributes"].get(oid))
         rings = (s.get("geometry") or {}).get("rings")
@@ -117,7 +152,7 @@ def fetch_city(slug, meta):
         if i % 25 == 0 or i == len(todo):
             fp_path.write_text(json.dumps(fps))
             print(f"  footprints: {i}/{len(todo)}")
-    if sites and sum(len(v or []) for v in fps.values()) == 0:
+    if sites and "footprints" not in SKIP and sum(len(v or []) for v in fps.values()) == 0:
         print("  ! zero footprints for every site: the spatial query may be failing. Coverage will be unknown.")
 
     # Parcels (year built) and SCAG zoning, matched by APN.
@@ -183,8 +218,8 @@ def fetch_city(slug, meta):
     def places():
         out = {}
         for s, sh in zip(sites, shapes):
-            if sh is None:
-                continue
+            if sh is None or s["attributes"].get("HE_Address"):
+                continue  # the city's own address is used first, so no lookup is needed
             pt = sh.representative_point()
             try:
                 r = requests.get("https://nominatim.openstreetmap.org/reverse", headers=arcgis.UA, timeout=30,
@@ -238,7 +273,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--city", choices=list(CITIES), action="append")
     ap.add_argument("--skip-apr", action="store_true", help="skip the statewide permit data")
+    ap.add_argument("--skip", action="append", default=[], metavar="LAYER",
+                    help="skip a layer this run, e.g. --skip footprints when the OC server is down")
     args = ap.parse_args()
+    SKIP.update(args.skip)
     meta = load_meta()
     for slug in args.city or list(CITIES):
         fetch_city(slug, meta)

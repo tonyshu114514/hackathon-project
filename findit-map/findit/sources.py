@@ -4,16 +4,24 @@ URLs come from lanes/1-find-it/data/DATA-SOURCES.md in the event repo (checked 2
 The date each layer was actually fetched is written to data/cache/meta.json by fetch.py.
 """
 
+# sites: which inventory layer lists the city's housing-element sites. SCAG has no Santa Ana or
+# Costa Mesa records, so those cities use HCD's statewide Table A inventory (SB 6 submissions).
+# Irvine stays on SCAG so its rankings match earlier runs; HCD lists 117 Irvine sites to SCAG's 44.
 CITIES = {
-    "irvine": {"name": "Irvine", "match": "IRVINE"},
-    "santa-ana": {"name": "Santa Ana", "match": "SANTA ANA"},
-    "costa-mesa": {"name": "Costa Mesa", "match": "COSTA MESA"},
+    "irvine": {"name": "Irvine", "match": "IRVINE", "sites": "he_sites"},
+    "santa-ana": {"name": "Santa Ana", "match": "SANTA ANA", "sites": "hcd_sites"},
+    "costa-mesa": {"name": "Costa Mesa", "match": "COSTA MESA", "sites": "hcd_sites"},
+    "anaheim": {"name": "Anaheim", "match": "ANAHEIM", "sites": "hcd_sites"},
 }
 
 SOURCES = {
     "boundary": {
         "label": "SCAG city boundaries (2024)",
         "layer": "https://maps.scag.ca.gov/scaggis/rest/services/LDX/City_Boundary_scag/MapServer/0",
+    },
+    "hcd_sites": {
+        "label": "HCD Housing Element Sites Inventory, Table A (SB 6 submissions; state DGS feature service)",
+        "layer": "https://services8.arcgis.com/a4GMqC2tQHvYiVtK/arcgis/rest/services/SB6_ParcelsA_Pub_Join/FeatureServer/4",
     },
     "he_sites": {
         "label": "SCAG Housing Element Sites (adopted 6th-cycle inventories)",
@@ -130,6 +138,10 @@ ASSUMPTIONS = {
                   "flood_sfha": -0.5, "fire_very_high": -0.5, "fire_other": -0.15, "landslide": -0.25,
                   "cleanup_on_site": -0.4, "cleanup_nearby": -0.1, "pollution_burden": -0.1},
         "why": "Team judgment for a first-pass screen. Not a legal eligibility test and not a prediction.",
+    },
+    "use_as_open_land": {
+        "value": {"vacant": 1.0, "parking": 0.5, "other": 0.0},
+        "why": "When building footprints are unavailable, the open-land score comes from the existing use the city reported in its inventory: vacant counts as fully open, parking as half, anything else as built.",
     },
     "cleanup_near_feet": {
         "value": 660,
