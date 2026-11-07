@@ -87,7 +87,10 @@ def index_by_apn(rows):
     if not rows:
         return {}, {}
     keys = list(rows[0].keys())
-    f_apn = next((k for k in keys if "apn" in k.lower()), None)
+    # Prefer the current APN column; PRIOR_APN (often blank) is also indexed so renumbered parcels still match.
+    f_apn = next((k for k in keys if k.lower() == "apn"), None) or \
+        next((k for k in keys if "apn" in k.lower() and "prior" not in k.lower()), None)
+    f_prior = next((k for k in keys if "apn" in k.lower() and "prior" in k.lower()), None)
     f_year = next((k for k in keys if k.lower() in ("year", "rpt_year", "report_year")), None) or \
         next((k for k in keys if "year" in k.lower()), None)
     stage_cols = {
@@ -97,7 +100,7 @@ def index_by_apn(rows):
     }
     out = {}
     for r in rows:
-        raw = str(r.get(f_apn) or "") if f_apn else ""
+        raw = ",".join(str(r.get(f) or "") for f in (f_apn, f_prior) if f)
         y = None
         try:
             y = int(float(str(r.get(f_year)))) if f_year else None
@@ -108,6 +111,6 @@ def index_by_apn(rows):
             d = re.sub(r"\D", "", part)
             if len(d) >= 8:
                 out.setdefault(d[:8], []).append({"year": y, "stages": stages})
-    info = {"apn_field": f_apn, "year_field": f_year,
+    info = {"apn_field": f_apn, "prior_apn_field": f_prior, "year_field": f_year,
             "stage_columns": {k: v for k, v in stage_cols.items() if v}}
     return out, info
