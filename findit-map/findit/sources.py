@@ -11,6 +11,10 @@ CITIES = {
 }
 
 SOURCES = {
+    "boundary": {
+        "label": "SCAG city boundaries (2024)",
+        "layer": "https://maps.scag.ca.gov/scaggis/rest/services/LDX/City_Boundary_scag/MapServer/0",
+    },
     "he_sites": {
         "label": "SCAG Housing Element Sites (adopted 6th-cycle inventories)",
         "service": "https://maps.scag.ca.gov/scaggis/rest/services/LDX/HousingElementSite_poly_scag/MapServer",

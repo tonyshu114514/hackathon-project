@@ -80,15 +80,25 @@ def fetch_city(slug, meta):
     where = f"UPPER({juris}) LIKE '%{city['match']}%'" + (f" AND UPPER({county}) = 'ORANGE'" if county else "")
     sites = cached(f"{slug}_sites", lambda: arcgis.query_all(url, where))
     print(f"  housing-element sites: {len(sites)}")
-    if not sites:
-        print("  ! no sites matched. Check the Jurisdiction spelling in meta.json fields / sample.")
+
+    # City boundary: the fallback extent when the inventory has no sites for this city.
+    burl, _ = layer("boundary", meta)
+    boundary = cached(f"{slug}_boundary", lambda: arcgis.query_all(
+        burl, where=f"UPPER(CITY) = '{city['match']}'", max_offset=0.0001))
+    bshape = to_shape(boundary[0].get("geometry")) if boundary else None
+    if not sites and bshape is None:
+        print("  ! no sites and no city boundary matched. Check the spelling in meta.json fields / sample.")
         return
+    if not sites:
+        print("  ! no sites in SCAG's inventory for this city; context layers will use the city boundary.")
+
     oid = m["oid"]
     apn_f = FIELD_OVERRIDES["site_apn"] or arcgis.find_field(
         m["fields"], exact=("Assessor_Parcel_Number",), contains=(("apn",), ("parcel",)))
     shapes = [to_shape(s.get("geometry")) for s in sites]
-    xs = [b for s in shapes if s is not None for b in (s.bounds[0], s.bounds[2])]
-    ys = [b for s in shapes if s is not None for b in (s.bounds[1], s.bounds[3])]
+    extent = [s for s in shapes if s is not None] or [bshape]
+    xs = [b for s in extent for b in (s.bounds[0], s.bounds[2])]
+    ys = [b for s in extent for b in (s.bounds[1], s.bounds[3])]
     bbox = (min(xs) - 0.003, min(ys) - 0.003, max(xs) + 0.003, max(ys) + 0.003)
 
     # Building footprints: one small query per site, saved as it goes so a crash can resume.
@@ -107,13 +117,13 @@ def fetch_city(slug, meta):
         if i % 25 == 0 or i == len(todo):
             fp_path.write_text(json.dumps(fps))
             print(f"  footprints: {i}/{len(todo)}")
-    if sum(len(v or []) for v in fps.values()) == 0:
+    if sites and sum(len(v or []) for v in fps.values()) == 0:
         print("  ! zero footprints for every site: the spatial query may be failing. Coverage will be unknown.")
 
     # Parcels (year built) and SCAG zoning, matched by APN.
     apns = [digits(s["attributes"].get(apn_f)) for s in sites if apn_f]
     apns = [a for a in apns if a]
-    for key, exact, store in (("parcels", ("ASSESSMENT_NO",), "parcels"), ("zoning", ("APN24",), "zoning")):
+    for key, exact, store in ([] if not sites else (("parcels", ("ASSESSMENT_NO",), "parcels"), ("zoning", ("APN24",), "zoning"))):
         lurl, lm = layer(key, meta)
         f = (FIELD_OVERRIDES.get("parcel_apn") if key == "parcels" else None) or \
             arcgis.find_field(lm["fields"], exact=exact, contains=(("apn",),))

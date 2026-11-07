@@ -147,10 +147,16 @@ def overlays(layers, f_fld, f_fire, bbox):
 def build_city(slug, meta, notes_all, apr_idx, apr_names):
     city = CITIES[slug]
     sites = load(f"{slug}_sites")
-    if not sites:
-        print(f"{city['name']}: no cached sites, skipping (run fetch.py)")
+    boundary = load(f"{slug}_boundary") or []
+    bshape = to_shape(boundary[0].get("geometry")) if boundary else None
+    if sites is None and bshape is None:
+        print(f"{city['name']}: nothing cached, skipping (run fetch.py)")
         return None
+    sites = sites or []
     notes = []
+    if not sites:
+        notes.append(f"SCAG's housing-element inventory has no {city['name']} sites, so there is nothing to rank here. "
+                     "The map shows the city's hazard, transit, cleanup and affordable-housing context instead.")
     sm = meta.get("he_sites", {})
     sf = sm.get("fields") or list(sites[0]["attributes"].keys())
     oid = sm.get("oid", "OBJECTID")
@@ -170,7 +176,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         any_fp = next(f for v in fps.values() if v for f in v)
         fp_year = find_field(list(any_fp["attributes"].keys()), (), (("year",),))
         fp_addr = find_field(list(any_fp["attributes"].keys()), ("Address",), (("addr",),))
-    else:
+    elif sites:
         notes.append("Building footprints returned nothing for this city, so coverage is unknown.")
 
     # Parcels: year built by APN
@@ -192,7 +198,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
             if y:
                 year_by_apn[k].append(y)
     print(f"  parcels: APN={p_apn} year={p_year} matched={len(year_by_apn)}")
-    if not year_by_apn:
+    if sites and not year_by_apn:
         notes.append("Year built did not match any site APN here, so the stale ranking uses building coverage only (weak signal).")
 
     # Zoning
@@ -460,16 +466,23 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     st = [s for s in out if s["stale"]]
     for r, s in enumerate(sorted(st, key=lambda s: (-s["stale"], -(s["coverage"] or 0)))[:5], 1):
         s["stale_rank"] = r
-    if not any(s["new_build"] or s["apr_hit"] for s in out) and st:
+    if sites and not any(s["new_build"] or s["apr_hit"] for s in out) and st:
         notes.append("No site has a recent building or APR permit activity; the 'stale' list is ranked on coverage only.")
 
-    lat = sum(s["lat"] for s in out) / len(out)
-    lon = sum(s["lon"] for s in out) / len(out)
     xs = [x for s in out for poly in s["polys"] for ring in poly for x, _ in ring]
     ys = [y for s in out for poly in s["polys"] for ring in poly for _, y in ring]
+    if not xs and bshape is not None:
+        xs, ys = [bshape.bounds[0], bshape.bounds[2]], [bshape.bounds[1], bshape.bounds[3]]
+    if out:
+        lat = sum(s["lat"] for s in out) / len(out)
+        lon = sum(s["lon"] for s in out) / len(out)
+    else:
+        c = bshape.centroid
+        lat, lon = c.y, c.x
     bbox = (min(xs) - 0.01, min(ys) - 0.01, max(xs) + 0.01, max(ys) + 0.01)
     ov = overlays(layers, f_fld, f_fire, bbox)
-    print(f"  {len(out)} sites scored; {sum(s['new_build'] for s in out)} with a recent building")
+    print(f"  {len(out)} sites scored; {sum(s['new_build'] for s in out)} with a recent building"
+          + ("" if out else " (context layers only)"))
     notes_all[slug] = notes
     pts = lambda feats, f: [{"lat": round(g["y"], 6), "lon": round(g["x"], 6), **f(x["attributes"])}
                             for x in feats or [] if (g := x.get("geometry")) and "x" in g]
@@ -482,6 +495,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     rhna = rhna and {k: rhna.get(k) for k in ("Planning Period", "VLI UNITS", "RHNA VLI", "LI UNITS", "RHNA LI",
                                               "MOD UNITS", "RHNA MOD", "ABOVE MOD UNITS", "RHNA ABOVE MOD")}
     return {"name": city["name"], "center": [lat, lon], "notes": notes, "sites": out, "overlays": ov, "rhna": rhna,
+            "boundary": to_polys(bshape, 0.0002, 6) if bshape is not None else None,
             "fields": {"apn": f_apn, "lower": f_low, "moderate": f_mod, "above": f_abv,
                        "parcel_year": p_year, "flood_zone": f_fld, "fire_class": f_fire}}
 

@@ -160,7 +160,7 @@ const map = L.map('map', {zoomControl: true});
 map.createPane('context'); map.getPane('context').style.zIndex = 350;
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
-let ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
+let boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
   return keys.split(',').map(k => DATA.sources[k] ? `${esc(DATA.sources[k].label)} (fetched ${esc(DATA.sources[k].fetched)})` : esc(k)).join('; ');
@@ -241,8 +241,10 @@ function drawContext(c) {
 function drawCity(slug) {
   const c = DATA.cities[slug];
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.slug === slug));
-  allLayer.clearLayers(); topLayer.clearLayers(); byId = {};
+  allLayer.clearLayers(); topLayer.clearLayers(); boundaryLayer.clearLayers(); byId = {};
   drawContext(c);
+  if (c.boundary) boundaryLayer.addLayer(L.polygon(ll(c.boundary), {pane: 'context', color: css('--ink'),
+    weight: 1.5, opacity: .5, dashArray: '6 4', fill: false, interactive: false}));
   const good = css('--good'), bad = css('--bad'), grey = css('--site');
   const bounds = [];
   c.sites.forEach(s => {
@@ -262,7 +264,9 @@ function drawCity(slug) {
       topLayer.addLayer(m);
     }
   });
-  if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]}); else map.setView(c.center, 13);
+  if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
+  else if (c.boundary) map.fitBounds(ll(c.boundary).flat(2), {padding: [20, 20]});
+  else map.setView(c.center, 13);
 
   const r = c.rhna;
   document.getElementById('rhna').innerHTML = r ? `<b>RHNA progress, ${esc(r['Planning Period'])}</b> <span class="lbl">(HCD, units permitted / goal)</span>` +
@@ -282,7 +286,7 @@ function drawCity(slug) {
       <span class="num" style="background:${col}">${s[key]}</span>
       <span><b>${esc(s.name)}</b><br><span class="why">APN ${fmt(s.apn)} · ${why(s)}</span></span>
       <span class="score">${key === 'promising_rank' ? s.promising : s.stale}</span></li>`).join('')
-      : '<li class="empty">No sites with enough data to rank.</li>';
+      : `<li class="empty">${c.sites.length ? 'No sites with enough data to rank.' : `No ${esc(c.name)} sites in SCAG's housing-element inventory.`}</li>`;
   };
   fill('listPromising', 'promising_rank', whyPromising, good);
   fill('listStale', 'stale_rank', whyStale, bad);
