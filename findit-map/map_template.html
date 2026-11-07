@@ -16,6 +16,7 @@
   --site:#8a8c86;
   --flood:#2f6fb3;--flood-soft:#7fa8d6;--fire:#c2410c;--fire-soft:#e8913a;
   --slide:#7c5a3a;--hqta:#7b4fb3;--bus:#3d4451;--cleanup:#8e2f8f;--lihtc:#1f5fa8;--border:#1b1d1c;--shade:#7fb3e6;
+  --city-irvine:#0d7a7a;--city-santa-ana:#b45309;--city-costa-mesa:#4338ca;--city-anaheim:#4d7c0f;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141618;--panel:#1c1f22;--ink:#eceae4;--muted:#a19f98;--line:#33373b;
@@ -23,14 +24,16 @@
   --good:#4fbf85;--good-bg:#173525;--bad:#f0857b;--bad-bg:#3e1c1a;
   --warn:#e8b85c;--warn-bg:#3a2c12;--unk:#b0b8c3;--unk-bg:#2a2e34;
   --site:#8d9096;--flood:#5e9be0;--flood-soft:#3d6a9c;--fire:#f07a45;--fire-soft:#b9762f;
-  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;--cleanup:#d47fd5;--lihtc:#6fa3e6;--border:#f4f2ea;--shade:#8fc0f0;color-scheme:dark}}
+  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;--cleanup:#d47fd5;--lihtc:#6fa3e6;--border:#f4f2ea;--shade:#8fc0f0;
+  --city-irvine:#4fc3c3;--city-santa-ana:#f0a04b;--city-costa-mesa:#8b8cf5;--city-anaheim:#9ccc4a;color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141618;--panel:#1c1f22;--ink:#eceae4;--muted:#a19f98;--line:#33373b;
   --accent:#eceae4;--on-accent:#141618;
   --good:#4fbf85;--good-bg:#173525;--bad:#f0857b;--bad-bg:#3e1c1a;
   --warn:#e8b85c;--warn-bg:#3a2c12;--unk:#b0b8c3;--unk-bg:#2a2e34;
   --site:#8d9096;--flood:#5e9be0;--flood-soft:#3d6a9c;--fire:#f07a45;--fire-soft:#b9762f;
-  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;--cleanup:#d47fd5;--lihtc:#6fa3e6;--border:#f4f2ea;--shade:#8fc0f0;color-scheme:dark}
+  --slide:#b58a5e;--hqta:#a888d6;--bus:#9aa3b0;--cleanup:#d47fd5;--lihtc:#6fa3e6;--border:#f4f2ea;--shade:#8fc0f0;
+  --city-irvine:#4fc3c3;--city-santa-ana:#f0a04b;--city-costa-mesa:#8b8cf5;--city-anaheim:#9ccc4a;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
@@ -44,6 +47,7 @@ h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
 .testdata{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;margin-bottom:8px}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .tabs button.all{flex:0 0 auto;font-weight:500;color:var(--muted)}
+.tabs button .sw{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:middle;border:0}
 .tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
   font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
 .tabs button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
@@ -218,6 +222,8 @@ function whyStale(s) {
 // per-site scores build.py wrote; a site's rank therefore depends on which cities are selected.
 const selected = new Set();
 const cityOf = {};
+// One colour per city, used for its border, its shade and its button when selected.
+const cityColor = slug => css(`--city-${slug}`) || css('--border');
 
 function rankSelected(cities) {
   const sites = cities.flatMap(c => c.sites);
@@ -277,16 +283,21 @@ function draw() {
   const slugs = Object.keys(DATA.cities).filter(k => selected.has(k));
   const cities = slugs.map(k => DATA.cities[k]);
   const multi = cities.length > 1;
-  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-pressed', selected.has(b.dataset.slug)));
+  document.querySelectorAll('#tabs button[data-slug]').forEach(b => {
+    const on = selected.has(b.dataset.slug), col = cityColor(b.dataset.slug);
+    b.setAttribute('aria-pressed', on);
+    b.style.background = on ? col : ''; b.style.borderColor = col; b.style.color = on ? '#fff' : '';
+    b.querySelector('.sw').style.background = on ? '#fff' : col;
+  });
   allLayer.clearLayers(); topLayer.clearLayers(); boundaryLayer.clearLayers(); byId = {};
   drawContext(cities);
   // City border: a light casing under a solid dark line so it reads over streets, hazards and the dark theme.
   cities.forEach(c => {
     if (!c.boundary) return;
-    const rings = ll(c.boundary);
-    boundaryLayer.addLayer(L.polygon(rings, {pane: 'shade', stroke: false, fillColor: css('--shade'), fillOpacity: .12, interactive: false}));
+    const rings = ll(c.boundary), col = cityColor(c.slug);
+    boundaryLayer.addLayer(L.polygon(rings, {pane: 'shade', stroke: false, fillColor: col, fillOpacity: .12, interactive: false}));
     boundaryLayer.addLayer(L.polygon(rings, {pane: 'border', color: css('--panel'), weight: 7, opacity: .85, fill: false, interactive: false}));
-    boundaryLayer.addLayer(L.polygon(rings, {pane: 'border', color: css('--border'), weight: 3, opacity: 1, fill: false,
+    boundaryLayer.addLayer(L.polygon(rings, {pane: 'border', color: col, weight: 3, opacity: 1, fill: false,
       lineJoin: 'round', interactive: true}).bindTooltip(`${esc(c.name)} city limits (SCAG 2024)`, {sticky: true}));
   });
   const good = css('--good'), bad = css('--bad'), grey = css('--site');
@@ -355,7 +366,9 @@ function init() {
   Object.entries(DATA.cities).forEach(([slug, c]) => {
     c.sites.forEach(s => { cityOf[s.id] = c.name; });
     const b = document.createElement('button');
-    b.type = 'button'; b.textContent = c.name; b.dataset.slug = slug; b.setAttribute('aria-pressed', 'false');
+    c.slug = slug;
+    b.type = 'button'; b.dataset.slug = slug; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<span class="sw dot" style="border-color:transparent"></span>${esc(c.name)}`;
     b.onclick = () => toggleCity(slug);
     tabs.appendChild(b);
   });
