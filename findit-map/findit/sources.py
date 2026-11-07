@@ -7,11 +7,39 @@ The date each layer was actually fetched is written to data/cache/meta.json by f
 # sites: which inventory layer lists the city's housing-element sites. SCAG has no Santa Ana or
 # Costa Mesa records, so those cities use HCD's statewide Table A inventory (SB 6 submissions).
 # Irvine stays on SCAG so its rankings match earlier runs; HCD lists 117 Irvine sites to SCAG's 44.
+# Every other Orange County jurisdiction with a Table A submission is included (checked 2026-11-07).
+# Not in either source: Huntington Beach, Tustin, Orange, Laguna Woods, Rancho Santa Margarita.
 CITIES = {
     "irvine": {"name": "Irvine", "match": "IRVINE", "sites": "he_sites"},
     "santa-ana": {"name": "Santa Ana", "match": "SANTA ANA", "sites": "hcd_sites"},
     "costa-mesa": {"name": "Costa Mesa", "match": "COSTA MESA", "sites": "hcd_sites"},
     "anaheim": {"name": "Anaheim", "match": "ANAHEIM", "sites": "hcd_sites"},
+    "aliso-viejo": {"name": "Aliso Viejo", "match": "ALISO VIEJO", "sites": "hcd_sites"},
+    "brea": {"name": "Brea", "match": "BREA", "sites": "hcd_sites"},
+    "buena-park": {"name": "Buena Park", "match": "BUENA PARK", "sites": "hcd_sites"},
+    "cypress": {"name": "Cypress", "match": "CYPRESS", "sites": "hcd_sites"},
+    "dana-point": {"name": "Dana Point", "match": "DANA POINT", "sites": "hcd_sites"},
+    "fountain-valley": {"name": "Fountain Valley", "match": "FOUNTAIN VALLEY", "sites": "hcd_sites"},
+    "fullerton": {"name": "Fullerton", "match": "FULLERTON", "sites": "hcd_sites"},
+    "garden-grove": {"name": "Garden Grove", "match": "GARDEN GROVE", "sites": "hcd_sites"},
+    "la-habra": {"name": "La Habra", "match": "LA HABRA", "sites": "hcd_sites"},
+    "la-palma": {"name": "La Palma", "match": "LA PALMA", "sites": "hcd_sites"},
+    "laguna-beach": {"name": "Laguna Beach", "match": "LAGUNA BEACH", "sites": "hcd_sites"},
+    "laguna-hills": {"name": "Laguna Hills", "match": "LAGUNA HILLS", "sites": "hcd_sites"},
+    "laguna-niguel": {"name": "Laguna Niguel", "match": "LAGUNA NIGUEL", "sites": "hcd_sites"},
+    "lake-forest": {"name": "Lake Forest", "match": "LAKE FOREST", "sites": "hcd_sites"},
+    "los-alamitos": {"name": "Los Alamitos", "match": "LOS ALAMITOS", "sites": "hcd_sites"},
+    "mission-viejo": {"name": "Mission Viejo", "match": "MISSION VIEJO", "sites": "hcd_sites"},
+    "newport-beach": {"name": "Newport Beach", "match": "NEWPORT BEACH", "sites": "hcd_sites"},
+    "placentia": {"name": "Placentia", "match": "PLACENTIA", "sites": "hcd_sites"},
+    "san-clemente": {"name": "San Clemente", "match": "SAN CLEMENTE", "sites": "hcd_sites"},
+    "san-juan-capistrano": {"name": "San Juan Capistrano", "match": "SAN JUAN CAPISTRANO", "sites": "hcd_sites"},
+    "seal-beach": {"name": "Seal Beach", "match": "SEAL BEACH", "sites": "hcd_sites"},
+    "stanton": {"name": "Stanton", "match": "STANTON", "sites": "hcd_sites"},
+    "villa-park": {"name": "Villa Park", "match": "VILLA PARK", "sites": "hcd_sites"},
+    "westminster": {"name": "Westminster", "match": "WESTMINSTER", "sites": "hcd_sites"},
+    "yorba-linda": {"name": "Yorba Linda", "match": "YORBA LINDA", "sites": "hcd_sites"},
+    "orange-county": {"name": "Unincorporated OC", "match": "ORANGE COUNTY", "sites": "hcd_sites"},
 }
 
 SOURCES = {
@@ -138,6 +166,10 @@ ASSUMPTIONS = {
                   "flood_sfha": -0.5, "fire_very_high": -0.5, "fire_other": -0.15, "landslide": -0.25,
                   "cleanup_on_site": -0.4, "cleanup_nearby": -0.1, "pollution_burden": -0.1},
         "why": "Team judgment for a first-pass screen. Not a legal eligibility test and not a prediction.",
+    },
+    "star_bands": {
+        "value": {"5": 0.50, "4": 0.34, "3": 0.20, "2": 0.06, "1": -99},
+        "why": "Stars rate a site's score as a share of the points it could earn with the data available (a site with no listed capacity is not penalised for the missing term). Bands follow the county-wide distribution on 2026-11-07: 5 stars is roughly the top 3% of Orange County sites, 4 the next 7%, 3 the next 15%, 2 the next 25%, 1 the bottom half. Likely-used sites get no stars.",
     },
     "use_as_open_land": {
         "value": {"vacant": 1.0, "parking": 0.5, "other": 0.0},

@@ -57,12 +57,27 @@ h1{font-size:19px;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
 .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
 .proto{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:12px;margin-bottom:14px}
 .testdata{background:var(--bad-bg);color:var(--bad);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;margin-bottom:8px}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
-.tabs button.all{flex:0 0 auto;font-weight:500;color:var(--muted)}
-.tabs button .sw{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:middle;border:0}
-.tabs button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
+.dd{position:relative;margin-bottom:6px}
+.dd-btn{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;font-weight:600;cursor:pointer;text-align:left}
+.dd-btn .caret{color:var(--muted);flex:none}
+.dd-btn span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-panel{position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 4px);background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px}
+.dd-tools{display:flex;gap:6px;margin-bottom:6px}
+.dd-tools input{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:inherit;font-size:12.5px;background:var(--bg);color:var(--ink)}
+.dd-tools button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 8px;font:inherit;font-size:12px;cursor:pointer}
+.dd-list{max-height:260px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.dd-list label{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 6px;border-radius:6px;cursor:pointer}
+.dd-list label:hover{background:var(--bg)}
+.dd-list label.hide{display:none}
+.dd-list .n{color:var(--muted);font-size:11px;margin-left:auto}
+.dd-list .sw{width:9px;height:9px;border-radius:50%;flex:none;border:0}
+.selchips{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+.selchips .chip{border:1px solid;background:transparent;font-weight:600}
+.tabs-unused{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 6px;
   font:inherit;font-weight:600;cursor:pointer;color:var(--ink)}
-.tabs button[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.tabs-unused[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
 .stats{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
 .stats b{color:var(--ink);font-size:15px;display:block;font-variant-numeric:tabular-nums}
 h2{font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;margin:18px 0 6px;display:flex;align-items:center;gap:8px}
@@ -112,6 +127,9 @@ details a{color:var(--ink);word-break:break-all}
 .pop .facts{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;padding:8px 0 0;border-top:1px solid var(--line)}
 .pop .facts dt{color:var(--muted);font-size:11.5px;white-space:nowrap}
 .pop .facts dd{margin:0}
+.stars{letter-spacing:1px;font-size:13px;white-space:nowrap}.stars .on{color:var(--warn)}.stars .off{color:var(--line)}.stars.na{color:var(--muted)}
+.starline{display:flex;align-items:center;gap:8px;margin:8px 0 2px}.starline b{font-size:13px}.starline .dim{margin-left:auto}
+ol.top .rating{text-align:right}ol.top .rating .lbl{display:block;font-size:11px;color:var(--muted)}
 .pop .scoreval{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:0;text-transform:none}
 .pop .parts{list-style:none;margin:0;padding:0}
 .pop .parts li{display:flex;justify-content:space-between;padding:2px 0;border-top:1px solid var(--line)}
@@ -153,8 +171,16 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <p class="sub">Housing-element sites, ranked two ways, with HCD permit, opportunity, pollution and contamination checks.</p>
   <div class="testdata" id="testBanner" hidden></div>
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
-  <div class="tabs" id="tabs" role="group" aria-label="Cities (select one or more)"></div>
-  <p class="hint">Click cities to add or remove them. Rankings cover every selected city together.</p>
+  <div class="dd" id="cityDD">
+    <button type="button" class="dd-btn" id="cityBtn" aria-haspopup="true" aria-expanded="false" aria-controls="cityPanel"><span id="cityBtnText">Cities</span><span class="caret" aria-hidden="true">▾</span></button>
+    <div class="dd-panel" id="cityPanel" hidden>
+      <div class="dd-tools"><input type="search" id="citySearch" placeholder="Filter cities" aria-label="Filter cities">
+        <button type="button" id="cityAll">All</button><button type="button" id="cityNone">Clear</button></div>
+      <div class="dd-list" id="cityList" role="group" aria-label="Cities"></div>
+    </div>
+  </div>
+  <div class="selchips" id="selchips" aria-live="polite"></div>
+  <p class="hint">Pick one or more cities. Rankings cover every selected city together.</p>
   <p class="hint">Every site has a marker: numbered green for the top 10, a <span class="sdot ok" style="display:inline-block;vertical-align:middle"></span> green dot if available, a <span class="sdot used" style="display:inline-block;vertical-align:middle"></span> red dot if likely already used, and a <span class="sdot pend" style="display:inline-block;vertical-align:middle"></span> red ring for a pending project.</p>
   <div class="stats" id="stats"></div>
   <div id="rhna"></div>
@@ -188,7 +214,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 <aside class="right" aria-label="Top 10 sites">
   <h1 id="rightTitle">Top 10 sites to check first</h1>
   <p class="rightstats" id="rightstats"></p>
-  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are never ranked. The map shows every site; only the ten best appear here. Click a site to go to it on the map and see its details.</p>
+  <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are never ranked. The map shows every site; only the ten best appear here. Stars rate each site against all Orange County sites: 5 is roughly the top 3%, 1 the bottom half (bands under Assumptions). Click a site to go to it on the map and see its details.</p>
   <ol class="top" id="top10"></ol>
 </aside>
 </div>
@@ -232,6 +258,26 @@ const PART_NAMES = {open_land: 'Open land', lower_income_capacity: 'Lower-income
   flood_sfha: 'Flood zone', fire_very_high: 'Very high fire hazard', fire_other: 'Fire hazard zone', landslide: 'Landslide zone',
   cleanup_on_site: 'Cleanup site on parcel', cleanup_nearby: 'Cleanup site nearby', pollution_burden: 'Pollution burden'};
 const STATUS_WORD = {pass: 'OK', fail: 'Concern', caution: 'Caution', info: 'Note', unknown: 'No data'};
+const STAR_LABEL = {5: 'Top pick', 4: 'Strong', 3: 'Fair', 2: 'Weak', 1: 'Poor'};
+// Stars come from the screen score using the bands in ASSUMPTIONS.star_bands; the numeric score stays available underneath.
+const POS_W = () => DATA.assumptions.weights_promising.value;
+// Share of attainable points: positive weights for the terms this site has data for, so a missing term is not a penalty.
+function attainable(s) {
+  const w = POS_W();
+  let max = w.size + w.transit + w.tax_credit_boost;
+  if ('open_land' in s.promising_parts) max += w.open_land;
+  if (s.lower !== null && s.lower !== undefined) max += w.lower_income_capacity;
+  if (s.oppcat) max += w.high_opportunity;
+  return max;
+}
+function stars(s) {
+  if (likelyUsed(s)) return {n: 0, label: 'Not available', share: null, html: '<span class="stars na" aria-label="No stars: likely already used">—</span>'};
+  const bands = (DATA.assumptions.star_bands || {}).value || {5: .5, 4: .34, 3: .2, 2: .06, 1: -99};
+  const share = s.promising / attainable(s);
+  const n = +([5, 4, 3, 2, 1].find(k => share >= bands[k]) || 1);
+  return {n, label: STAR_LABEL[n], share, html: `<span class="stars" role="img" aria-label="${n} out of 5 stars, ${STAR_LABEL[n]}">` +
+    '<span class="on">' + '★'.repeat(n) + '</span><span class="off">' + '★'.repeat(5 - n) + '</span></span>'};
+}
 const num = (v, d = 0) => v === null || v === undefined ? null : (+v).toLocaleString(undefined, {maximumFractionDigits: d});
 
 function popupHtml(s) {
@@ -273,7 +319,8 @@ function popupHtml(s) {
     <p class="kv">${s.address && s.address !== s.name ? esc(s.address) + ' · ' : ''}APN ${fmt(s.apn)}</p>
     ${tags.length ? `<p class="tags">${tags.join(' ')}</p>` : ''}
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
-    <h4>Screen score <span class="scoreval">${s.promising.toFixed(2)}</span></h4>
+    <div class="starline">${stars(s).html}<b>${esc(stars(s).label)}</b><span class="dim">${stars(s).share === null ? '' : `earned ${Math.round(stars(s).share * 100)}% of attainable points · score ${s.promising.toFixed(2)}`}</span></div>
+    <h4>What makes up the score</h4>
     <ul class="parts">${partRows || '<li><span>No scoreable data</span></li>'}</ul>
     <p class="dim">Weights are team assumptions, listed under "Assumptions" in the sidebar.</p>
     <h4>Checks</h4>
@@ -300,7 +347,10 @@ function whyPromising(s) {
 const selected = new Set();
 const cityOf = {};
 // One colour per city, used for its border, its shade and its button when selected.
-const cityColor = slug => css(`--city-${slug}`) || css('--border');
+const CITY_ORDER = DATA ? Object.keys(DATA.cities) : [];
+const isDark = () => document.documentElement.dataset.theme === 'dark' ||
+  (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+const cityColor = slug => css(`--city-${slug}`) || `hsl(${Math.round((CITY_ORDER.indexOf(slug) * 137.508) % 360)} 55% ${isDark() ? 66 : 36}%)`;
 
 function rankSelected(cities) {
   const sites = cities.flatMap(c => c.sites);
@@ -365,12 +415,11 @@ function draw(opts = {}) {
   const slugs = Object.keys(DATA.cities).filter(k => selected.has(k));
   const cities = slugs.map(k => DATA.cities[k]);
   const multi = cities.length > 1;
-  document.querySelectorAll('#tabs button[data-slug]').forEach(b => {
-    const on = selected.has(b.dataset.slug), col = cityColor(b.dataset.slug);
-    b.setAttribute('aria-pressed', on);
-    b.style.background = on ? col : ''; b.style.borderColor = col; b.style.color = on ? '#fff' : '';
-    b.querySelector('.sw').style.background = on ? '#fff' : col;
-  });
+  document.querySelectorAll('#cityList input').forEach(i => { i.checked = selected.has(i.value); });
+  document.getElementById('cityBtnText').textContent = cities.length === 0 ? 'No cities selected'
+    : cities.length === CITY_ORDER.length ? `All ${cities.length} cities` : `${cities.length} ${cities.length === 1 ? 'city' : 'cities'}: ${cities.map(c => c.name).join(', ')}`;
+  document.getElementById('selchips').innerHTML = cities.map(c =>
+    `<span class="chip" style="color:${cityColor(c.slug)};border-color:${cityColor(c.slug)}">${esc(c.name)}</span>`).join('');
   allLayer.clearLayers(); topLayer.clearLayers(); boundaryLayer.clearLayers(); byId = {};
   drawContext(cities);
   // City border: a light casing under a solid dark line so it reads over streets, hazards and the dark theme.
@@ -406,7 +455,7 @@ function draw(opts = {}) {
       const word = {ok: 'available', used: 'likely already used', pend: 'pending project'}[kind];
       const dot = L.marker([s.lat, s.lon], {pane: 'pending', keyboard: true, title: `${s.name}: ${word}`,
         icon: L.divIcon({className: '', iconSize: [12, 12], html: `<div class="sdot ${kind}" aria-hidden="true"></div>`})});
-      dot.bindTooltip(`${esc(s.name)}<br>${word}`, {direction: 'top'});
+      dot.bindTooltip(`${esc(s.name)}<br>${word}${kind === 'ok' ? ' · ' + stars(s).html + ' ' + esc(stars(s).label) : ''}`, {direction: 'top'});
       dot.on('click', () => poly.openPopup());
       pendingLayer.addLayer(dot);
     }
@@ -414,7 +463,7 @@ function draw(opts = {}) {
       const n = s.promising_rank;
       const m = L.marker([s.lat, s.lon], {icon: L.divIcon({className: '', iconSize: [24, 24],
         html: `<div class="marker" style="background:${color}">${n}</div>`}),
-        title: `To check #${n}: ${s.name}`, keyboard: true});
+        title: `To check #${n}: ${s.name} (${stars(s).n} stars, ${stars(s).label})`, keyboard: true});
       m.on('click', () => poly.openPopup());
       topLayer.addLayer(m);
     }
@@ -423,6 +472,7 @@ function draw(opts = {}) {
   if (opts.keepView) { /* toggles redraw in place */ }
   else if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
   else if (cities[0]) map.setView(cities[0].center, 13);
+  else if (!opts.keepView) map.setView([33.72, -117.83], 10);
 
   document.getElementById('rhna').innerHTML = cities.map(c => rhnaHtml(c, multi)).join('');
   const LBL = {no_geometry: 'No outline (dropped)', duplicate_apn: 'Duplicate APN (dropped)', bad_apn: 'Missing or short APN',
@@ -440,26 +490,30 @@ function draw(opts = {}) {
 
   const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
   const top = ranked.slice(0, TOP_N);
-  document.getElementById('rightTitle').textContent = `Top ${top.length} sites to check first`;
+  document.getElementById('rightTitle').textContent = cities.length ? `Top ${top.length} sites to check first` : 'Pick a city to see its top sites';
   document.getElementById('rightstats').textContent = ranked.length
     ? `Ranked from ${ranked.length} eligible sites in ${cities.map(c => c.name).join(', ')}. The map shows all ${sites.length}.`
-    : 'No sites with enough data to rank in the selected cities.';
+    : cities.length ? 'No sites with enough data to rank in the selected cities.' : 'Use the city menu on the left.';
   const card = (s, numHtml) => `<li data-id="${esc(s.id)}">
     <button type="button" class="head" aria-expanded="false">
       ${numHtml}
       <span><b>${esc(s.name)}</b>${s.pending ? ' <span class="chip pending">pending</span>' : ''}<br>
         <span class="city">${esc(cityOf[s.id])} · APN ${fmt(s.apn)}</span><br><span class="why">${whyPromising(s)}</span></span>
-      <span class="score">${s.promising.toFixed(2)}</span>
+      <span class="rating">${stars(s).html}<span class="lbl">${esc(stars(s).label)}</span></span>
     </button>
     <div class="detail"></div></li>`;
   document.getElementById('top10').innerHTML = top.map(s => card(s, `<span class="num" style="background:${good}">${s.promising_rank}</span>`)).join('');
   document.getElementById('notes').innerHTML = cities.flatMap(c => c.notes.map(t => `<li>${multi ? '<b>' + esc(c.name) + ':</b> ' : ''}${esc(t)}</li>`)).join('');
 }
 
-function toggleCity(slug) {
-  if (selected.has(slug)) { if (selected.size === 1) return; selected.delete(slug); }
-  else selected.add(slug);
+function toggleCity(slug, on) {
+  if (on) selected.add(slug); else selected.delete(slug);
   draw();
+}
+function setPanel(open) {
+  document.getElementById('cityPanel').hidden = !open;
+  document.getElementById('cityBtn').setAttribute('aria-expanded', open);
+  if (open) document.getElementById('citySearch').focus();
 }
 
 function selectCard(id, scroll) {
@@ -486,20 +540,25 @@ function init() {
     b.textContent = 'TEST DATA. Every site, APN, number and map shape here is made up to show how the tool works. Run fetch.py and build.py for real sites.';
     b.hidden = false;
   }
-  const tabs = document.getElementById('tabs');
+  const list = document.getElementById('cityList');
   Object.entries(DATA.cities).forEach(([slug, c]) => {
-    c.sites.forEach(s => { cityOf[s.id] = c.name; });
-    const b = document.createElement('button');
     c.slug = slug;
-    b.type = 'button'; b.dataset.slug = slug; b.setAttribute('aria-pressed', 'false');
-    b.innerHTML = `<span class="sw dot" style="border-color:transparent"></span>${esc(c.name)}`;
-    b.onclick = () => toggleCity(slug);
-    tabs.appendChild(b);
+    c.sites.forEach(s => { cityOf[s.id] = c.name; });
+    const lab = document.createElement('label');
+    lab.innerHTML = `<input type="checkbox" value="${esc(slug)}"><span class="sw" style="background:${cityColor(slug)}"></span>${esc(c.name)}<span class="n">${c.sites.length}</span>`;
+    lab.querySelector('input').addEventListener('change', e => toggleCity(slug, e.target.checked));
+    list.appendChild(lab);
   });
-  const all = document.createElement('button');
-  all.type = 'button'; all.textContent = 'All'; all.className = 'all'; all.title = 'Select every city';
-  all.onclick = () => { Object.keys(DATA.cities).forEach(k => selected.add(k)); draw(); };
-  tabs.appendChild(all);
+  const btn = document.getElementById('cityBtn'), panel = document.getElementById('cityPanel');
+  btn.addEventListener('click', () => setPanel(panel.hidden));
+  document.addEventListener('click', e => { if (!document.getElementById('cityDD').contains(e.target)) setPanel(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !panel.hidden) { setPanel(false); btn.focus(); } });
+  document.getElementById('citySearch').addEventListener('input', e => {
+    const q = e.target.value.trim().toLowerCase();
+    list.querySelectorAll('label').forEach(l => l.classList.toggle('hide', q && !l.textContent.toLowerCase().includes(q)));
+  });
+  document.getElementById('cityAll').addEventListener('click', () => { CITY_ORDER.forEach(k => selected.add(k)); draw(); });
+  document.getElementById('cityNone').addEventListener('click', () => { selected.clear(); draw(); });
   document.getElementById('top10').addEventListener('click', e => {
     const head = e.target.closest('.head'); if (!head) return;
     const li = head.closest('li[data-id]');
@@ -519,7 +578,7 @@ function init() {
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
   document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
-  Object.keys(DATA.cities).forEach(k => selected.add(k));
+  ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
   draw();
 }
 init();

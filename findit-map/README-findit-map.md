@@ -1,6 +1,7 @@
 # Find It: Site Screener map
 
-A map of Irvine, Santa Ana, Costa Mesa and Anaheim housing-element sites, ranked two ways:
+A map of housing-element sites across 30 Orange County jurisdictions (every city with a statewide
+Table A submission, plus unincorporated county land), ranked and starred:
 
 - **Top 5 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
   minus hazard, contamination and pollution-burden penalties.
@@ -54,7 +55,7 @@ Also watch for these lines from `fetch.py`:
 | Layer | Source |
 |---|---|
 | Housing-element sites (Irvine) | SCAG HousingElementSite_poly_scag |
-| Housing-element sites (Santa Ana, Costa Mesa, Anaheim) | HCD Sites Inventory Table A, state DGS feature service `SB6_ParcelsA_Pub_Join` |
+| Housing-element sites (all other jurisdictions) | HCD Sites Inventory Table A, state DGS feature service `SB6_ParcelsA_Pub_Join` |
 | Building coverage | OC Building Footprints |
 | Year built | OC Survey Parcels |
 | Zoning, slope | SCAG Zoning_poly_OR |
@@ -90,7 +91,9 @@ Leaflet 1.9.4 (BSD 2-Clause, see `findit/LEAFLET-LICENSE`). Its stylesheet is bu
 ## Which inventory each city uses
 
 SCAG's HousingElementSite_poly_scag layer has no Santa Ana or Costa Mesa records (checked 2026-11-07), so
-those cities, and Anaheim, read HCD's statewide Table A inventory instead. `fetch.py` renames its fields to
+every other jurisdiction reads HCD's statewide Table A inventory instead (26 more cities plus
+unincorporated county land; Huntington Beach, Tustin, Orange, Laguna Woods and Rancho Santa Margarita
+are in neither source). `fetch.py` renames its fields to
 the SCAG names `build.py` expects and keeps HCD's extras (site status, existing use, public ownership).
 Irvine stays on SCAG so its rankings match earlier runs; HCD lists 117 Irvine sites to SCAG's 44.
 Set `sites` per city in `findit/sources.py` to switch.
@@ -116,3 +119,16 @@ to estimate capacity (label it as an estimate).
 | Status "Pending Project" | Flag: shown on the site and in the lists; a switch on the page leaves these out of "check first" |
 
 Counts per city print during `build.py` and appear on the page under "Data checks".
+
+## Stars
+
+Each available site gets 1 to 5 stars from its screen score as a share of the points it could earn
+with the data it has (so a site with no listed capacity is not penalised for the missing term). The
+bands are set at county-wide percentiles and listed in `ASSUMPTIONS["star_bands"]`: 5 stars is roughly
+the top 3% of Orange County sites, 1 star the bottom half. Likely-used sites get no stars.
+
+## Page size
+
+With all 30 cities the built page is about 11 MB, mostly hazard-overlay geometry. It opens with four
+cities selected; pick more from the city menu. To shrink it, raise the simplify tolerance in
+`overlays()` in `build.py`.
