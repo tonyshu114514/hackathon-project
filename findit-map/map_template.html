@@ -144,6 +144,8 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 
   <h2>Map layers</h2>
   <div class="layers" id="layers"></div>
+  <label class="toggle"><input type="checkbox" id="hideUsed" checked> <span id="hideUsedLabel">Hide likely-used sites</span></label>
+  <p class="hint">Hidden sites have permit activity reported to HCD or a building from 2021 on. Signals can be wrong; untick to review them.</p>
 
   <h2><span class="dot" style="background:var(--good)"></span>Top 5 to check first</h2>
   <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Sites with a recent building or reported permit activity are left out.</p>
@@ -342,7 +344,13 @@ function rhnaHtml(c, showName) {
           <span class="val">${(+r[a]).toLocaleString()} / ${(+r[b]).toLocaleString()}</span></div>`; }).join('') + '</div>';
 }
 
-function draw() {
+// "Likely used" is exactly apr_hit || new_build (no numeric threshold); the ranked red top 5 stay visible regardless.
+const likelyUsed = s => Boolean(s.apr_hit || s.new_build);
+const HIDE_KEY = 'findit.hideUsed';
+function loadHideUsed() { try { const v = localStorage.getItem(HIDE_KEY); return v === null ? true : v === '1'; } catch (e) { return true; } }
+function saveHideUsed(on) { try { localStorage.setItem(HIDE_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable: keep the default */ } }
+
+function draw(opts = {}) {
   const slugs = Object.keys(DATA.cities).filter(k => selected.has(k));
   const cities = slugs.map(k => DATA.cities[k]);
   const multi = cities.length > 1;
@@ -365,10 +373,14 @@ function draw() {
   });
   const good = css('--good'), bad = css('--bad'), grey = css('--site');
   const sites = rankSelected(cities);
+  const hideUsed = document.getElementById('hideUsed').checked;
+  const nUsed = sites.filter(likelyUsed).length;
+  document.getElementById('hideUsedLabel').textContent = `Hide likely-used sites (${nUsed})`;
   const bounds = [];
   sites.forEach(s => {
     s.polys.forEach(p => p[0].forEach(([x, y]) => bounds.push([y, x])));
     const top = s.promising_rank || s.stale_rank;
+    if (!top && hideUsed && likelyUsed(s)) return;  // hidden: not drawn, not in byId, lists unchanged
     const color = s.promising_rank ? good : s.stale_rank ? bad : grey;
     const poly = L.polygon(ll(s.polys), s.pending && !top
       ? {color: css('--warn'), weight: 1.5, dashArray: '4 3', fillColor: css('--warn'), fillOpacity: 0.18}
@@ -386,7 +398,8 @@ function draw() {
     }
   });
   cities.forEach(c => { if (!c.sites.length && c.boundary) ll(c.boundary).flat(2).forEach(pt => bounds.push(pt)); });
-  if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
+  if (opts.keepView) { /* toggles redraw in place */ }
+  else if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
   else if (cities[0]) map.setView(cities[0].center, 13);
 
   document.getElementById('rhna').innerHTML = cities.map(c => rhnaHtml(c, multi)).join('');
@@ -455,7 +468,10 @@ function init() {
     el.addEventListener('click', go);
     el.addEventListener('keydown', e => { if (e.key === 'Enter') go(e); });
   });
-  document.getElementById('rankPending').addEventListener('change', draw);
+  document.getElementById('rankPending').addEventListener('change', () => draw());
+  const hide = document.getElementById('hideUsed');
+  hide.checked = loadHideUsed();
+  hide.addEventListener('change', () => { saveHideUsed(hide.checked); draw({keepView: true}); });
   document.getElementById('layers').addEventListener('change', e => {
     const k = e.target.dataset.k; if (!k) return;
     layerOn[k] = e.target.checked;
