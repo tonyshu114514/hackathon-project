@@ -161,6 +161,7 @@ const layerOn = Object.fromEntries(LAYERS.map(l => [l.key, l.on]));
 const map = L.map('map', {zoomControl: true});
 map.createPane('context'); map.getPane('context').style.zIndex = 350;
 map.createPane('border'); map.getPane('border').style.zIndex = 360;
+map.createPane('shade'); map.getPane('shade').style.zIndex = 340;  // under the context layers
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
 let boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
@@ -283,6 +284,7 @@ function draw() {
   cities.forEach(c => {
     if (!c.boundary) return;
     const rings = ll(c.boundary);
+    boundaryLayer.addLayer(L.polygon(rings, {pane: 'shade', stroke: false, fillColor: css('--border'), fillOpacity: .06, interactive: false}));
     boundaryLayer.addLayer(L.polygon(rings, {pane: 'border', color: css('--panel'), weight: 7, opacity: .85, fill: false, interactive: false}));
     boundaryLayer.addLayer(L.polygon(rings, {pane: 'border', color: css('--border'), weight: 3, opacity: 1, fill: false,
       lineJoin: 'round', interactive: true}).bindTooltip(`${esc(c.name)} city limits (SCAG 2024)`, {sticky: true}));
