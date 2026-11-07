@@ -2,8 +2,8 @@
 
 > For city housing planners and nonprofit developers: a map that ranks every housing-element site in 30 Orange County jurisdictions by how ready it is for affordable housing, and flags the listed sites that are probably already taken.
 
-**Team:** [team name]
-**Members:** [names]
+**Team:** wadahail
+**Members:** Xinyan Shu, Tingxuan Wang
 **Lane:** 1 Find it
 **Built at:** Claude Impact Lab: UCI × SoCal Affordable Housing, November 7, 2026
 
