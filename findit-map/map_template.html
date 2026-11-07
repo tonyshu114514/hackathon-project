@@ -127,6 +127,9 @@ details a{color:var(--ink);word-break:break-all}
 .pop .srcs summary{font-size:12px}.pop .srcs p{margin:4px 0;font-size:11px;word-break:break-word}
 .pending-banner{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start;background:var(--bad-bg);color:var(--bad);border:1.5px solid var(--bad);border-radius:8px;padding:8px 10px;margin:0 0 10px;font-size:12px}
 .pending-icon{width:22px;height:22px;border-radius:50%;background:var(--bad);color:#fff;font-weight:800;display:grid;place-items:center;font-size:14px}
+.sdot{width:12px;height:12px;border-radius:50%;border:2px solid var(--panel);box-sizing:border-box;box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.sdot.ok{background:var(--good)}.sdot.used{background:var(--bad)}
+.sdot.pend{background:var(--panel);border:3px solid var(--bad)}
 .pending-mark{width:18px;height:18px;border-radius:50%;background:var(--warn);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .leaflet-container{background:var(--bg);font:inherit}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
@@ -152,7 +155,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
   <div class="tabs" id="tabs" role="group" aria-label="Cities (select one or more)"></div>
   <p class="hint">Click cities to add or remove them. Rankings cover every selected city together.</p>
-  <p class="hint">Sites with a small red dot are pending projects: the city already reports a project proposed there.</p>
+  <p class="hint">Every site has a marker: numbered green for the top 10, a <span class="sdot ok" style="display:inline-block;vertical-align:middle"></span> green dot if available, a <span class="sdot used" style="display:inline-block;vertical-align:middle"></span> red dot if likely already used, and a <span class="sdot pend" style="display:inline-block;vertical-align:middle"></span> red ring for a pending project.</p>
   <div class="stats" id="stats"></div>
   <div id="rhna"></div>
 
@@ -397,10 +400,13 @@ function draw(opts = {}) {
     poly.on('popupopen', () => selectCard(s.id, true));
     (top ? topLayer : allLayer).addLayer(poly);
     byId[s.id] = {s, poly};
-    if (s.pending) {
-      const dot = L.circleMarker([s.lat, s.lon], {pane: 'pending', radius: 4.5, color: css('--panel'), weight: 1.5,
-        fillColor: css('--bad'), fillOpacity: 1, keyboard: true});
-      dot.bindTooltip(`Pending project: ${esc(s.name)}`, {direction: 'top'});
+    if (!top) {
+      // Every site outside the top 10 gets a dot: green = available, red = likely already used, red ring = pending project.
+      const kind = s.pending && !used ? 'pend' : used ? 'used' : 'ok';
+      const word = {ok: 'available', used: 'likely already used', pend: 'pending project'}[kind];
+      const dot = L.marker([s.lat, s.lon], {pane: 'pending', keyboard: true, title: `${s.name}: ${word}`,
+        icon: L.divIcon({className: '', iconSize: [12, 12], html: `<div class="sdot ${kind}" aria-hidden="true"></div>`})});
+      dot.bindTooltip(`${esc(s.name)}<br>${word}`, {direction: 'top'});
       dot.on('click', () => poly.openPopup());
       pendingLayer.addLayer(dot);
     }
