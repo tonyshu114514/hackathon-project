@@ -14,16 +14,37 @@ notices), ranked and starred:
 A button above the list downloads every site in the selected cities as a CSV, best first, with stars, score,
 confidence, capacity, zoning, permit grade, pathway screens, failed and unknown checks, data flags and coordinates.
 
+## The page
+
+- **Top bar**: city picker (multi-select, with search), site search, Compare (with a count of the sites queued), CSV
+  download, theme switch, and a button that hides or shows the site panel.
+- **Left panel** (collapsible, a slide-in drawer on phones): the disclaimer, live overview tiles and four small charts
+  computed from the sites currently on screen (star ratings of available sites, hazard concerns and cautions by
+  hazard, pathway screen results by law, SCAG zoning families), quick-filter chips, a scenario preset menu, advanced
+  filters, map layers, RHNA progress, scoring weights, data notes and checks, assumptions, sources.
+- **Map**: numbered pins for the top 10, dots for every other site (clustered into counts when zoomed out; the cluster
+  border turns red when it holds a likely-used site), parcel outlines that brighten on hover from the list or the map,
+  city borders, context layers, a legend, zoom-home, and the basemap picker. A pill row over the map shows the count
+  and every active filter, each removable with one click.
+- **Right panel**: the ranked top-10 list, or one site's detail in tabs: Overview (facts, why it ranks, sources), Score
+  (score ring, share of attainable points, term-by-term bars, confidence), Pathways (the four law screens with a
+  pass/fail/unknown meter and expandable tests), Risks (hazard, contamination and use checks as cards, then context
+  checks), Report (next steps, open or download the report). Back returns to the list. On phones this panel is a bottom
+  sheet: tap the handle to open it halfway or fully.
+
 ## Finding, filtering, comparing
 
-- **Search** by address, site name, agency or APN (digits only is fine). **Filters**: minimum acres, minimum
-  lower-income capacity, SCAG zoning family, transit area, data confidence, "pathway not ruled out", hide sites with
-  a flood, fire, landslide or contamination concern, include or exclude surplus notices. The ranking, the stats, the
-  map and the CSV all follow the filters; the counter under the filters says how many sites match.
-- **Compare**: the "Compare" button in a site's popup adds it to a bar at the bottom of the map; with two or three
-  sites, "Compare N sites" opens a side-by-side table (status, stars, score, confidence, size, open land, capacity,
-  zoning, transit, opportunity, pollution, each hazard check, permit activity, newest building, the four pathway
-  screens, source record). The best value in a row is shaded where "best" is clear.
+- **Search** by address, site name, agency or APN (digits only is fine). **Quick filters**: available only, 4+ stars,
+  near transit, 1+ acres, no hazard concerns, high confidence, surplus land only. **Scenarios** set several filters at
+  once: acquisitions call list, city hazard review, small-lot homes (SB 684 / SB 1123), commercial corridors (AB 2011),
+  faith and college land leads (SB 4), public surplus land. **Advanced filters**: minimum acres, minimum lower-income
+  capacity, SCAG zoning family, transit area, "pathway not ruled out", data confidence, minimum stars, record type
+  (inventory or surplus), hide hazard concerns, hide likely-used sites. The ranking, the statistics, the charts, the
+  map and the CSV all follow the filters; the pill row over the map lists what is active.
+- **Compare**: "Compare" in a site's detail adds it to a bar at the bottom of the map; with two or three sites,
+  "Compare N sites" (or the Compare button in the top bar) opens a side-by-side table grouped into Site, Rating,
+  Context, Hazards and use, and Pathway screens. Rows where the sites differ are emphasised and rows that match are
+  muted; "Differences only" hides the matching rows. The best value in a row is shaded where "best" is clear.
 - **Scoring weights**: the "Scoring weights (adjust)" panel has a slider per weight. Moving one re-scores every site
   from its stored factors and re-ranks; the right panel says "Scored with custom weights" and the CSV header records
   them. Nothing is saved; "Reset to defaults" restores the ASSUMPTION weights.
