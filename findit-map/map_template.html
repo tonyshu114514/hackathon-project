@@ -186,9 +186,20 @@ aside.detail{border-left:1px solid var(--line)}
 .leaflet-bar{border:1px solid var(--line)!important;box-shadow:var(--sh-sm)!important;border-radius:var(--r-sm)!important;overflow:hidden}
 .leaflet-bar a{background:var(--panel);color:var(--ink);border-color:var(--line)!important;width:32px;height:32px;line-height:32px}
 .leaflet-bar a:hover{background:var(--panel-2)}
-.leaflet-control-layers{background:var(--panel)!important;color:var(--ink);border:1px solid var(--line)!important;box-shadow:var(--sh-sm)!important;border-radius:var(--r-sm)!important}
-.leaflet-control-layers-toggle{background-color:var(--panel);background-size:18px 18px;width:32px!important;height:32px!important;
-  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linejoin='round'><path d='M12 3 2 8.5 12 14l10-5.5z'/><path d='m2 13 10 5.5L22 13'/><path d='m2 17.5 10 5.5 10-5.5'/></svg>")!important}
+/* Layers button: a 32 px rounded square matching the zoom and home buttons (Leaflet's .leaflet-touch class, set on most
+   browsers, makes those 30 px inside a 1 px border). The fill uses the inner radius (8 - 1 = 7 px) so it follows the
+   border's curve instead of poking past it. The icon is a mask filled with the theme's ink, sized explicitly so Leaflet's
+   .leaflet-retina rule (26 px background image on 2x screens) cannot enlarge it; its viewBox is trimmed to the drawing
+   so it sits optically centred. */
+.leaflet-control-layers{background:var(--panel)!important;color:var(--ink);border:1px solid var(--line)!important;box-shadow:var(--sh-sm)!important;border-radius:var(--r-sm)!important;background-clip:padding-box;transition:border-color var(--t) var(--ease),box-shadow var(--t) var(--ease)}
+.leaflet-control-layers:not(.leaflet-control-layers-expanded):hover{border-color:var(--line-2)!important;box-shadow:var(--sh-md)!important}
+.leaflet-control-layers .leaflet-control-layers-toggle,.leaflet-retina .leaflet-control-layers-toggle,.leaflet-touch .leaflet-control-layers-toggle{width:30px!important;height:30px!important;position:relative;border-radius:calc(var(--r-sm) - 1px);background:transparent none!important;cursor:pointer;transition:background-color var(--t) var(--ease)}
+.leaflet-control-layers-toggle::before{content:"";position:absolute;inset:0;margin:auto;width:18px;height:18px;background-color:var(--ink-2);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='1 2 22 22' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2 8.5 12 14l10-5.5z'/><path d='m2 13 10 5.5L22 13'/><path d='m2 17.5 10 5.5 10-5.5'/></svg>") center/18px 18px no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='1 2 22 22' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3 2 8.5 12 14l10-5.5z'/><path d='m2 13 10 5.5L22 13'/><path d='m2 17.5 10 5.5 10-5.5'/></svg>") center/18px 18px no-repeat;transition:background-color var(--t) var(--ease)}
+.leaflet-control-layers .leaflet-control-layers-toggle:hover{background-color:color-mix(in srgb,var(--ink) 8%,var(--panel))!important}
+.leaflet-control-layers .leaflet-control-layers-toggle:hover::before{background-color:var(--ink)}
+.leaflet-control-layers .leaflet-control-layers-toggle:active{background-color:color-mix(in srgb,var(--ink) 14%,var(--panel))!important}
+.leaflet-control-layers .leaflet-control-layers-toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.leaflet-control-layers-expanded{box-shadow:var(--sh-md)!important}
 .leaflet-control-layers-expanded{padding:8px 12px;font-size:12.5px}
 .leaflet-control-attribution{background:color-mix(in srgb,var(--panel) 85%,transparent)!important;color:var(--muted);font-size:10px}
 .leaflet-control-attribution a{color:var(--ink-2)}
