@@ -1,4 +1,4 @@
-# Find It: Site Screener map
+# CivicAcre: Housing Site Intelligence map
 
 A map of housing-element sites and Surplus Land Act notices across 35 Orange County jurisdictions (every city with a
 statewide Table A submission, unincorporated county land, and five cities that appear only through their surplus

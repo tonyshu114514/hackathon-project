@@ -1,10 +1,14 @@
-# Find It: Site Screener for Orange County housing planners
+<img src="assets/civicacre-icon.svg" width="76" height="76" alt="CivicAcre parcel grid logo">
+
+# CivicAcre — Affordable Housing Site Intelligence
+
+**Find and evaluate opportunities for affordable housing development across Orange County.**
 
 > For city housing planners and nonprofit developers: a map that ranks every housing-element site and surplus-land notice in 35 Orange County jurisdictions by how ready it is for affordable housing, flags the listed sites that are probably already taken, and screens each one against SB 9, SB 4, AB 2011 and SB 684 / SB 1123.
 
 **Team:** wadahail
 **Members:** Xinyan Shu, Tingxuan Wang
-**Lane:** 1 Find it
+**Lane:** 1 Find it (original Claude Impact Lab challenge)
 **Built at:** Claude Impact Lab: UCI × SoCal Affordable Housing, November 7, 2026
 
 ## The real user
