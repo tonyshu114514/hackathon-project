@@ -1698,6 +1698,17 @@ function init() {
   ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
   if (!selected.size) CITY_ORDER.forEach(k => selected.add(k));  // a build without the demo cities opens on every city it has
   draw();
+  // The first draw can run before the three-column layout settles. Leaflet then measures a too-small map and
+  // fitBounds lands at max zoom on one street. Re-measure and re-fit when the map gets its real size, until
+  // the map moves for any other reason (a drag, a zoom, a clicked site or a city change).
+  let autoFit = true, fitting = false;
+  map.on('movestart', () => { if (!fitting) autoFit = false; });
+  const refit = () => {
+    map.invalidateSize({pan: false});
+    if (autoFit && lastBounds) { fitting = true; map.fitBounds(lastBounds, {padding: [20, 20], animate: false}); fitting = false; }
+  };
+  if (window.ResizeObserver) new ResizeObserver(refit).observe(map.getContainer());
+  else requestAnimationFrame(refit);
 }
 try { init(); } catch (e) {
   document.body.insertAdjacentHTML('afterbegin', `<div class="testdata" style="margin:12px">The page hit an error while starting: ${esc(e.message)}. Rebuild with build.py or report it with the browser console open.</div>`);

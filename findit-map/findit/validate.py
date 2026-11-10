@@ -1,7 +1,8 @@
 """Validate housing-element site records before any scoring.
 
 Runs once per city on the raw site features. It fixes only what is safe to fix (drops records with no
-usable shape, keeps one record per APN, blanks impossible capacity values) and records every issue,
+usable shape, keeps one record per APN, merges records that share one outline, blanks impossible capacity
+values) and records every issue,
 so the page can show what was changed and which sites need a closer look.
 
 Issue levels:
@@ -41,7 +42,7 @@ def validate_sites(sites, fields, oid, boundary=None, acres_tolerance=0.5, bound
         flags.setdefault(key, []).append({"level": level, "code": code, "msg": msg})
         report["counts"][code] = report["counts"].get(code, 0) + 1
 
-    kept, by_apn = [], {}
+    kept, by_apn, by_outline = [], {}, {}
     near_city = boundary.buffer(boundary_buffer_deg) if boundary is not None else None
     for s in sites:
         a = s.get("attributes", {})
@@ -71,6 +72,41 @@ def validate_sites(sites, fields, oid, boundary=None, acres_tolerance=0.5, bound
                 kept[kept.index(prev)] = s
                 by_apn[apn] = s
             continue
+
+        # Duplicate outline: some inventories list one site under two APNs with the same outline, splitting its
+        # capacity by income level. Count the land once: keep the record with the most total capacity, add the
+        # other's capacities to it, carry over a missing existing use, and drop the other.
+        okey = shape.normalize().wkb
+        if okey in by_outline:
+            prev = by_outline[okey]
+            cap = lambda x: _num(x["attributes"].get(fields.get("total"))) or 0
+            winner, loser = (s, prev) if cap(s) > cap(prev) else (prev, s)
+            wa, la = winner["attributes"], loser["attributes"]
+            for k in CAPACITY_KEYS:
+                f = fields.get(k)
+                vals = [v for v in (_num(wa.get(f)), _num(la.get(f))) if f and v is not None and v >= 0]
+                if vals:
+                    wa[f] = sum(vals)
+            for f in ("HE_Existing_Use", "HE_Use_Source"):
+                if not wa.get(f) and la.get(f):
+                    wa[f] = la[f]
+            wkey, lkey = str(wa.get(oid)), str(la.get(oid))
+            lapn, wapn = la.get(fields.get("apn")), wa.get(fields.get("apn"))
+            add(lkey, "error", "duplicate_outline",
+                f"Same outline as site {wkey} (APN {wapn}); dropped and its capacity added to that site so the land is counted once.")
+            add(wkey, "warning", "merged_outline",
+                f"Also listed under APN {lapn} with the same outline; capacities of both listings are added here.")
+            report["dropped"] += 1
+            if winner is s:
+                kept[kept.index(prev)] = s
+                by_outline[okey] = s
+                papn = _digits(prev["attributes"].get(fields.get("apn"))) if fields.get("apn") else ""
+                if by_apn.get(papn) is prev:
+                    by_apn[papn] = s
+            if len(apn) >= 8 and apn not in by_apn:
+                by_apn[apn] = winner
+            continue
+        by_outline[okey] = s
         if len(apn) >= 8:
             by_apn[apn] = s
 

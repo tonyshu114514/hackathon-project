@@ -185,6 +185,20 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     f_abv = FIELD_OVERRIDES["site_above_cap"] or find_field(sf, (), (("above",),))
     print(f"{city['name']}: site fields -> APN={f_apn} lower={f_low} moderate={f_mod} above={f_abv}")
 
+    # SCAG sites list no existing use; take it from HCD's Table A record for the same APN (fetched by fetch.py).
+    if site_src == "he_sites" and f_apn:
+        hcd_use = {digits(r["attributes"].get("Assessor_Parcel_Number")): r["attributes"].get("HE_Existing_Use")
+                   for r in load(f"{slug}_hcd_use") or [] if r["attributes"].get("HE_Existing_Use")}
+        n_use = 0
+        for s in inv:
+            a = s["attributes"]
+            use = hcd_use.get(digits(a.get(f_apn)))
+            if use and not a.get("HE_Existing_Use"):
+                a["HE_Existing_Use"], a["HE_Use_Source"] = use, "hcd_sites"
+                n_use += 1
+        if inv:
+            print(f"  existing use from HCD Table A: {n_use}/{len(inv)} SCAG sites matched by APN")
+
     # Validate before scoring: drop unusable or duplicate records, blank impossible values, flag pending sites.
     f_tot = find_field(sf, ("Total_HE_Capacity",), (("total",),))
     sites, site_flags, vreport = validate_sites(
@@ -192,7 +206,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     print(f"  validation: {vreport['input']} in, {vreport['kept']} kept, {vreport['dropped']} dropped; {vreport['counts']}")
     if vreport["dropped"]:
         notes.append(f"Data checks dropped {vreport['dropped']} of {vreport['input']} site records "
-                     "(no outline or duplicate APN). See 'Data checks'.")
+                     "(no outline, duplicate APN, or the same outline as another site, merged into it). See 'Data checks'.")
 
     # Footprints
     fps_raw = load(f"{slug}_footprints")  # None: never fetched (skipped, or the OC server was down); {}: fetched, nothing found
@@ -283,7 +297,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
             use_open = u["vacant"] if "vacant" in he_use.lower() else u["parking"] if "parking" in he_use.lower() else u["other"]
             checks.append(check("Building coverage", "info",
                                 f"No footprint data; the city lists the existing use as {he_use}, counted as "
-                                f"{use_open:.0%} open land (ASSUMPTION).", site_src))
+                                f"{use_open:.0%} open land (ASSUMPTION).", a.get("HE_Use_Source") or site_src))
         elif cov is None:
             checks.append(check("Building coverage", "unknown", "Footprint data not available for this site.", "footprints"))
         else:

@@ -112,6 +112,15 @@ def fetch_city(slug, meta):
         juris = arcgis.find_field(m["fields"], exact=("Jurisdiction",), contains=(("juris",),))
         where = f"UPPER({juris}) LIKE '%{city['match']}%'" + (f" AND UPPER({county}) = 'ORANGE'" if county else "")
         sites = cached(f"{slug}_sites", lambda: arcgis.query_all(url, where))
+        # SCAG lists no existing use. Borrow it from HCD's Table A record for the same APN, so open land can be
+        # scored the same way as the HCD cities when footprints are skipped (build.py joins by APN).
+        try:
+            hurl, _ = layer("hcd_sites", meta)
+            hcd = cached(f"{slug}_hcd_use", lambda: [hcd_to_scag(f) for f in arcgis.query_all(
+                hurl, f"UPPER(jurisdiction_name) = '{city['match']}'", geometry=False)])
+            print(f"  HCD existing use for SCAG sites: {len(hcd)} HCD records")
+        except Exception as e:
+            print(f"  ! HCD existing use failed ({e}). Open land stays unknown when footprints are skipped.")
     print(f"  housing-element sites: {len(sites)} ({SOURCES[src]['label'].split(' (')[0]})")
 
     # City boundary: the fallback extent when the inventory has no sites for this city.
