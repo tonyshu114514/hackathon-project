@@ -42,7 +42,7 @@ A static web map (`findit-map/`) that:
 - Uses a **public-domain basemap** (USGS The National Map) that needs no API key; USGS imagery, Esri streets, Esri dark gray and (on served pages) OpenStreetMap are in the layers menu. If the active basemap's tiles fail, the map falls back to the next one and says so. Keeps working when a data server is down (the page says "unknown" and names the layer).
 - Tested: unit tests for validation, permit grading, pathway rules, the surplus import and payload packing, and browser tests (Playwright, real Chrome) for map rendering, basemap fallback, city selection, filters, site detail, compare, reports, CSV, shortlist sharing, the checklist and overlapping controls on desktop and mobile.
 
-**Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
+**Demo video:** [`civicacre-demo.mp4`](civicacre-demo.mp4) (1:49, 1080p, narrated product walkthrough recorded from the live site, with burned-in subtitles; captions file [`civicacre-demo.srt`](civicacre-demo.srt))
 **Live demo:** <https://tonyshu114514.github.io/hackathon-project/> (GitHub Pages; opens the prebuilt map `findit-map/demo/index.html`, built 2026-11-09 for Irvine, Santa Ana, Costa Mesa and Anaheim from real data, including measured building coverage and 46 surplus-land notices). Nothing to install. The same page also works offline: download `findit-map/demo/index.html` (**Download raw file** on GitHub) and open it in any browser. Do not open `map_template.html`; that is the empty template and only says "No data".
 
 ### Deploying the live demo (GitHub Pages)

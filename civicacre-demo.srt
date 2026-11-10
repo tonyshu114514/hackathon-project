@@ -1,0 +1,104 @@
+1
+00:00:01,000 --> 00:00:03,937
+Southern California needs more affordable homes,
+
+2
+00:00:03,787 --> 00:00:06,841
+and every one of them starts with a piece of land.
+
+3
+00:00:07,441 --> 00:00:11,988
+In just four Orange County cities, the state's housing goals call for
+
+4
+00:00:11,838 --> 00:00:14,473
+more than 13,000 very-low-income homes.
+
+5
+00:00:15,073 --> 00:00:19,296
+But the facts that decide whether a site can work are scattered across
+
+6
+00:00:19,146 --> 00:00:22,788
+parcel maps, zoning layers, hazard zones and permit records.
+
+7
+00:00:23,288 --> 00:00:26,820
+Meet CivicAcre: affordable housing site intelligence.
+
+8
+00:00:27,820 --> 00:00:31,213
+It brings 22 public data sources together on one map,
+
+9
+00:00:31,063 --> 00:00:34,333
+so teams can see which sites deserve a closer look.
+
+10
+00:00:34,933 --> 00:00:39,930
+Start with an interactive map of 470 housing-element sites across
+
+11
+00:00:39,780 --> 00:00:43,063
+Irvine, Santa Ana, Costa Mesa and Anaheim.
+
+12
+00:00:43,863 --> 00:00:47,932
+Choose the cities you care about, search by address or parcel number,
+
+13
+00:00:47,782 --> 00:00:50,375
+and narrow the list with one-click filters.
+
+14
+00:00:51,775 --> 00:00:55,591
+Every site is rated for open land, housing capacity,
+
+15
+00:00:55,441 --> 00:00:59,399
+size, transit and opportunity, and screened for flood,
+
+16
+00:00:59,249 --> 00:01:02,149
+fire, landslide and contamination risk.
+
+17
+00:01:02,749 --> 00:01:06,914
+Open a parcel to see its facts, how its score was built,
+
+18
+00:01:06,764 --> 00:01:12,148
+and a preliminary screen of state housing pathways like SB 9 and AB 2011.
+
+19
+00:01:12,848 --> 00:01:15,427
+Compare promising sites side by side.
+
+20
+00:01:18,327 --> 00:01:21,268
+Then save a shortlist, track your due diligence,
+
+21
+00:01:21,118 --> 00:01:23,303
+and export a printable site report.
+
+22
+00:01:26,003 --> 00:01:30,814
+CivicAcre connects housing, zoning, transit and environmental data in
+
+23
+00:01:30,664 --> 00:01:34,462
+one place, with every source and assumption on screen.
+
+24
+00:01:35,062 --> 00:01:38,234
+So nonprofit developers and city planners can decide,
+
+25
+00:01:38,084 --> 00:01:41,084
+faster, which sites deserve their next phone call.
+
+26
+00:01:42,084 --> 00:01:45,996
+CivicAcre. Smarter land discovery. Stronger communities.
+
