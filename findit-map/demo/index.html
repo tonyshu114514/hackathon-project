@@ -906,8 +906,11 @@ map.createPane('context'); map.getPane('context').style.zIndex = 350;
 map.createPane('border'); map.getPane('border').style.zIndex = 360;
 map.createPane('shade'); map.getPane('shade').style.zIndex = 340;  // under the context layers
 map.createPane('pending'); map.getPane('pending').style.zIndex = 450;  // dots above site polygons, below rank markers
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {maxZoom: 19, attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  referrerPolicy: 'strict-origin-when-cross-origin',
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+}).addTo(map);
 let pendingLayer = L.layerGroup().addTo(map), boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
