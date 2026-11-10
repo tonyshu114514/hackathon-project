@@ -62,6 +62,13 @@ Also watch for these lines from `fetch.py`:
   show "unknown" for most sites.
 - `zero footprints for every site`. The spatial query may be failing, and coverage will be unknown.
 
+## If the street map says "Access blocked"
+
+The grey-and-yellow "Access blocked" tiles come from OpenStreetMap's volunteer tile servers, which refuse some
+connections (VPNs and shared or flagged IP addresses are the usual reason). The page checks one tile when it opens
+and switches to Esri street tiles automatically when that happens, with a note in the left panel. You can also pick a
+basemap yourself with the layers button at the top right of the map, or turn the VPN off and reload.
+
 ## Data sources
 
 | Layer | Source |

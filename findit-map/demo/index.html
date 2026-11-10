@@ -814,6 +814,10 @@ ol.top .rating{text-align:right}ol.top .rating .lbl{display:block;font-size:11px
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 .leaflet-popup-content{width:360px!important;max-width:78vw;max-height:70vh;overflow:auto;margin:14px 16px}
 .leaflet-bar a{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.leaflet-control-layers{background:var(--panel)!important;color:var(--ink);border:1px solid var(--line)!important;box-shadow:0 1px 4px rgba(0,0,0,.15)!important}
+.leaflet-control-layers-toggle{background-color:var(--panel);background-size:20px 20px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linejoin='round'><path d='M12 3 2 8.5 12 14l10-5.5z'/><path d='m2 13 10 5.5L22 13'/><path d='m2 17.5 10 5.5 10-5.5'/></svg>")!important}
+.leaflet-control-layers-toggle:hover{background-color:var(--bg)}
 .leaflet-control-attribution{background:var(--panel)!important;color:var(--muted)}
 .leaflet-control-attribution a{color:var(--ink)}
 .marker{width:24px;height:24px;border-radius:50%;color:var(--on-accent);font-weight:700;font-size:12px;display:grid;place-items:center;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.35)}
@@ -831,6 +835,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <h1>Find It: Site Screener</h1>
   <p class="sub">Housing-element sites, ranked two ways, with HCD permit, opportunity, pollution and contamination checks.</p>
   <div class="testdata" id="testBanner" hidden></div>
+  <div class="proto" id="basemapNote" hidden></div>
   <div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
   <div class="dd" id="cityDD">
     <button type="button" class="dd-btn" id="cityBtn" aria-haspopup="true" aria-expanded="false" aria-controls="cityPanel"><span id="cityBtnText">Cities</span><span class="caret" aria-hidden="true">▾</span></button>
@@ -906,11 +911,58 @@ map.createPane('context'); map.getPane('context').style.zIndex = 350;
 map.createPane('border'); map.getPane('border').style.zIndex = 360;
 map.createPane('shade'); map.getPane('shade').style.zIndex = 340;  // under the context layers
 map.createPane('pending'); map.getPane('pending').style.zIndex = 450;  // dots above site polygons, below rank markers
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  referrerPolicy: 'strict-origin-when-cross-origin',
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-}).addTo(map);
+// Basemaps. OpenStreetMap's volunteer tile servers refuse some connections (VPNs, shared or flagged IPs) by serving an
+// "Access blocked" picture with HTTP 200, so a one-tile probe checks the pixels and swaps to Esri's street tiles when
+// that happens. The layers button on the map lets the user pick any basemap by hand.
+const BASEMAPS = {
+  'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin',
+     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}),
+  'Esri streets': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom: 19, maxNativeZoom: 18, attribution: 'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community'}),
+  'Esri light gray': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'}),
+  'No basemap': L.layerGroup(),
+};
+let basemap = BASEMAPS['OpenStreetMap'].addTo(map);
+L.control.layers(BASEMAPS, null, {position: 'topright'}).addTo(map);
+map.on('baselayerchange', e => { basemap = e.layer; });
+function useBasemap(name, why) {
+  if (basemap === BASEMAPS[name]) return;
+  map.removeLayer(basemap); basemap = BASEMAPS[name].addTo(map);
+  const n = document.getElementById('basemapNote');
+  if (why && n) { n.textContent = why; n.hidden = false; }
+}
+(function probeOsm() {
+  const blockedMsg = 'OpenStreetMap blocked the street map on this connection (common on VPNs and shared networks), so the map ' +
+    'shows Esri street tiles instead. Use the layers button at the top right of the map to pick another basemap.';
+  const failMsg = 'OpenStreetMap tiles did not load on this connection, so the map shows Esri street tiles instead.';
+  let errors = 0;
+  BASEMAPS['OpenStreetMap'].on('tileerror', () => { if (++errors >= 4 && basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', failMsg); });
+  const img = new Image(); img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    try {
+      const c = document.createElement('canvas'); c.width = c.height = img.width || 256;
+      const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+      // The blocked picture carries a yellow-and-black hazard stripe down its left edge: look for a column that is
+      // at least a third pure yellow and a third near-black. Real map tiles never have one.
+      const w = 32, h = c.height, d = x.getImageData(0, 0, w, h).data;
+      let striped = false;
+      for (let cx = 0; cx < w && !striped; cx++) {
+        let yellow = 0, black = 0;
+        for (let cy = 0; cy < h; cy++) {
+          const o = (cy * w + cx) * 4;
+          if (d[o] > 190 && d[o + 1] > 160 && d[o + 2] < 100) yellow++;
+          else if (d[o] < 70 && d[o + 1] < 70 && d[o + 2] < 70) black++;
+        }
+        striped = yellow / h > 0.33 && black / h > 0.33;
+      }
+      if (striped && basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', blockedMsg);
+    } catch (e) { /* canvas unavailable: keep OpenStreetMap */ }
+  };
+  img.onerror = () => { if (basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', failMsg); };
+  img.src = 'https://tile.openstreetmap.org/10/176/409.png';  // one Orange County tile
+})();
 let pendingLayer = L.layerGroup().addTo(map), boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
@@ -1241,7 +1293,7 @@ function init() {
     `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
-  document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
+  document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors, or Esri tiles where OpenStreetMap is blocked; pick one with the layers button on the map. Inside Claude artifacts no basemap loads and the drawn layers give the geography.`;
   ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
   if (!selected.size) CITY_ORDER.forEach(k => selected.add(k));  // a build without the demo cities opens on every city it has
   draw();
