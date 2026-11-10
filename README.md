@@ -34,7 +34,7 @@ A static web map (`findit-map/`) that:
 - Keeps working when a data server is down (the page says "unknown" and names the layer) and when OpenStreetMap blocks the street map (it switches to Esri tiles and says so). Unit tests cover validation, permit grading, pathway rules and the surplus import.
 
 **Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
-**Live demo:** open `findit-map/demo/index.html` from this repo in any browser (prebuilt 2026-11-09: Irvine, Santa Ana, Costa Mesa, Anaheim, real data including measured building coverage and 46 surplus-land notices).
+**Live demo:** the prebuilt map `findit-map/demo/index.html` (built 2026-11-09: Irvine, Santa Ana, Costa Mesa, Anaheim, real data including measured building coverage and 46 surplus-land notices). To open it from GitHub: click the file, press **Download raw file** (it is too large for GitHub to preview), then open the download in any browser. Do not open `map_template.html`; that is the empty template and only says "No data".
 
 ## How Claude is used
 
@@ -52,7 +52,7 @@ cd hackathon-project/findit-map
 cd findit-map && .venv/bin/python -m unittest discover -s tests -t .   # 33 unit tests
 ```
 
-Needs Python 3.10 or newer (tested on 3.15) and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Open `findit-map/demo/index.html`. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).
+Needs Python 3.10 or newer (tested on 3.15) and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Download `findit-map/demo/index.html` (see Live demo above) and open it. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).
 
 ## Sources and assumptions
 
