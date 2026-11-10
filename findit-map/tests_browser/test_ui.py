@@ -4,6 +4,8 @@
     python -m unittest discover -s tests_browser -t .          # uses installed Google Chrome
     FINDIT_BROWSER=chromium python -m unittest ...              # after `playwright install chromium`
     FINDIT_PAGE=site/index.html python -m unittest ...          # test your own build instead of the demo
+    FINDIT_URL=https://tonyshu114514.github.io/hackathon-project/findit-map/demo/index.html python -m unittest ...
+                                                                # test a deployed copy (the file:// test still uses PAGE)
 
 The page is served from a local HTTP server started by the tests (and once from file://). Map tiles are answered with a
 1x1 PNG so results never depend on tile servers; one test blocks the default basemap on purpose to check the fallback.
@@ -26,6 +28,7 @@ except ImportError:  # pragma: no cover - optional dev dependency
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PAGE = os.environ.get("FINDIT_PAGE", "demo/index.html")
+URL = os.environ.get("FINDIT_URL")  # a deployed page to test instead of the local server
 BROWSER = os.environ.get("FINDIT_BROWSER", "chrome")  # "chrome" = installed Google Chrome; "chromium" = Playwright's
 PNG = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==")
 TILE_HOSTS = ("basemap.nationalmap.gov", "server.arcgisonline.com", "tile.openstreetmap.org")
@@ -42,20 +45,28 @@ class FindItBrowser(unittest.TestCase):
     def setUpClass(cls):
         if not (ROOT / PAGE).exists():
             raise unittest.SkipTest(f"{PAGE} not found; run build.py or set FINDIT_PAGE")
-        handler = functools.partial(_Quiet, directory=str(ROOT))
-        cls.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-        threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
-        cls.url = f"http://127.0.0.1:{cls.httpd.server_address[1]}/{PAGE}"
+        cls.httpd = None
+        if URL:
+            cls.url = URL
+        else:
+            handler = functools.partial(_Quiet, directory=str(ROOT))
+            cls.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
+            cls.url = f"http://127.0.0.1:{cls.httpd.server_address[1]}/{PAGE}"
         cls.pw = sync_playwright().start()
         try:
             cls.browser = cls.pw.chromium.launch(channel="chrome" if BROWSER == "chrome" else None, headless=True)
         except Exception as e:  # pragma: no cover - environment without a browser
-            cls.pw.stop(); cls.httpd.shutdown()
+            cls.pw.stop()
+            if cls.httpd:
+                cls.httpd.shutdown()
             raise unittest.SkipTest(f"no browser available ({e}); install Chrome or run `playwright install chromium`")
 
     @classmethod
     def tearDownClass(cls):
-        cls.browser.close(); cls.pw.stop(); cls.httpd.shutdown()
+        cls.browser.close(); cls.pw.stop()
+        if cls.httpd:
+            cls.httpd.shutdown()
 
     # ------------------------------------------------------------------ helpers
     def open(self, url=None, width=1440, height=900, block=(), context=None, scheme="dark"):
@@ -231,7 +242,7 @@ class FindItBrowser(unittest.TestCase):
         self.assertIn("your_checklist_done", rows[1])
         self.assertEqual(len(rows) - 2, 2)
         # A colleague with an empty browser opens the link.
-        other, _ = self.open(url=link.replace(self.url.split("/demo")[0], self.url.split("/demo")[0]))
+        other, _ = self.open(url=link)
         self.assertTrue(other.is_visible("#slShared"))
         self.assertIn("2 sites", other.inner_text("#slShared"))
         other.click("#slAcceptShared")

@@ -136,6 +136,8 @@ agency. `fetch.py --skip surplus` leaves them out.
 .venv/bin/pip install -r requirements-dev.txt                     # Playwright, for the browser tests
 .venv/bin/python -m unittest discover -s tests_browser -t .      # browser tests, about a minute
 FINDIT_PAGE=site/index.html .venv/bin/python -m unittest discover -s tests_browser -t .   # test your own build
+FINDIT_URL=https://tonyshu114514.github.io/hackathon-project/findit-map/demo/index.html \
+  .venv/bin/python -m unittest discover -s tests_browser -t .    # test the live GitHub Pages demo
 FINDIT_BROWSER=chromium ...                                       # use Playwright's Chromium (playwright install chromium)
 ```
 
