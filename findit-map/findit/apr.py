@@ -11,6 +11,8 @@ import re
 
 import requests
 
+from findit import permits
+
 API = "https://data.ca.gov/api/3/action/"
 PACKAGE = "housing-element-annual-progress-report-apr-data-by-jurisdiction-and-year"
 PAGE = "https://data.ca.gov/dataset/" + PACKAGE
@@ -83,7 +85,7 @@ def fetch_rows(city_names):
 
 
 def index_by_apn(rows):
-    """{8-digit APN: [ {year, stages:[...]} ]} from Table A2 rows."""
+    """{8-digit APN: [ {year, stages, unit_cat, units, project} ]} from Table A2 rows."""
     if not rows:
         return {}, {}
     keys = list(rows[0].keys())
@@ -98,6 +100,8 @@ def index_by_apn(rows):
         "permit issued": [k for k in keys if re.search(r"(^|_)bp", k, re.I) and re.search(r"dt|date", k, re.I)],
         "completed": [k for k in keys if re.search(r"(^|_)co(_|\d)", k, re.I) and re.search(r"dt|date", k, re.I)],
     }
+    f_cat = next((k for k in keys if k.lower() in ("unit_cat", "unit_category")), None)
+    f_proj = next((k for k in keys if k.lower() == "project_name"), None)
     out = {}
     for r in rows:
         raw = ",".join(str(r.get(f) or "") for f in (f_apn, f_prior) if f)
@@ -107,10 +111,12 @@ def index_by_apn(rows):
         except (TypeError, ValueError):
             pass
         stages = [s for s, cols in stage_cols.items() if any(str(r.get(c) or "").strip() for c in cols)]
+        entry = {"year": y, "stages": stages, "unit_cat": (r.get(f_cat) if f_cat else None),
+                 "units": permits.row_units(r), "project": (r.get(f_proj) if f_proj else None)}
         for part in re.split(r"[,;/&]|\band\b|\s{2,}", raw):
             d = re.sub(r"\D", "", part)
             if len(d) >= 8:
-                out.setdefault(d[:8], []).append({"year": y, "stages": stages})
+                out.setdefault(d[:8], []).append(entry)
     info = {"apn_field": f_apn, "prior_apn_field": f_prior, "year_field": f_year,
             "stage_columns": {k: v for k, v in stage_cols.items() if v}}
     return out, info

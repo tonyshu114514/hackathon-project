@@ -8,7 +8,8 @@ The date each layer was actually fetched is written to data/cache/meta.json by f
 # Costa Mesa records, so those cities use HCD's statewide Table A inventory (SB 6 submissions).
 # Irvine stays on SCAG so its rankings match earlier runs; HCD lists 117 Irvine sites to SCAG's 44.
 # Every other Orange County jurisdiction with a Table A submission is included (checked 2026-11-07).
-# Not in either source: Huntington Beach, Tustin, Orange, Laguna Woods, Rancho Santa Margarita.
+# Huntington Beach, Tustin, Orange, Laguna Woods and Rancho Santa Margarita are in neither source; they are listed
+# for their Surplus Land Act notices and context layers.
 CITIES = {
     "irvine": {"name": "Irvine", "match": "IRVINE", "sites": "he_sites"},
     "santa-ana": {"name": "Santa Ana", "match": "SANTA ANA", "sites": "hcd_sites"},
@@ -40,6 +41,13 @@ CITIES = {
     "westminster": {"name": "Westminster", "match": "WESTMINSTER", "sites": "hcd_sites"},
     "yorba-linda": {"name": "Yorba Linda", "match": "YORBA LINDA", "sites": "hcd_sites"},
     "orange-county": {"name": "Unincorporated OC", "match": "ORANGE COUNTY", "sites": "hcd_sites"},
+    # No Table A submission in either inventory (checked 2026-11-07): these cities show their Surplus Land Act
+    # notices and context layers only, until HCD publishes their sites.
+    "huntington-beach": {"name": "Huntington Beach", "match": "HUNTINGTON BEACH", "sites": "hcd_sites"},
+    "tustin": {"name": "Tustin", "match": "TUSTIN", "sites": "hcd_sites"},
+    "orange": {"name": "Orange", "match": "ORANGE", "sites": "hcd_sites"},
+    "laguna-woods": {"name": "Laguna Woods", "match": "LAGUNA WOODS", "sites": "hcd_sites"},
+    "rancho-santa-margarita": {"name": "Rancho Santa Margarita", "match": "RANCHO SANTA MARGARITA", "sites": "hcd_sites"},
 }
 
 SOURCES = {
@@ -129,6 +137,19 @@ SOURCES = {
         "label": "OpenStreetMap place names (Nominatim reverse geocoding), used only when a site has no assessor address",
         "page": "https://nominatim.openstreetmap.org/",
     },
+    "surplus": {
+        "label": "HCD Surplus Land Act Notices of Availability (public agencies' surplus parcels; statewide CSV on data.ca.gov)",
+        "page": "https://data.ca.gov/dataset/surplus-land-act-notices-of-availability-received",
+        "ckan_package": "surplus-land-act-notices-of-availability-received",
+    },
+    "scag_codes": {
+        "label": "SCAG General Plan Land Use Codes legend (families used to read the zoning layer's SCAG codes)",
+        "page": "https://maps.scag.ca.gov/2012LandUseCodesLegend.pdf",
+    },
+    "hcd_fact_sheets": {
+        "label": "HCD Housing Law Fact Sheets, April 2026 (SB 9, SB 4, AB 2011, SB 684 / SB 1123 screening signals)",
+        "page": "https://www.hcd.ca.gov/sites/default/files/docs/planning-and-community/housing-law-fact-sheets.pdf",
+    },
 }
 
 # Tract-level and nearby-point layers, fetched over a wider box than the hazard layers.
@@ -196,5 +217,22 @@ ASSUMPTIONS = {
     "apr_min_year": {
         "value": 2021,
         "why": "APR rows from report year 2021 on count, matching the stale cutoff. Earlier activity predates the 6th-cycle list.",
+    },
+    "permit_grades": {
+        "value": {"strong": "building permit issued or certificate of occupancy, non-ADU", "moderate": "entitled only, or a row with no stage date",
+                  "weak": "accessory dwelling units only"},
+        "why": "Strong and moderate activity marks a site likely used; ADU-only activity does not take the whole lot, so it only adds a caution. Grades read HCD APR Table A2 stage dates and unit categories.",
+    },
+    "surplus_outline_radius_ft": {
+        "value": 60,
+        "why": "A Surplus Land Act notice whose APN matches no county parcel is drawn as a circle at the notice's coordinates: the listed acreage if given, else a 60 ft radius. Marked approximate on the page.",
+    },
+    "urbanized_area": {
+        "value": "all Orange County cities",
+        "why": "SB 9, SB 4 and SB 684 apply inside Census urbanized areas; every incorporated Orange County city is treated as inside one. Confirm on the Census urban area map for unincorporated sites.",
+    },
+    "confidence_bands": {
+        "value": {"high": 0.85, "medium": 0.6},
+        "why": "Data confidence is the share of a site's checks that returned a value (not 'unknown'): 85%+ high, 60%+ medium, below that low. It describes the data, not the site.",
     },
 }

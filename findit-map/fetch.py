@@ -15,7 +15,7 @@ from datetime import date
 
 import requests
 
-from findit import apr, arcgis, ckan, gtfs
+from findit import apr, arcgis, ckan, gtfs, surplus
 from findit.geom import to_shape
 from findit.sources import AREA_LAYERS, CITIES, FIELD_OVERRIDES, SOURCES
 
@@ -128,6 +128,10 @@ def fetch_city(slug, meta):
     oid = m["oid"]
     apn_f = FIELD_OVERRIDES["site_apn"] or arcgis.find_field(
         m["fields"], exact=("Assessor_Parcel_Number",), contains=(("apn",), ("parcel",)))
+    # Surplus Land Act notices for this city become extra candidate sites (findit/surplus.py), so the same
+    # footprint, parcel, zoning, hazard and permit lookups below cover them.
+    sites = sites + surplus_sites(slug, city, meta, apn_f)
+
     shapes = [to_shape(s.get("geometry")) for s in sites]
     extent = [s for s in shapes if s is not None] or [bshape]
     xs = [b for s in extent for b in (s.bounds[0], s.bounds[2])]
@@ -251,6 +255,67 @@ def fetch_city(slug, meta):
     print(f"  places: {len(cached(f'{slug}_places', places))} sites named")
 
 
+def fetch_surplus(meta):
+    """Statewide Surplus Land Act notices CSV from data.ca.gov, cached once; the staff-contact column is dropped."""
+    path = CACHE / "surplus_noa.json"
+    if path.exists():
+        return
+    print("\n== HCD Surplus Land Act notices (data.ca.gov)")
+    try:
+        pkg = requests.get("https://data.ca.gov/api/3/action/package_show", params={"id": surplus.PACKAGE},
+                           headers=arcgis.UA, timeout=60).json()["result"]
+        res = next(r for r in pkg["resources"] if (r.get("format") or "").upper() == "CSV")
+        r = requests.get(res["url"], headers=arcgis.UA, timeout=300)
+        r.raise_for_status()
+        rows = surplus.read_rows(r.content.decode("utf-8-sig", errors="replace"))
+        path.write_text(json.dumps(rows))
+        meta["surplus"] = {"url": SOURCES["surplus"]["page"], "label": SOURCES["surplus"]["label"],
+                           "fetched": date.today().isoformat(), "csv": res["url"], "modified": pkg.get("metadata_modified")}
+        save_meta(meta)
+        print(f"  saved {len(rows)} notice rows statewide")
+    except Exception as e:
+        print(f"  ! surplus notices failed ({e}). Surplus sites will be left off.")
+
+
+def surplus_sites(slug, city, meta, apn_field):
+    """This city's Surplus Land Act notices as pseudo sites, with parcel outlines from the county layer by APN."""
+    path = CACHE / "surplus_noa.json"
+    rows = json.loads(path.read_text()) if path.exists() else []
+    mine = surplus.rows_for_city(rows, city["match"])
+    if not mine:
+        return []
+
+    def build():
+        apns = sorted({digits(r["APN"]) for r in mine if len(digits(r["APN"])) >= 8})
+        geom = {}
+        if apns:
+            try:
+                lurl, lm = layer("parcels", meta)
+                f = FIELD_OVERRIDES.get("parcel_apn") or arcgis.find_field(lm["fields"], exact=("ASSESSMENT_NO",), contains=(("apn",),))
+                try:
+                    sample = arcgis.query_once(lurl, where=f"{f} IS NOT NULL", out_fields=f, geometry=False, count=1)
+                except Exception:
+                    sample = []
+                fmt = sample[0]["attributes"][f] if sample else None
+                for clause in in_clauses(f, [like_sample(fmt, a) for a in apns]):
+                    for feat in arcgis.query_once(lurl, where=clause, out_fields=f, geometry=True):
+                        geom[digits(feat["attributes"].get(f))] = feat.get("geometry")
+            except Exception as e:
+                print(f"  ! parcel outlines for surplus notices failed ({e}); outlines will be approximate.")
+        out = []
+        for r in mine:
+            d = digits(r["APN"])
+            site = surplus.to_site(r, geom.get(d) if len(d) >= 8 else None)
+            if site:
+                out.append(site)
+        return out
+
+    out = cached(f"{slug}_surplus", build)
+    n_approx = sum(1 for x in out if x["attributes"].get("SLA_APPROX_OUTLINE"))
+    print(f"  surplus land notices: {len(out)} sites ({n_approx} with an approximate outline)")
+    return out
+
+
 def fetch_gtfs(meta):
     path = CACHE / "octa_gtfs.zip"
     if path.exists():
@@ -292,6 +357,8 @@ def main():
     args = ap.parse_args()
     SKIP.update(args.skip)
     meta = load_meta()
+    if "surplus" not in SKIP:
+        fetch_surplus(meta)
     for slug in args.city or list(CITIES):
         fetch_city(slug, meta)
     fetch_gtfs(meta)

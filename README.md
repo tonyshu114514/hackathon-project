@@ -1,6 +1,6 @@
 # Find It: Site Screener for Orange County housing planners
 
-> For city housing planners and nonprofit developers: a map that ranks every housing-element site in 30 Orange County jurisdictions by how ready it is for affordable housing, and flags the listed sites that are probably already taken.
+> For city housing planners and nonprofit developers: a map that ranks every housing-element site and surplus-land notice in 35 Orange County jurisdictions by how ready it is for affordable housing, flags the listed sites that are probably already taken, and screens each one against SB 9, SB 4, AB 2011 and SB 684 / SB 1123.
 
 **Team:** wadahail
 **Members:** Xinyan Shu, Tingxuan Wang
@@ -23,11 +23,18 @@ A static web map (`findit-map/`) that:
 - Scores each site, shows the score as a share of attainable points with 1 to 5 stars, and lists the top 10 for whichever cities are selected.
 - Marks "likely already used" sites (HCD-reported permit activity since 2021, or a building dated 2021+) and pending projects, with a filter to hide them.
 - Draws every check's source and fetch date on the page, and labels every weight and cutoff as an ASSUMPTION.
-- Downloads the ranked list for the selected cities as a CSV (rank, stars, score, capacity, failed and unknown checks, flags) for a meeting or a spreadsheet.
-- Keeps working when a data server is down (the page says "unknown" and names the layer) and when OpenStreetMap blocks the street map (it switches to Esri tiles and says so).
+- Adds public agencies' **Surplus Land Act notices** (HCD's statewide list) as extra candidate sites, drawn in blue, with the agency, status and notice link. Most notices are archived; the page says so and tells the user to ask the agency.
+- Grades **permit activity** from HCD's APR Table A2 by stage and unit type: a permit or completion is a strong sign a site is used, an entitlement a moderate one, and ADU-only activity only a caution (it no longer removes the site).
+- **Search and filter**: address, site name, agency or APN; minimum acres and lower-income capacity; SCAG zoning family; transit; data confidence; "pathway not ruled out"; hide hazard concerns; include or exclude surplus notices. The ranking, stats, map and CSV follow the filters.
+- **Compare** two or three sites side by side (score, stars, size, capacity, every hazard check, permit activity, pathway screens), with the best value in each row highlighted.
+- **Development pathway screen** for SB 9, SB 4, AB 2011 and SB 684 / SB 1123: each test is pass, fail or unknown with a sentence and the HCD fact sheet it came from. A law shows **No** when a checkable test fails and **Unknown** otherwise; it never shows "yes", because every law depends on facts no public dataset holds (ownership, tenancy, historic status, street width).
+- **Adjustable scoring weights** (sliders, defaults are the ASSUMPTION weights) and a **data-confidence** chip on every site (the share of its checks that have data).
+- **Site reports**: a printable, downloadable HTML report per site with facts, checks, score breakdown, pathway screens, data notes, recommended next steps, sources and assumptions.
+- Downloads the ranked list for the selected cities as a CSV (rank, stars, score, confidence, capacity, zoning, permit grade, pathway screens, failed and unknown checks, flags) for a meeting or a spreadsheet.
+- Keeps working when a data server is down (the page says "unknown" and names the layer) and when OpenStreetMap blocks the street map (it switches to Esri tiles and says so). Unit tests cover validation, permit grading, pathway rules and the surplus import.
 
 **Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
-**Live demo:** open `findit-map/demo/index.html` from this repo in any browser (prebuilt, four cities, real data).
+**Live demo:** open `findit-map/demo/index.html` from this repo in any browser (prebuilt 2026-11-09: Irvine, Santa Ana, Costa Mesa, Anaheim, real data including measured building coverage and 46 surplus-land notices).
 
 ## How Claude is used
 
@@ -40,8 +47,9 @@ A static web map (`findit-map/`) that:
 git clone https://github.com/tonyshu114514/hackathon-project.git
 cd hackathon-project/findit-map
 ./run.sh                 # four demo cities, about 10 minutes; opens site/index.html
-# ./run.sh --city brea   # one city in a minute or two
-# ./run.sh --all         # all 30 jurisdictions, 30 to 60 minutes
+# ./run.sh --city brea   # one city in two or three minutes
+# ./run.sh --all         # all 35 jurisdictions, 30 to 60 minutes
+cd findit-map && .venv/bin/python -m unittest discover -s tests -t .   # 33 unit tests
 ```
 
 Needs Python 3.10 or newer (tested on 3.15) and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Open `findit-map/demo/index.html`. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).
@@ -65,6 +73,10 @@ Needs Python 3.10 or newer (tested on 3.15) and internet access for the first ru
 | Contamination | DTSC EnviroStor cleanup sites | 2026-11-07 |
 | Existing affordable housing | HUD LIHTC database | 2026-11-07 |
 | Place names for unaddressed parcels | OpenStreetMap Nominatim | 2026-11-07 |
+| Surplus public land | HCD Surplus Land Act Notices of Availability (data.ca.gov CSV, modified 2026-11-06) | 2026-11-09 |
+| Zoning families | SCAG 2012 General Plan Land Use Codes legend, applied to the zoning layer's SCAG codes | 2026-11-09 |
+| SB 9, SB 4, AB 2011, SB 684 / SB 1123 screening tests | HCD Housing Law Fact Sheets (April 2026) and HCD's SB 9 and SB 4 fact sheets; Gov. Code §§ 65852.21, 66411.7, 65913.16, 65912.100-140, 65852.28, 66499.41, 65913.4(a)(6) | 2026-11-09 |
+| Permit grades (strong / moderate / weak), ADU rule, surplus outline radius, urbanized-area assumption, confidence bands | ASSUMPTION (team judgment; listed in `findit/sources.py` and on the page) | 2026-11-09 |
 | Score weights, cutoffs, star bands, open land from reported use, 660 ft cleanup radius, 2021 stale year | ASSUMPTION (team judgment; all listed in `findit/sources.py` and on the page) | 2026-11-07 |
 
 Every number we made up is labelled ASSUMPTION here and in the tool.
@@ -75,9 +87,12 @@ Every number we made up is labelled ASSUMPTION here and in the tool.
 |---|---|
 | Site inventories, parcels, hazards, transit, permits, opportunity, pollution, tax-credit, cleanup and LIHTC data | working, real public data, fetched live |
 | Scoring and star ratings | working; weights are ASSUMPTIONS |
-| Building coverage | working for Irvine; for other cities taken from the city's reported existing use (ASSUMPTION) because the OC footprint server was down |
+| Building coverage | working: measured from OC building footprints for the four demo cities (fetched 2026-11-09); when the county server is down, taken from the city's reported existing use (ASSUMPTION) |
 | Santa Ana capacity by income level | unknown: the city's inventory lists none, so that term is left out of its scores |
-| Huntington Beach, Tustin, Orange, Laguna Woods, Rancho Santa Margarita | not covered: in neither statewide inventory |
+| Surplus Land Act notices | working, real HCD data; 118 Orange County parcels, nearly all archived notices. Outlines come from county parcels by APN; the few with no match are drawn as a circle of the listed acreage (ASSUMPTION, marked) |
+| Permit grading | working from APR stage dates and unit categories; the thresholds are ASSUMPTIONS |
+| Pathway screens (SB 9, SB 4, AB 2011, SB 684 / SB 1123) | partly working: screening signals from HCD fact sheets on zoning family, lot size, fire, flood and cleanup data; ownership, tenancy, historic status, street width, industrial neighbors and the other § 65913.4(a)(6) lands are always "unknown" |
+| Huntington Beach, Tustin, Orange, Laguna Woods, Rancho Santa Margarita | housing-element sites not in either statewide inventory; the map shows their surplus-land notices and context layers only |
 | Ownership, willingness to sell, utilities, which state law applies | not checked |
 
 Nothing is mocked. Where data is missing the page says "unknown".
@@ -85,14 +100,16 @@ Nothing is mocked. Where data is missing the page says "unknown".
 ## Where it gets things wrong
 
 - Permit matching is by parcel number only; a parcel split or renumbered after listing will look clean.
-- Any HCD-reported activity counts as "likely used", including a single ADU permit on a large site.
+- Permit grades read APR stage dates and unit categories as cities typed them; a project entered without a stage date is graded moderate, and an ADU row with a wrong category would still count.
+- Pathway screens can only say No or Unknown. The zoning family comes from a regional SCAG code, not the city's zoning text, and specific-plan areas (code 7777) are unknown for every law.
+- Surplus notices with no matching county parcel are drawn as an approximate circle; the listed acreage is sometimes text and parses to nothing.
 - Opportunity, pollution and tax-credit values are tract or ZIP level, not parcel level.
-- Cities without footprint data score open land from a coarse use label, so a mostly-vacant "Commercial" lot scores as built.
+- When footprints are unavailable, open land comes from a coarse use label, so a mostly-vacant "Commercial" lot scores as built.
 - The cross-city ranking favours Irvine, whose data is most complete.
 
 ## Next steps
 
-Fetch footprints when the county server is back; grade permit activity by stage and unit count; add ownership from the assessor roll (not free); let a city upload its own inventory spreadsheet. With one more week: a per-city PDF brief for each top-10 site.
+Add ownership from the assessor roll (not free) and a faith-land proxy (OpenStreetMap places of worship, IRS exempt-organization file) so SB 4 can move past "unknown"; read each city's zoning code so AB 2011 and SB 9 tests use the local zone, not the SCAG family; add the county property list and closed school sites as more surplus candidates; let a city upload its own inventory spreadsheet. With one more week: a per-city PDF brief built from the site reports.
 
 ## Data and privacy
 

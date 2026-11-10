@@ -1,7 +1,8 @@
 # Find It: Site Screener map
 
-A map of housing-element sites across 30 Orange County jurisdictions (every city with a statewide
-Table A submission, plus unincorporated county land), ranked and starred:
+A map of housing-element sites and Surplus Land Act notices across 35 Orange County jurisdictions (every city with a
+statewide Table A submission, unincorporated county land, and five cities that appear only through their surplus
+notices), ranked and starred:
 
 - **Top 10 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
   minus hazard, contamination and pollution-burden penalties. Ranked across every selected city,
@@ -11,7 +12,83 @@ Table A submission, plus unincorporated county land), ranked and starred:
   year, or a building on it is dated at or after the cutoff year. A switch hides them.
 
 A button above the list downloads every site in the selected cities as a CSV, best first, with stars, score,
-capacity, failed and unknown checks, data flags and coordinates.
+confidence, capacity, zoning, permit grade, pathway screens, failed and unknown checks, data flags and coordinates.
+
+## Finding, filtering, comparing
+
+- **Search** by address, site name, agency or APN (digits only is fine). **Filters**: minimum acres, minimum
+  lower-income capacity, SCAG zoning family, transit area, data confidence, "pathway not ruled out", hide sites with
+  a flood, fire, landslide or contamination concern, include or exclude surplus notices. The ranking, the stats, the
+  map and the CSV all follow the filters; the counter under the filters says how many sites match.
+- **Compare**: the "Compare" button in a site's popup adds it to a bar at the bottom of the map; with two or three
+  sites, "Compare N sites" opens a side-by-side table (status, stars, score, confidence, size, open land, capacity,
+  zoning, transit, opportunity, pollution, each hazard check, permit activity, newest building, the four pathway
+  screens, source record). The best value in a row is shaded where "best" is clear.
+- **Scoring weights**: the "Scoring weights (adjust)" panel has a slider per weight. Moving one re-scores every site
+  from its stored factors and re-ranks; the right panel says "Scored with custom weights" and the CSV header records
+  them. Nothing is saved; "Reset to defaults" restores the ASSUMPTION weights.
+- **Data confidence**: every card and popup carries a chip (high / medium / low) for the share of the site's checks
+  that have data. It describes the data, not the site. Bands are in `ASSUMPTIONS["confidence_bands"]`.
+- **Site report**: "Site report" opens a printable page for one site (facts, score breakdown, checks with sources and
+  fetch dates, pathway screens, data notes, recommended next steps, sources, assumptions); "Download report" saves it
+  as a standalone HTML file. Print to PDF from the browser.
+- **⌂** on the map zooms back to the selected cities.
+
+## Permit activity grades
+
+`findit/permits.py` reads the HCD APR Table A2 rows matched to a site's APN (report year 2021 on) and grades them:
+
+| Grade | Meaning | Effect |
+|---|---|---|
+| strong | building permit issued or certificate of occupancy, non-ADU | marked likely used |
+| moderate | entitled (approved) only, or a row with no stage date | marked likely used |
+| weak | accessory dwelling units only | caution only; the site stays available and ranked |
+| none | no row matched | pass |
+
+The check sentence names the stage, unit categories, unit count and project name. Grades are ASSUMPTIONS
+(`permit_grades`). A miss is never proof of no activity: cities type APNs by hand.
+
+## Development pathway screen
+
+`findit/pathways.py` runs each site through screening tests for four laws, using HCD's Housing Law Fact Sheets
+(April 2026) as the source for each test and the layers already loaded as the evidence:
+
+| Law | Tests the data can run | Always unknown |
+|---|---|---|
+| SB 9 (Gov. Code §§ 65852.21, 66411.7) | single-family zone (SCAG family), very high fire zone, FEMA flood zone, DTSC cleanup on parcel, site already used or pending | historic resource, tenant and rent-restriction history, other § 65913.4(a)(6) lands |
+| SB 684 / SB 1123 (§§ 65852.28, 65913.4.5, 66499.41) | lot under 5 acres, multifamily zone (or vacant single-family lot for SB 1123), hazards as above | displacement of protected housing |
+| AB 2011 (§§ 65912.100-140) | zone allows office, retail or parking (SCAG commercial or mixed families), hazards as above | corridor frontage and street width, adjacent industrial uses, project affordability and labor terms |
+| SB 4 (§ 65913.16) | publicly owned land fails (SB 4 needs faith or independent-college ownership), hazards as above | the ownership itself, 75% urban perimeter, industrial neighbors, 100% affordable project |
+
+A law reads **No** when a checkable test fails and **Unknown** otherwise, with "N of M pass" so a user can see how
+far it got. It never reads "yes". The urbanized-area test is an ASSUMPTION (every incorporated OC city is treated
+as inside a Census urbanized area). Zoning families come from the SCAG code on the parcel (`ZN24_SCAG`) read
+against SCAG's 2012 land use code legend; four-digit sub-codes are matched by family and labelled as such, and
+specific-plan areas (7777) are unknown for every law. These are screening signals, not legal tests, and never legal
+advice. Each test's sentence, the sources and the date checked (2026-11-09) are on the page and in the site report.
+
+## Surplus Land Act notices
+
+`fetch.py` downloads HCD's statewide Notices of Availability CSV once (`data/cache/surplus_noa.json`, with the
+staff-contact column dropped) and, per city, turns the rows whose City matches into pseudo sites
+(`findit/surplus.py`): APN, address, listed acreage (text like "9,005 SF" is converted), general plan or zoning,
+existing use, the agency and the notice's status, date and link. Outlines come from the county parcel layer by
+APN; when nothing matches, a circle of the listed acreage (or a 60 ft radius, `surplus_outline_radius_ft`) is drawn at
+the notice's coordinates and marked approximate. The sites then go through the same validation, checks and scoring;
+they have no listed capacity, so that term is left out. Blue squares on the map; "surplus" chips in the lists; a
+banner in the popup. Nearly every notice is "Archive" (the 60-day window passed): treat it as a lead and ask the
+agency. `fetch.py --skip surplus` leaves them out.
+
+## Tests
+
+```bash
+.venv/bin/python -m unittest discover -s tests -t .
+```
+
+Unit tests cover record validation, permit grading (including the ADU rule), pathway rules (no law ever returns
+"yes"; hazards fail every law; unknown layers stay unknown) and the surplus import (acreage parsing, exact city
+match, contact column dropped, approximate outlines). A browser smoke test of the page lives outside the repo in the
+team's tooling; the demo page was checked in Chromium on 2026-11-09 with no console errors.
 
 The map also draws context layers you can switch on and off: OCTA bus routes, FEMA flood zones,
 fire hazard zones, landslide zones, high-quality transit areas, DTSC cleanup sites and existing LIHTC
@@ -29,7 +106,7 @@ Python 3.10+ and internet access for the first run. No accounts or API keys.
 cd findit-map
 ./run.sh                 # four demo cities, about 10 minutes; opens site/index.html when done
 ./run.sh --city brea     # one city, a minute or two
-./run.sh --all           # all 30 jurisdictions, 30 to 60 minutes
+./run.sh --all           # all 35 jurisdictions, 30 to 60 minutes
 ```
 
 `run.sh` creates `.venv`, installs the pinned requirements, runs `fetch.py` then `build.py`.
@@ -43,7 +120,7 @@ start site\index.html                             # macOS: open site/index.html
 ```
 
 No time to fetch? `demo/index.html` is a prebuilt page for Irvine, Santa Ana, Costa Mesa and
-Anaheim (real data, built 2026-11-07). Open it in any browser.
+Anaheim (real data, built 2026-11-09, with measured building coverage and 46 surplus-land notices). Open it in any browser.
 
 `--skip footprints` leaves out the OC building-footprint layer, whose server was returning errors on
 event day; open land is then scored from the existing use each city reported (an ASSUMPTION shown on
@@ -151,6 +228,7 @@ the top 3% of Orange County sites, 1 star the bottom half. Likely-used sites get
 
 ## Page size
 
-With all 30 cities the built page is about 11 MB, mostly hazard-overlay geometry. It opens with four
+With all 35 jurisdictions the built page is roughly 15 MB (hazard-overlay geometry plus the per-site checks and
+pathway screens; repeated pathway sentences are stored once). It opens with four
 cities selected; pick more from the city menu. To shrink it, raise the simplify tolerance in
 `overlays()` in `build.py`.

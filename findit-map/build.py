@@ -12,7 +12,7 @@ from datetime import date
 from shapely.geometry import box
 from shapely.strtree import STRtree
 
-from findit import apr, gtfs
+from findit import apr, gtfs, pathways, permits
 from findit.arcgis import find_field
 from findit.geom import to_feet, to_polys, to_shape, union
 from findit.validate import validate_sites
@@ -156,16 +156,26 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         print(f"{city['name']}: nothing cached, skipping (run fetch.py)")
         return None
     sites = sites or []
+    extra = load(f"{slug}_surplus") or []
     notes = []
-    if not sites:
+    if not sites and not extra:
         notes.append(f"The housing-element inventory has no {city['name']} sites, so there is nothing to rank here. "
                      "The map shows the city's hazard, transit, cleanup and affordable-housing context instead.")
+    elif not sites:
+        notes.append(f"The housing-element inventory has no {city['name']} sites; the sites shown are Surplus Land Act notices.")
+    if extra:
+        n_approx = sum(1 for x in extra if x["attributes"].get("SLA_APPROX_OUTLINE"))
+        notes.append(f"{len(extra)} Surplus Land Act notice parcel{'s' if len(extra) != 1 else ''} added from HCD's statewide list "
+                     "(public agencies' surplus land; most notices are archived, so call the agency to ask whether the land is still available)."
+                     + (f" {n_approx} had no matching county parcel and are drawn as an approximate circle (ASSUMPTION)." if n_approx else ""))
     sm = meta.get("he_sites", {})
     site_src = city.get("sites", "he_sites")
+    inv = sites  # inventory records only, for the capacity note
+    sites = sites + extra
     sf = list(sites[0]["attributes"].keys()) if sites else sm.get("fields") or []
-    if sites and all(a["attributes"].get("Low_Income_HE_Capacity") is None for a in sites) and site_src == "hcd_sites":
+    if inv and all(a["attributes"].get("Low_Income_HE_Capacity") is None for a in inv) and site_src == "hcd_sites":
         notes.append(f"{city['name']}'s inventory lists no capacity by income level (every site is "
-                     f"'{sites[0]['attributes'].get('HE_Status') or 'unspecified'}'), so the capacity term is left out of its scores.")
+                     f"'{inv[0]['attributes'].get('HE_Status') or 'unspecified'}'), so the capacity term is left out of its scores.")
     oid = sm.get("oid", "OBJECTID")
     f_apn = FIELD_OVERRIDES["site_apn"] or find_field(sf, ("Assessor_Parcel_Number",), (("apn",), ("parcel",)))
     f_low = FIELD_OVERRIDES["site_lower_cap"] or find_field(sf, (), (("lower",), ("low", "cap"), ("low", "inc")))
@@ -297,19 +307,15 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         # Permit activity reported by the city (HCD APR Table A2)
         acts = [x for x in apr_idx.get(apn_d[:8], []) if x["year"] is None or x["year"] >= A["apr_min_year"]] \
             if apr_idx is not None and len(apn_d) >= 8 else []
-        apr_hit = bool(acts)
+        permit = permits.grade(acts)  # strong / moderate mark the site used; weak (ADU only) is a caution
+        apr_hit = permit["likely_used"]
         if apr_idx is None:
             checks.append(check("Permit activity (APR)", "unknown", "APR data not loaded.", "apr"))
-        elif apr_hit:
-            yrs_r = sorted({x["year"] for x in acts if x["year"]})
-            stg = sorted({s for x in acts for s in x["stages"]})
-            checks.append(check("Permit activity (APR)", "fail",
-                                f"City reported activity on this APN in {', '.join(map(str, yrs_r)) or 'an APR year'}"
-                                + (f" ({', '.join(stg)})" if stg else "") + ". The site may already be in use.", "apr"))
+        elif len(apn_d) < 8:
+            checks.append(check("Permit activity (APR)", "unknown", "No usable APN.", "apr"))
         else:
-            checks.append(check("Permit activity (APR)", "pass" if len(apn_d) >= 8 else "unknown",
-                                f"No APR row from {A['apr_min_year']} on matched this APN. Cities type APNs by hand, "
-                                "so a miss is not proof of no activity." if len(apn_d) >= 8 else "No usable APN.", "apr"))
+            status = "fail" if apr_hit else "caution" if permit["level"] == "weak" else "pass"
+            checks.append(check("Permit activity (APR)", status, permits.describe(permit, A["apr_min_year"]), "apr"))
 
         # Flood
         fl = layers["flood"]
@@ -451,6 +457,22 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
 
         z = zoning.get(apn_d, {})
         low = num(a.get(f_low)) if f_low else None
+        zfam, zfam_label, _exact = pathways.zoning_family(z.get("ZN24_SCAG"))
+        owned_txt = str(a.get("HE_Publicly_Owned") or "").strip().upper()
+        publicly_owned = True if owned_txt.startswith("YES") or a.get("SLA_CASE") else False if owned_txt.startswith("NO") else None
+        vacant = (True if cov == 0 else False if cov is not None and cov > 0.05 else
+                  True if "vacant" in he_use.lower() else False if he_use else None)
+        is_pending = any(f["code"] == "pending_project" for f in site_flags.get(key, []))
+        screens = pathways.screen({
+            "zoning_code": z.get("ZN24_SCAG"), "acres": acres,
+            "fire_vh": fire_vh if fire_known else None, "sfha": sfha if fl.ok else None,
+            "cleanup_on_site": None if cleanup_raw is None else bool(on_site),
+            "vacant": vacant, "publicly_owned": publicly_owned,
+            "likely_used": bool(apr_hit or new_build), "pending": is_pending})
+        surplus_info = ({"case": a.get("SLA_CASE"), "agency": a.get("SLA_AGENCY"), "agency_type": a.get("SLA_AGENCY_TYPE"),
+                         "status": a.get("SLA_STATUS"), "notice_date": a.get("SLA_NOTICE_DATE"), "due_date": a.get("SLA_DUE_DATE"),
+                         "link": a.get("SLA_LINK"), "approx_outline": bool(a.get("SLA_APPROX_OUTLINE"))}
+                        if a.get("SLA_CASE") else None)
 
         # Scores (weights are ASSUMPTIONS, shown on the page)
         w = A["weights_promising"]
@@ -492,7 +514,9 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
 
         c = shape.centroid
         out.append({
-            "id": key, "apn": apn, "name": name, "address": address, "site_source": site_src,
+            "id": key, "apn": apn, "name": name, "address": address, "site_source": "surplus" if surplus_info else site_src,
+            "surplus": surplus_info, "permit": permit, "pathways": screens,
+            "zoning_family": zfam, "zoning_family_label": zfam_label,
             "he": {k[3:].lower(): a.get(k) for k in ("HE_Status", "HE_Existing_Use", "HE_Publicly_Owned", "HE_Zoning",
                                                        "HE_Max_Density", "HE_Prior_Cycles") if a.get(k) not in (None, "")},
             "oppcat": oppcat, "ces_pctl": ces_p, "lihtc_nearby": len(nearby), "acres": round(acres, 2), "coverage": None if cov is None else round(cov, 3),
@@ -501,7 +525,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
             "above": num(a.get(f_abv)) if f_abv else None,
             "zoning_local": z.get("ZN24_CITY"), "zoning_scag": z.get("ZN24_SCAG"), "slope": z.get("SLOPE"),
             "flags": site_flags.get(key, []),
-            "pending": any(f["code"] == "pending_project" for f in site_flags.get(key, [])),
+            "pending": is_pending,
             "checks": checks, "promising": promising, "promising_parts": {k: round(v, 3) for k, v in parts.items()},
             "stale": stale, "lat": round(c.y, 6), "lon": round(c.x, 6), "polys": to_polys(shape, 0, 6),
         })
@@ -572,9 +596,27 @@ def main():
     sources = {k: {"label": SOURCES[k]["label"], "url": meta.get(k, {}).get("url") or
                    SOURCES[k].get("layer") or SOURCES[k].get("service") or SOURCES[k].get("page"),
                    "fetched": meta.get(k, {}).get("fetched", "not fetched")} for k in SOURCES}
+    # Pathway test sentences repeat across sites (every hazard pass reads the same), so store each distinct sentence once
+    # and reference it by index; the page restores them at load. Keeps the 30-city page far under the artifact cap.
+    texts, index, laws = [], {}, {}
+
+    def intern(d):
+        if d not in index:
+            index[d] = len(texts)
+            texts.append(d)
+        return index[d]
+
+    for c in cities.values():
+        for st in c["sites"]:
+            for pw in st.get("pathways") or []:
+                laws.setdefault(pw["id"], {k: pw[k] for k in ("law", "opens", "note", "sources")})
+                for k in ("law", "opens", "note", "sources"):
+                    pw.pop(k, None)
+                for t in pw["tests"]:
+                    t["name"], t["detail"] = intern(t["name"]), intern(t["detail"])
     payload = {"built": date.today().isoformat(), "test_data": bool(meta.get("synthetic")),
                "cities": cities, "sources": sources,
-               "assumptions": ASSUMPTIONS}
+               "assumptions": ASSUMPTIONS, "pathway_texts": texts, "pathway_laws": laws}
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(payload))
     here = pathlib.Path(__file__).parent

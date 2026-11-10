@@ -155,6 +155,47 @@ ol.top .rating{text-align:right}ol.top .rating .lbl{display:block;font-size:11px
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 .leaflet-popup-content{width:360px!important;max-width:78vw;max-height:70vh;overflow:auto;margin:14px 16px}
 .leaflet-bar a{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.filters{display:flex;flex-direction:column;gap:6px;margin:0 0 10px}
+.filters input[type=search]{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 10px;font:inherit;font-size:13px}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.frow label{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:var(--muted);flex:1;min-width:120px}
+.frow input,.frow select{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 6px;font:inherit;font-size:12.5px;width:100%;box-sizing:border-box}
+.btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 9px;font:inherit;font-size:12px;cursor:pointer}
+.btn:hover{background:var(--bg)}.btn[disabled]{opacity:.5;cursor:default}
+.btn.on{border-color:var(--good);color:var(--good)}
+.fcount{font-size:12px;color:var(--muted);flex:1;align-self:center}
+.conf{display:inline-block;font-size:10.5px;border-radius:999px;padding:1px 7px;border:1px solid var(--line);color:var(--muted);margin-left:4px;white-space:nowrap;vertical-align:middle}
+.conf.high{border-color:var(--good);color:var(--good)}.conf.low{border-color:var(--bad);color:var(--bad)}
+.path{margin:4px 0 0;padding:0;list-style:none}
+.path>li{border-top:1px solid var(--line);padding:6px 0}
+.path .law{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px}
+.path .law small{display:block;color:var(--muted);font-weight:400;font-size:11px}
+.badge{font-size:10.5px;font-weight:600;border-radius:999px;padding:2px 8px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.badge.no{background:var(--bad-bg);color:var(--bad)}.badge.unknown{background:var(--warn-bg);color:var(--warn)}.badge.passes{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good)}
+.path details{margin-top:4px}.path summary{font-size:11.5px;color:var(--muted);cursor:pointer}
+.path details ul{list-style:none;margin:4px 0 0;padding:0}.path details li{padding:2px 0;font-size:11.5px;display:flex;gap:6px;line-height:1.35}
+.path .t{flex:0 0 auto;font-weight:700}.path .t-pass{color:var(--good)}.path .t-fail{color:var(--bad)}.path .t-unknown{color:var(--muted)}
+.path .src{font-size:11px;color:var(--muted);margin-top:4px}.path .src a{color:var(--ink)}
+.popbtns{display:flex;gap:6px;margin:10px 0 0;flex-wrap:wrap}
+.sla-banner{display:flex;gap:8px;align-items:flex-start;background:color-mix(in srgb,var(--sla,#2563eb) 12%,transparent);border-radius:8px;padding:8px 10px;margin:0 0 8px;font-size:12px}
+.sla-banner b{color:var(--sla,#2563eb)}
+.cmpbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1200;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.2);padding:8px 12px;display:flex;gap:8px;align-items:center;font-size:12.5px;max-width:90vw;flex-wrap:wrap}
+.cmpbar[hidden]{display:none}.cmpbar .chip{cursor:pointer}
+.modal{position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal[hidden]{display:none}
+.modal .box{background:var(--panel);color:var(--ink);border-radius:12px;max-width:min(1100px,96vw);max-height:92vh;overflow:auto;padding:16px 18px;box-shadow:0 10px 40px rgba(0,0,0,.35);position:relative}
+.modal h2{margin:0 0 8px;font-size:17px;padding-right:80px}
+.modal .close{position:absolute;top:12px;right:14px}
+.cmp{border-collapse:collapse;width:100%;font-size:12.5px}
+.cmp th,.cmp td{border-top:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.cmp th{color:var(--muted);font-weight:500;white-space:nowrap;width:170px}
+.cmp thead th{color:var(--ink);font-weight:700;white-space:normal;width:auto}
+.cmp td.best{background:color-mix(in srgb,var(--good) 14%,transparent)}
+.weights .w{display:grid;grid-template-columns:1fr 90px 48px;gap:6px;align-items:center;font-size:12px;margin:3px 0}
+.weights input[type=range]{width:100%;margin:0}
+.weights .val{text-align:right;font-variant-numeric:tabular-nums}
+.sdot.sla{background:var(--sla,#2563eb);border:2px solid #fff;border-radius:2px}
+.chip.sla{color:var(--sla,#2563eb);border-color:var(--sla,#2563eb)}
 .leaflet-control-layers{background:var(--panel)!important;color:var(--ink);border:1px solid var(--line)!important;box-shadow:0 1px 4px rgba(0,0,0,.15)!important}
 .leaflet-control-layers-toggle{background-color:var(--panel);background-size:20px 20px;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linejoin='round'><path d='M12 3 2 8.5 12 14l10-5.5z'/><path d='m2 13 10 5.5L22 13'/><path d='m2 17.5 10 5.5 10-5.5'/></svg>")!important}
@@ -188,7 +229,26 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   </div>
   <div class="selchips" id="selchips" aria-live="polite"></div>
   <p class="hint">Pick one or more cities. Rankings cover every selected city together.</p>
-  <p class="hint">Every site has a marker: numbered green for the top 10, a <span class="sdot ok" style="display:inline-block;vertical-align:middle"></span> green dot if available, a <span class="sdot used" style="display:inline-block;vertical-align:middle"></span> red dot if likely already used, and a <span class="sdot pend" style="display:inline-block;vertical-align:middle"></span> red ring for a pending project.</p>
+  <p class="hint">Every site has a marker: numbered green for the top 10, a <span class="sdot ok" style="display:inline-block;vertical-align:middle"></span> green dot if available, a <span class="sdot used" style="display:inline-block;vertical-align:middle"></span> red dot if likely already used, a <span class="sdot pend" style="display:inline-block;vertical-align:middle"></span> red ring for a pending project, and a <span class="sdot sla" style="display:inline-block;vertical-align:middle"></span> blue square for a Surplus Land Act notice.</p>
+  <h2>Find and filter</h2>
+  <div class="filters" id="filters">
+    <input type="search" id="siteSearch" placeholder="Search address, site name, agency or APN" aria-label="Search sites by address, name or APN">
+    <div class="frow">
+      <label>Min acres <input type="number" id="fAcres" min="0" step="0.1" placeholder="any"></label>
+      <label>Min lower-income units <input type="number" id="fUnits" min="0" step="1" placeholder="any"></label>
+    </div>
+    <div class="frow">
+      <label>Zoning (SCAG family) <select id="fZoning"><option value="">Any</option></select></label>
+      <label>Transit <select id="fTransit"><option value="">Any</option><option value="yes">In a transit area</option><option value="no">Not in a transit area</option></select></label>
+    </div>
+    <div class="frow">
+      <label>Pathway not ruled out <select id="fPathway"><option value="">Any</option><option value="sb9">SB 9</option><option value="sb684">SB 684 / SB 1123</option><option value="ab2011">AB 2011</option><option value="sb4">SB 4</option></select></label>
+      <label>Data confidence <select id="fConf"><option value="">Any</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></label>
+    </div>
+    <label class="toggle"><input type="checkbox" id="fNoHazard"> Hide sites with a flood, fire, landslide or contamination concern</label>
+    <label class="toggle"><input type="checkbox" id="fSurplus" checked> Include Surplus Land Act notices</label>
+    <div class="frow"><span class="fcount" id="fCount"></span><button type="button" class="btn" id="fReset">Reset filters</button></div>
+  </div>
   <div class="stats" id="stats"></div>
   <div id="rhna"></div>
 
@@ -203,6 +263,11 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <p class="hint">Shown in red: sites with permit activity reported to HCD on the APN since 2021, or a building dated 2021 or later. They are never ranked. Tick to hide them; signals can be wrong.</p>
   <ul class="notes" id="notes"></ul>
 
+  <details class="weights"><summary>Scoring weights (adjust)</summary>
+    <p class="hint">Defaults are the team's ASSUMPTION weights. Move a slider to re-score and re-rank every site; nothing is saved. Stars keep using the share of attainable points.</p>
+    <div id="weights"></div>
+    <button type="button" class="btn" id="wReset">Reset to defaults</button>
+  </details>
   <details><summary>Data checks</summary><div id="validation"></div></details>
   <details><summary>Assumptions</summary><ul id="assumptions"></ul></details>
   <details><summary>Sources and dates</summary><ul id="sources"></ul></details>
@@ -226,6 +291,12 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
   <ol class="top" id="top10"></ol>
 </aside>
 </div>
+<div class="cmpbar" id="compareBar" hidden aria-live="polite"></div>
+<div class="modal" id="compareModal" hidden role="dialog" aria-modal="true" aria-labelledby="cmpTitle"><div class="box">
+  <button type="button" class="btn close" id="cmpClose">Close</button>
+  <h2 id="cmpTitle">Compare sites</h2>
+  <div id="cmpBody"></div>
+</div></div>
 
 <script>
 const DATA = /*__DATA__*/null;
@@ -305,6 +376,14 @@ function useBasemap(name, why) {
   img.onerror = () => { if (basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', failMsg); };
   img.src = 'https://tile.openstreetmap.org/10/176/409.png';  // one Orange County tile
 })();
+let lastBounds = null;
+const HomeControl = L.Control.extend({onAdd() {
+  const b = L.DomUtil.create('div', 'leaflet-bar'), a = L.DomUtil.create('a', '', b);
+  a.href = '#'; a.title = 'Zoom back to the selected cities'; a.setAttribute('role', 'button'); a.setAttribute('aria-label', a.title); a.innerHTML = '⌂';
+  L.DomEvent.on(a, 'click', e => { L.DomEvent.preventDefault(e); if (lastBounds) map.fitBounds(lastBounds, {padding: [20, 20]}); });
+  return b;
+}});
+new HomeControl({position: 'topleft'}).addTo(map);
 let pendingLayer = L.layerGroup().addTo(map), boundaryLayer = L.layerGroup().addTo(map), ctxGroups = {}, allLayer = L.layerGroup().addTo(map), topLayer = L.layerGroup().addTo(map), byId = {};
 
 function srcLabel(keys) {
@@ -318,10 +397,37 @@ const PART_NAMES = {open_land: 'Open land', lower_income_capacity: 'Lower-income
 const STATUS_WORD = {pass: 'OK', fail: 'Concern', caution: 'Caution', info: 'Note', unknown: 'No data'};
 const STAR_LABEL = {5: 'Top pick', 4: 'Strong', 3: 'Fair', 2: 'Weak', 1: 'Poor'};
 // Stars come from the screen score using the bands in ASSUMPTIONS.star_bands; the numeric score stays available underneath.
-const POS_W = () => DATA.assumptions.weights_promising.value;
+// Scoring weights. The defaults are the team's ASSUMPTION weights from build.py; the sliders in the sidebar change W and
+// every site is re-scored from its stored factors (part / default weight), so the ranking follows the user's priorities.
+const DEFAULT_W = DATA ? DATA.assumptions.weights_promising.value : {};
+let W = {...DEFAULT_W};
+const customWeights = () => Object.keys(DEFAULT_W).some(k => Math.abs((W[k] ?? 0) - DEFAULT_W[k]) > 1e-9);
+function factorsOf(s) {
+  if (!s._factors) {
+    s._factors = {};
+    for (const [k, v] of Object.entries(s.promising_parts)) { const w = DEFAULT_W[k]; s._factors[k] = w ? v / w : 0; }
+  }
+  return s._factors;
+}
+function rescore() {
+  CITY_ORDER.forEach(k => DATA.cities[k].sites.forEach(s => {
+    const parts = {}; let sum = 0;
+    for (const [k2, fac] of Object.entries(factorsOf(s))) { const v = (W[k2] ?? 0) * fac; parts[k2] = Math.round(v * 1000) / 1000; sum += v; }
+    s.promising_parts = parts; s.promising = Math.round(sum * 1000) / 1000;
+  }));
+}
+// Data confidence: the share of a site's checks that returned a value. It describes the data, not the site.
+function confidence(s) {
+  const total = s.checks.length, known = s.checks.filter(c => c.status !== 'unknown').length;
+  const share = total ? known / total : 0;
+  const b = (DATA.assumptions.confidence_bands || {}).value || {high: .85, medium: .6};
+  const band = share >= b.high ? 'high' : share >= b.medium ? 'medium' : 'low';
+  return {share, band, known, total, label: `${band} data confidence: ${known} of ${total} checks have data`};
+}
+const confChip = s => { const c = confidence(s); return `<span class="conf ${c.band}" title="${esc(c.label)}">${c.band} confidence</span>`; };
 // Share of attainable points: positive weights for the terms this site has data for, so a missing term is not a penalty.
 function attainable(s) {
-  const w = POS_W();
+  const w = W;
   let max = w.size + w.transit + w.tax_credit_boost;
   if ('open_land' in s.promising_parts) max += w.open_land;
   if (s.lower !== null && s.lower !== undefined) max += w.lower_income_capacity;
@@ -373,8 +479,10 @@ function popupHtml(s) {
   const sources = [...new Set(s.checks.map(c => c.source))].map(k => srcLabel(k)).join('; ');
   return `<div class="pop">
     ${s.pending ? `<div class="pending-banner"><span class="pending-icon">!</span><div><b>Pending project</b><br>The city reports a project already proposed on this site. It is still listed in the inventory, but treat it as spoken for.</div></div>` : ''}
+    ${s.surplus ? `<div class="sla-banner"><div><b>Surplus Land Act notice</b> (${esc(s.surplus.status || 'status unknown')}${s.surplus.notice_date ? `, issued ${esc(s.surplus.notice_date)}` : ''})<br>
+      Public land offered by ${esc(s.surplus.agency || 'a public agency')}${s.surplus.agency_type ? ` (${esc(s.surplus.agency_type)})` : ''}. An archived notice means the 60-day window has passed; the land may still be available, so ask the agency.${s.surplus.link ? ` <a href="${esc(s.surplus.link)}" target="_blank" rel="noopener">Notice</a>.` : ''}${s.surplus.approx_outline ? ' Outline is approximate (no county parcel matched the APN).' : ''}</div></div>` : ''}
     <h3>${esc(s.name)}</h3>
-    <p class="kv">${s.address && s.address !== s.name ? esc(s.address) + ' · ' : ''}APN ${fmt(s.apn)}</p>
+    <p class="kv">${s.address && s.address !== s.name ? esc(s.address) + ' · ' : ''}APN ${fmt(s.apn)} ${confChip(s)}</p>
     ${tags.length ? `<p class="tags">${tags.join(' ')}</p>` : ''}
     <dl class="facts">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
     <div class="starline">${stars(s).html}<b>${esc(stars(s).label)}</b><span class="dim">${stars(s).share === null ? '' : `earned ${Math.round(stars(s).share * 100)}% of attainable points · score ${s.promising.toFixed(2)}`}</span></div>
@@ -384,8 +492,28 @@ function popupHtml(s) {
     <h4>Checks</h4>
     <ul class="checks">${checkRows}</ul>
     ${flagRows ? `<h4>Data notes</h4><ul class="checks">${flagRows}</ul>` : ''}
+    <h4>Development pathways <span class="dim">screen, not a legal test</span></h4>
+    ${pathwaysHtml(s)}
+    <div class="popbtns">
+      <button type="button" class="btn cmp-toggle ${compareSet.has(s.id) ? 'on' : ''}" data-id="${esc(s.id)}">${compareSet.has(s.id) ? 'In comparison ✓' : 'Compare'}</button>
+      <button type="button" class="btn rep-open" data-id="${esc(s.id)}">Site report</button>
+      <button type="button" class="btn rep-save" data-id="${esc(s.id)}">Download report</button>
+    </div>
     <details class="srcs"><summary>Sources</summary><p>Site record: ${srcLabel(s.site_source || 'he_sites')}.</p><p>${sources}.</p><p>Centroid ${s.lat}, ${s.lon}.</p></details>
   </div>`;
+}
+
+const PATH_WORD = {no: 'No', unknown: 'Unknown', passes: 'Passes screens'};
+function pathwaysHtml(s) {
+  if (!s.pathways || !s.pathways.length) return '<p class="dim">Pathway screening not available for this site.</p>';
+  return '<ul class="path">' + s.pathways.map(p => `<li>
+    <div class="law"><div><b>${esc(p.law)}</b><small>${esc(p.opens)}</small></div>
+      <span class="badge ${p.result}" title="${p.result === 'no' ? 'A test the data could check failed' : p.result === 'unknown' ? 'Nothing failed, but required facts are missing' : 'Every checkable test passed'}">${PATH_WORD[p.result]}${p.result === 'unknown' ? ` · ${p.passes} of ${p.tests.length} pass` : ''}</span></div>
+    <details><summary>${p.tests.length} tests: ${p.passes} pass, ${p.fails} fail, ${p.unknowns} unknown</summary>
+      <ul>${p.tests.map(t => `<li><span class="t t-${t.status}">${t.status === 'pass' ? '✓' : t.status === 'fail' ? '✕' : '?'}</span><span><b>${esc(t.name)}</b>${t.assumption ? ' <span class="dim">(ASSUMPTION)</span>' : ''}: ${esc(t.detail)}</span></li>`).join('')}</ul>
+      ${p.note ? `<p class="dim">${esc(p.note)}</p>` : ''}
+      <p class="src">Sources: ${p.sources.map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a> (checked ${esc(x.checked)})`).join('; ')}. Screening signals from HCD's fact sheets, not legal advice.</p>
+    </details></li>`).join('') + '</ul>';
 }
 
 function whyPromising(s) {
@@ -410,12 +538,195 @@ const isDark = () => document.documentElement.dataset.theme === 'dark' ||
   (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
 const cityColor = slug => css(`--city-${slug}`) || `hsl(${Math.round((CITY_ORDER.indexOf(slug) * 137.508) % 360)} 55% ${isDark() ? 66 : 36}%)`;
 
+// Search and filters. Everything downstream (map, ranking, stats, CSV) works on the sites that pass.
+const F = {q: '', acres: null, units: null, zoning: '', transit: '', pathway: '', conf: '', noHazard: false, surplus: true};
+const ZONING_NAMES = {single_family: 'Single-family residential', multi_family: 'Multi-family residential', mixed_residential: 'Mixed residential',
+  mobile_home: 'Mobile homes', rural_residential: 'Rural residential', residential: 'Residential', commercial: 'Commercial and services',
+  mixed_res_com: 'Mixed residential and commercial', mixed_com_ind: 'Mixed commercial and industrial', industrial: 'Industrial',
+  facilities: 'Public or special-use facilities', education: 'Education', open_space: 'Open space and recreation', vacant: 'Vacant',
+  transport_utilities: 'Transportation and utilities', agriculture: 'Agriculture', specific_plan: 'Specific plan', unknown: 'Unknown'};
+function passesFilters(s) {
+  if (!F.surplus && s.surplus) return false;
+  if (F.q) {
+    const q = F.q.toLowerCase(), qd = q.replace(/\D/g, '');
+    const hay = `${s.name} ${s.address || ''} ${cityOf[s.id]} ${(s.surplus || {}).agency || ''} ${s.zoning_local || ''}`.toLowerCase();
+    if (!hay.includes(q) && !(qd.length >= 3 && String(s.apn || '').replace(/\D/g, '').includes(qd))) return false;
+  }
+  if (F.acres !== null && !(s.acres >= F.acres)) return false;
+  if (F.units !== null && !((s.lower ?? -1) >= F.units)) return false;
+  if (F.zoning && (s.zoning_family || 'unknown') !== F.zoning) return false;
+  if (F.transit) {
+    const t = s.checks.find(c => c.name === 'Transit') || {};
+    if (F.transit === 'yes' && t.status !== 'pass') return false;
+    if (F.transit === 'no' && t.status !== 'info') return false;
+  }
+  if (F.pathway) { const p = (s.pathways || []).find(x => x.id === F.pathway); if (!p || p.result === 'no') return false; }
+  if (F.conf && confidence(s).band !== F.conf) return false;
+  if (F.noHazard && s.checks.some(c => (c.status === 'fail' || c.status === 'caution') && /Flood|Fire|Landslide|Contamination/.test(c.name))) return false;
+  return true;
+}
+function readFilters() {
+  const v = id => document.getElementById(id).value;
+  const n = id => { const x = parseFloat(v(id)); return Number.isFinite(x) ? x : null; };
+  F.q = v('siteSearch').trim(); F.acres = n('fAcres'); F.units = n('fUnits'); F.zoning = v('fZoning'); F.transit = v('fTransit');
+  F.pathway = v('fPathway'); F.conf = v('fConf');
+  F.noHazard = document.getElementById('fNoHazard').checked; F.surplus = document.getElementById('fSurplus').checked;
+}
+const filtersActive = () => Boolean(F.q || F.acres !== null || F.units !== null || F.zoning || F.transit || F.pathway || F.conf || F.noHazard || !F.surplus);
+
 function rankSelected(cities) {
-  const sites = cities.flatMap(c => c.sites);
-  sites.forEach(s => { s.promising_rank = null; });
-  sites.filter(s => !likelyUsed(s)).sort((a, b) => b.promising - a.promising)
+  const all = cities.flatMap(c => c.sites);
+  all.forEach(s => { s.promising_rank = null; s.hidden = !passesFilters(s); });
+  const visible = all.filter(s => !s.hidden);
+  visible.filter(s => !likelyUsed(s)).sort((a, b) => b.promising - a.promising)
     .forEach((s, i) => { s.promising_rank = i + 1; });
-  return sites;
+  return visible;
+}
+
+// Side-by-side comparison of up to three sites.
+const compareSet = new Set();
+function siteById(id) {
+  for (const k of CITY_ORDER) { const s = DATA.cities[k].sites.find(x => x.id === id); if (s) return s; }
+  return null;
+}
+function toggleCompare(id) {
+  if (compareSet.has(id)) compareSet.delete(id);
+  else if (compareSet.size >= 3) { alert('Compare up to three sites at a time. Remove one first.'); return; }
+  else compareSet.add(id);
+  renderCompareBar();
+  document.querySelectorAll(`.cmp-toggle[data-id="${CSS.escape(id)}"]`).forEach(b => { b.classList.toggle('on', compareSet.has(id)); b.textContent = compareSet.has(id) ? 'In comparison ✓' : 'Compare'; });
+}
+function renderCompareBar() {
+  const bar = document.getElementById('compareBar'), ids = [...compareSet];
+  bar.hidden = !ids.length;
+  if (!ids.length) return;
+  bar.innerHTML = `<b>Compare:</b> ${ids.map(id => { const s = siteById(id); return `<span class="chip" data-rm="${esc(id)}" title="Remove from comparison" role="button" tabindex="0">${esc(s ? s.name : id)} ✕</span>`; }).join(' ')}
+    <button type="button" class="btn" id="cmpOpen" ${ids.length < 2 ? 'disabled title="Add a second site"' : ''}>Compare ${ids.length} sites</button>
+    <button type="button" class="btn" id="cmpClear">Clear</button>`;
+}
+function statusOf(s, name) { return s.checks.find(c => c.name === name) || {status: 'unknown', detail: ''}; }
+function compareHtml(sites) {
+  const word = c => `${STATUS_WORD[c.status]}${c.detail ? `<br><span class="dim">${esc(c.detail)}</span>` : ''}`;
+  const rows = [
+    ['City', s => esc(cityOf[s.id])],
+    ['APN', s => fmt(s.apn)],
+    ['Status', s => likelyUsed(s) ? '<span class="chip fail">likely already used</span>' : s.pending ? '<span class="chip pending">pending project</span>' : s.surplus ? '<span class="chip sla">surplus notice</span>' : '<span class="chip pass">available</span>'],
+    ['Rating', s => `${stars(s).html} ${esc(stars(s).label)}`, s => stars(s).n],
+    ['Score', s => s.promising.toFixed(2) + (stars(s).share === null ? '' : ` <span class="dim">(${Math.round(stars(s).share * 100)}% of attainable)</span>`), s => likelyUsed(s) ? -1 : s.promising],
+    ['Data confidence', s => confChip(s), s => confidence(s).share],
+    ['Size', s => `${num(s.acres, 2)} acres`, s => s.acres],
+    ['Open land', s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${esc(s.he.existing_use)} <span class="dim">(city-reported use)</span>` : '<i>unknown</i>', s => s.coverage !== null && s.coverage !== undefined ? 1 - s.coverage : null],
+    ['Listed lower-income capacity', s => s.lower === null || s.lower === undefined ? '<i>not listed</i>' : `${num(s.lower)} units`, s => s.lower],
+    ['Zoning', s => `${s.zoning_local ? esc(s.zoning_local) : (s.he || {}).zoning ? esc(s.he.zoning) : '<i>unknown</i>'}${s.zoning_family_label ? `<br><span class="dim">${esc(s.zoning_family_label)} (SCAG ${esc(s.zoning_scag || '')})</span>` : ''}`],
+    ['Transit', s => word(statusOf(s, 'Transit'))],
+    ['Opportunity area', s => s.oppcat ? esc(s.oppcat) : '<i>unknown</i>'],
+    ['Pollution burden', s => s.ces_pctl !== null && s.ces_pctl !== undefined ? `${Math.round(s.ces_pctl)}th percentile` : '<i>unknown</i>', s => s.ces_pctl === null ? null : -s.ces_pctl],
+    ['Flood', s => word(statusOf(s, 'Flood'))], ['Fire', s => word(statusOf(s, 'Fire'))],
+    ['Landslide', s => word(statusOf(s, 'Landslide'))], ['Contamination', s => word(statusOf(s, 'Contamination'))],
+    ['Permit activity', s => word(statusOf(s, 'Permit activity (APR)'))],
+    ['Newest building', s => s.newest_year ? String(s.newest_year) : '<i>none on record</i>'],
+    ...['sb9', 'sb684', 'ab2011', 'sb4'].map(id => [ (sites[0].pathways || []).find(p => p.id === id)?.law || id,
+      s => { const p = (s.pathways || []).find(x => x.id === id); return p ? `<span class="badge ${p.result}">${PATH_WORD[p.result]}</span> <span class="dim">${p.passes} pass, ${p.fails} fail, ${p.unknowns} unknown</span>` : '<i>n/a</i>'; }]),
+    ['Source record', s => s.surplus ? `Surplus Land Act notice, ${esc(s.surplus.agency || '')}` : esc((DATA.sources[s.site_source || 'he_sites'] || {}).label || s.site_source)],
+  ];
+  const head = `<thead><tr><th></th>${sites.map(s => `<th>${esc(s.name)}</th>`).join('')}</tr></thead>`;
+  const body = rows.map(([label, cell, better]) => {
+    let bestIdx = -1;
+    if (better) { const vals = sites.map(better); const max = Math.max(...vals.map(v => v === null || v === undefined ? -Infinity : v)); const n = vals.filter(v => v === max).length; if (Number.isFinite(max) && n === 1) bestIdx = vals.indexOf(max); }
+    return `<tr><th>${esc(label)}</th>${sites.map((s, i) => `<td class="${i === bestIdx ? 'best' : ''}">${cell(s)}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<p class="hint">Green cells mark the best value in a row where "best" is clear. Hazard words are the screen's status, not a legal finding.</p><table class="cmp">${head}<tbody>${body}</tbody></table>`;
+}
+function openCompare() {
+  const sites = [...compareSet].map(siteById).filter(Boolean);
+  if (sites.length < 2) return;
+  document.getElementById('cmpBody').innerHTML = compareHtml(sites);
+  document.getElementById('compareModal').hidden = false;
+  document.getElementById('cmpClose').focus();
+}
+
+// Printable single-site report: everything the popup shows plus next steps, as a standalone HTML file.
+function nextSteps(s) {
+  const out = [];
+  if (likelyUsed(s)) out.push('Ask the city whether the reported project is built, under construction or abandoned before spending more time here.');
+  if (s.pending) out.push('Ask the planning counter about the pending project and whether the site is still available.');
+  if (s.surplus) out.push(`Contact ${s.surplus.agency || 'the agency'} about its Surplus Land Act notice (${s.surplus.status || 'status unknown'}${s.surplus.notice_date ? ', issued ' + s.surplus.notice_date : ''}). An archived notice may still lead to a negotiation.`);
+  else out.push('Confirm the owner through the county assessor roll or a title company; ownership is not in any free dataset.');
+  const st = n => (s.checks.find(c => c.name === n) || {}).status;
+  if (['fail', 'caution'].includes(st('Contamination'))) out.push('Order a Phase I environmental site assessment: DTSC EnviroStor lists a cleanup site on or near the parcel.');
+  if (st('Flood') === 'fail') out.push('Check the FEMA flood map, base flood elevation and the city floodplain ordinance.');
+  if (['fail', 'caution'].includes(st('Fire'))) out.push('Check the fire hazard severity zone and the building standards it triggers; very high zones exclude most streamlining laws.');
+  if (st('Landslide') === 'caution') out.push('Commission a geotechnical study: the site is in a CGS landslide zone of required investigation.');
+  const unknown = s.checks.filter(c => c.status === 'unknown').map(c => c.name);
+  if (unknown.length) out.push(`Fill the data gaps: ${unknown.join(', ')}.`);
+  (s.pathways || []).filter(p => p.result === 'unknown').forEach(p => {
+    const need = p.tests.filter(t => t.status === 'unknown').map(t => t.name);
+    if (need.length) out.push(`For ${p.law}, confirm: ${need.join('; ')}.`);
+  });
+  out.push('Confirm zoning, allowed density and objective standards with the city planning department; the SCAG zoning code is a regional summary.');
+  return out;
+}
+function reportHtml(s) {
+  const c = confidence(s), st = stars(s), today = new Date().toISOString().slice(0, 10);
+  const he = s.he || {};
+  const facts = [
+    ['Address', s.address || '(none on record)'], ['APN', s.apn || 'unknown'], ['City', cityOf[s.id]],
+    ['Size', `${num(s.acres, 2)} acres`],
+    ['Open land', s.coverage !== null && s.coverage !== undefined ? `${pct(1 - s.coverage)} open (${pct(s.coverage)} built, from building footprints)` : he.existing_use ? `${he.existing_use} (city-reported use)` : 'unknown'],
+    ['Listed capacity', s.lower === null && s.moderate === null && s.above === null ? 'not listed' : `${num(s.lower) ?? '–'} lower-income, ${num(s.moderate) ?? '–'} moderate, ${num(s.above) ?? '–'} above-moderate units`],
+    ['Zoning', `${s.zoning_local || he.zoning || 'unknown'}${s.zoning_family_label ? ` (${s.zoning_family_label}, SCAG code ${s.zoning_scag})` : ''}`],
+    he.max_density ? ['Max density', `${he.max_density} units / acre`] : null,
+    ['Newest building', s.newest_year ? String(s.newest_year) : 'none on record'],
+    ['Opportunity area', s.oppcat || 'unknown'], ['Pollution burden', s.ces_pctl !== null && s.ces_pctl !== undefined ? `CalEnviroScreen percentile ${Math.round(s.ces_pctl)}` : 'unknown'],
+    ['Affordable housing nearby', `${s.lihtc_nearby} LIHTC propert${s.lihtc_nearby === 1 ? 'y' : 'ies'} within ½ mile`],
+    he.publicly_owned ? ['Ownership', he.publicly_owned] : null, he.status ? ['City status', he.status] : null,
+    ['Coordinates', `${s.lat}, ${s.lon}`],
+  ].filter(Boolean);
+  const tr = (a, b) => `<tr><th>${esc(a)}</th><td>${b}</td></tr>`;
+  const order = {fail: 0, caution: 1, unknown: 2, pass: 3, info: 4};
+  const checks = [...s.checks].sort((a, b) => order[a.status] - order[b.status]).map(k =>
+    `<tr class="${k.status}"><td><b>${esc(k.name)}</b></td><td>${STATUS_WORD[k.status]}</td><td>${esc(k.detail)}</td><td class="dim">${srcLabel(k.source)}</td></tr>`).join('');
+  const parts = Object.entries(s.promising_parts).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(PART_NAMES[k] || k)}</td><td>${v > 0 ? '+' : ''}${v.toFixed(2)}</td></tr>`).join('');
+  const paths = (s.pathways || []).map(p => `<h3>${esc(p.law)} <span class="badge ${p.result}">${PATH_WORD[p.result]}</span> <small>${esc(p.opens)}</small></h3>
+    <table>${p.tests.map(t => `<tr class="${t.status}"><td>${t.status === 'pass' ? '✓ pass' : t.status === 'fail' ? '✕ fail' : '? unknown'}</td><td><b>${esc(t.name)}</b>${t.assumption ? ' (ASSUMPTION)' : ''}</td><td>${esc(t.detail)}</td></tr>`).join('')}</table>
+    ${p.note ? `<p class="dim">${esc(p.note)}</p>` : ''}<p class="dim">Sources: ${p.sources.map(x => `<a href="${esc(x.url)}">${esc(x.label)}</a> (checked ${esc(x.checked)})`).join('; ')}.</p>`).join('');
+  const flags = (s.flags || []).map(f => `<li>${esc(f.level)}: ${esc(f.msg)}</li>`).join('');
+  const sources = Object.values(DATA.sources).filter(x => x.fetched && x.fetched !== 'not fetched').map(x => `<li>${esc(x.label)}. <a href="${esc(x.url)}">${esc(x.url)}</a>. Fetched ${esc(x.fetched)}.</li>`).join('');
+  const assumptions = Object.entries(DATA.assumptions).map(([k, a]) => `<li><b>${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : String(a.value))}. ${esc(a.why)}</li>`).join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Find It site report: ${esc(s.name)}</title>
+<style>body{font:14px/1.45 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1b1d1c;max-width:900px;margin:24px auto;padding:0 20px}h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:22px 0 6px;border-bottom:1px solid #ddd;padding-bottom:4px}h3{font-size:14px;margin:14px 0 4px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border-top:1px solid #e3e3e3;padding:5px 8px;text-align:left;vertical-align:top}th{width:200px;color:#555;font-weight:500}.dim{color:#666;font-size:12px}.badge{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;text-transform:uppercase}.badge.no{background:#fde8e8;color:#b42318}.badge.unknown{background:#fff4d6;color:#8a5a00}.badge.passes{background:#e4f3e8;color:#1b7f3b}tr.fail td:first-child{color:#b42318}tr.pass td:first-child{color:#1b7f3b}tr.caution td:first-child{color:#8a5a00}.proto{background:#fff4d6;color:#8a5a00;border-radius:8px;padding:8px 10px;margin:10px 0}.chip{display:inline-block;border:1px solid #999;border-radius:999px;padding:1px 8px;font-size:12px;margin-right:4px}button{font:inherit;padding:6px 12px}@media print{button{display:none}}</style></head><body>
+<button onclick="print()">Print or save as PDF</button>
+<h1>${esc(s.name)}</h1>
+<p class="dim">Find It site report generated ${today} from a build dated ${esc(DATA.built)}. ${esc(cityOf[s.id])} · APN ${esc(s.apn || 'unknown')}</p>
+<div class="proto">Prototype for screening only. Not legal, zoning or real estate advice. Every weight and cutoff is an ASSUMPTION listed below. "Unknown" means no dataset we loaded answers the question; it is never assumed either way.</div>
+<p>${likelyUsed(s) ? '<span class="chip">likely already used</span>' : ''}${s.pending ? '<span class="chip">pending project</span>' : ''}${s.surplus ? '<span class="chip">Surplus Land Act notice</span>' : ''}${s.promising_rank ? `<span class="chip">#${s.promising_rank} to check first in the current selection</span>` : ''}<span class="chip">${esc(c.label)}</span></p>
+${s.surplus ? `<p><b>Surplus Land Act notice</b>: ${esc(s.surplus.agency || 'agency unknown')}${s.surplus.agency_type ? ` (${esc(s.surplus.agency_type)})` : ''}, status ${esc(s.surplus.status || 'unknown')}${s.surplus.notice_date ? `, issued ${esc(s.surplus.notice_date)}` : ''}${s.surplus.due_date ? `, responses due ${esc(s.surplus.due_date)}` : ''}.${s.surplus.link ? ` <a href="${esc(s.surplus.link)}">Notice link</a>.` : ''}${s.surplus.approx_outline ? ' The outline on the map is approximate: no county parcel matched the APN (ASSUMPTION).' : ''}</p>` : ''}
+<h2>Rating</h2>
+<p>${st.html} <b>${esc(st.label)}</b>${st.share === null ? ' (not rated: likely already used)' : ` — earned ${Math.round(st.share * 100)}% of attainable points, score ${s.promising.toFixed(2)}${customWeights() ? ' with custom weights' : ''}`}</p>
+<table>${parts || '<tr><td>No scoreable data</td></tr>'}</table>
+<h2>Site facts</h2><table>${facts.map(([a, b]) => tr(a, esc(b))).join('')}</table>
+<h2>Checks</h2><table><tr><th>Check</th><th>Status</th><th>Detail</th><th>Source (fetched)</th></tr>${checks}</table>
+${flags ? `<h2>Data notes</h2><ul>${flags}</ul>` : ''}
+<h2>Development pathways: preliminary screen</h2>
+<p class="dim">Screening signals from HCD's Housing Law Fact Sheets (April 2026) against the layers loaded. "No" means a checkable test failed. "Unknown" means nothing failed but a required fact is missing. The tool never assumes eligibility.</p>
+${paths}
+<h2>Recommended next steps</h2><ol>${nextSteps(s).map(x => `<li>${esc(x)}</li>`).join('')}</ol>
+<h2>Sources</h2><ul>${sources}</ul>
+<h2>Assumptions</h2><ul>${assumptions}</ul>
+</body></html>`;
+}
+function openReport(id, download) {
+  const s = siteById(id); if (!s) return;
+  const blob = new Blob([reportHtml(s)], {type: 'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  if (download) {
+    const a = document.createElement('a'); a.href = url; a.download = `findit-report-${String(s.apn || s.id).replace(/\W+/g, '-')}.html`;
+    document.body.appendChild(a); a.click(); a.remove();
+  } else {
+    const w = window.open(url, '_blank');
+    if (!w) alert('The browser blocked the report window. Use "Download report" instead.');
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
 function drawContext(cities) {
@@ -490,7 +801,10 @@ function draw(opts = {}) {
       lineJoin: 'round', interactive: true}).bindTooltip(`${esc(c.name)} city limits (SCAG 2024)`, {sticky: true}));
   });
   const good = css('--good'), bad = css('--bad'), grey = css('--site');
+  readFilters();
   const sites = rankSelected(cities);
+  const total = cities.reduce((n, c) => n + c.sites.length, 0);
+  document.getElementById('fCount').textContent = filtersActive() ? `${sites.length} of ${total} sites match` : `${total} sites, no filters`;
   const hideUsed = document.getElementById('hideUsed').checked;
   const nUsed = sites.filter(likelyUsed).length;
   pendingLayer.clearLayers();
@@ -502,15 +816,16 @@ function draw(opts = {}) {
     if (hideUsed && used) return;  // filtered out: not drawn, not in byId; never ranked anyway
     const top = s.promising_rank && s.promising_rank <= TOP_N;  // highlighted on the map
     const color = top ? good : used ? bad : grey;
-    const poly = L.polygon(ll(s.polys), {color, weight: top ? 2.5 : used ? 1.5 : 1, fillOpacity: top ? 0.35 : used ? 0.25 : 0.15});
+    const poly = L.polygon(ll(s.polys), {color, weight: top ? 2.5 : used ? 1.5 : 1, fillOpacity: top ? 0.35 : used ? 0.25 : 0.15,
+      dashArray: s.surplus && s.surplus.approx_outline ? '5 4' : null});
     poly.bindPopup(popupHtml(s), {maxWidth: 340});
     poly.on('popupopen', () => selectCard(s.id, true));
     (top ? topLayer : allLayer).addLayer(poly);
     byId[s.id] = {s, poly};
     if (!top) {
       // Every site outside the top 10 gets a dot: green = available, red = likely already used, red ring = pending project.
-      const kind = s.pending && !used ? 'pend' : used ? 'used' : 'ok';
-      const word = {ok: 'available', used: 'likely already used', pend: 'pending project'}[kind];
+      const kind = used ? 'used' : s.surplus ? 'sla' : s.pending ? 'pend' : 'ok';
+      const word = {ok: 'available', used: 'likely already used', pend: 'pending project', sla: 'Surplus Land Act notice'}[kind];
       const dot = L.marker([s.lat, s.lon], {pane: 'pending', keyboard: true, title: `${s.name}: ${word}`,
         icon: L.divIcon({className: '', iconSize: [12, 12], html: `<div class="sdot ${kind}" aria-hidden="true"></div>`})});
       dot.bindTooltip(`${esc(s.name)}<br>${word}${kind === 'ok' ? ' · ' + stars(s).html + ' ' + esc(stars(s).label) : ''}`, {direction: 'top'});
@@ -527,6 +842,7 @@ function draw(opts = {}) {
     }
   });
   cities.forEach(c => { if (!c.sites.length && c.boundary) ll(c.boundary).flat(2).forEach(pt => bounds.push(pt)); });
+  if (bounds.length) lastBounds = bounds;
   if (opts.keepView) { /* toggles redraw in place */ }
   else if (bounds.length) map.fitBounds(bounds, {padding: [20, 20]});
   else if (cities[0]) map.setView(cities[0].center, 13);
@@ -543,21 +859,22 @@ function draw(opts = {}) {
     '<p>Checks run before scoring. Dropped and blanked values are never scored; warnings and flags are shown on each site.</p>';
   const n = f => sites.filter(f).length;
   document.getElementById('stats').innerHTML =
-    `<div><b>${sites.length}</b>listed sites${multi ? ` in ${cities.length} cities` : ''}</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div><div><b>${n(s => s.pending)}</b>pending</div>
-     <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div>`;
+    `<div><b>${sites.length}</b>${filtersActive() ? 'matching' : 'listed'} sites${multi ? ` in ${cities.length} cities` : ''}</div><div><b>${n(s => s.new_build || s.apr_hit)}</b>likely used</div><div><b>${n(s => s.pending)}</b>pending</div>
+     <div><b>${n(s => s.checks.some(k => k.status === 'fail' && !/APR|Newest/.test(k.name)))}</b>with a hazard fail</div><div><b>${n(s => s.surplus)}</b>surplus notices</div>`;
 
   const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
   const top = ranked.slice(0, TOP_N);
   document.getElementById('rightTitle').textContent = cities.length ? `Top ${top.length} sites to check first` : 'Pick a city to see its top sites';
-  document.getElementById('rightstats').textContent = ranked.length
-    ? `Ranked from ${ranked.length} eligible sites in ${cities.map(c => c.name).join(', ')}. The map shows all ${sites.length}.`
-    : cities.length ? 'No sites with enough data to rank in the selected cities.' : 'Use the city menu on the left.';
+  document.getElementById('rightstats').textContent = (ranked.length
+    ? `Ranked from ${ranked.length} eligible sites in ${cities.map(c => c.name).join(', ')}${filtersActive() ? ' that match the filters' : ''}. The map shows all ${sites.length}.`
+    : cities.length ? (filtersActive() ? 'No site matches the filters. Loosen them or reset.' : 'No sites with enough data to rank in the selected cities.') : 'Use the city menu on the left.')
+    + (customWeights() ? ' Scored with custom weights.' : '');
   const card = (s, numHtml) => `<li data-id="${esc(s.id)}">
     <button type="button" class="head" aria-expanded="false">
       ${numHtml}
-      <span><b>${esc(s.name)}</b>${s.pending ? ' <span class="chip pending">pending</span>' : ''}<br>
+      <span><b>${esc(s.name)}</b>${s.pending ? ' <span class="chip pending">pending</span>' : ''}${s.surplus ? ' <span class="chip sla">surplus</span>' : ''}<br>
         <span class="city">${esc(cityOf[s.id])} · APN ${fmt(s.apn)}</span><br><span class="why">${whyPromising(s)}</span></span>
-      <span class="rating">${stars(s).html}<span class="lbl">${esc(stars(s).label)}</span></span>
+      <span class="rating">${stars(s).html}<span class="lbl">${esc(stars(s).label)}</span>${confChip(s)}</span>
     </button>
     <div class="detail"></div></li>`;
   document.getElementById('top10').innerHTML = top.map(s => card(s, `<span class="num" style="background:${good}">${s.promising_rank}</span>`)).join('');
@@ -593,6 +910,15 @@ function focusSite(id) {
 
 function init() {
   if (!DATA) { document.querySelector('.app').innerHTML = '<p style="padding:20px">No data. Run <code>python build.py</code>.</p>'; return; }
+  if (DATA.pathway_texts) {  // build.py stores each distinct pathway sentence and each law's sources once; put them back
+    Object.values(DATA.cities).forEach(c => c.sites.forEach(s => (s.pathways || []).forEach(p => {
+      Object.assign(p, (DATA.pathway_laws || {})[p.id] || {});
+      p.tests.forEach(t => {
+        if (typeof t.name === 'number') t.name = DATA.pathway_texts[t.name] || '';
+        if (typeof t.detail === 'number') t.detail = DATA.pathway_texts[t.detail] || '';
+      });
+    })));
+  }
   if (DATA.test_data) {
     const b = document.getElementById('testBanner');
     b.textContent = 'TEST DATA. Every site, APN, number and map shape here is made up to show how the tool works. Run fetch.py and build.py for real sites.';
@@ -628,20 +954,25 @@ function init() {
     const cities = CITY_ORDER.filter(k => selected.has(k)).map(k => DATA.cities[k]);
     if (!cities.length) { alert('Pick at least one city first.'); return; }
     const sites = rankSelected(cities).slice().sort((a, b) => (a.promising_rank || 1e9) - (b.promising_rank || 1e9) || b.promising - a.promising);
-    const cols = ['rank', 'site', 'city', 'apn', 'stars', 'rating', 'score', 'share_of_attainable_points', 'acres',
-      'lower_income_units', 'moderate_units', 'above_moderate_units', 'open_land', 'newest_building', 'likely_already_used',
-      'pending_project', 'why', 'checks_failed', 'checks_unknown', 'data_flags', 'lat', 'lon'];
+    const cols = ['rank', 'site', 'city', 'apn', 'stars', 'rating', 'score', 'share_of_attainable_points', 'data_confidence', 'acres',
+      'lower_income_units', 'moderate_units', 'above_moderate_units', 'open_land', 'zoning', 'zoning_family', 'newest_building', 'likely_already_used',
+      'permit_activity_grade', 'permit_activity_detail', 'pending_project', 'surplus_notice_agency', 'surplus_notice_status',
+      'sb9_screen', 'sb684_sb1123_screen', 'ab2011_screen', 'sb4_screen', 'why', 'checks_failed', 'checks_unknown', 'data_flags', 'lat', 'lon'];
+    const pathCell = (s, id) => { const p = (s.pathways || []).find(x => x.id === id); return p ? `${PATH_WORD[p.result]} (${p.passes} pass, ${p.fails} fail, ${p.unknowns} unknown)` : ''; };
     const openLand = s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${s.he.existing_use} (city-reported use)` : '';
     const rows = sites.map(s => { const st = stars(s); return [
       s.promising_rank || '', s.name, cityOf[s.id], s.apn || '', likelyUsed(s) ? '' : st.n, st.label, s.promising,
-      st.share === null ? '' : Math.round(st.share * 100) + '%', s.acres, s.lower ?? '', s.moderate ?? '', s.above ?? '',
-      openLand(s), s.newest_year || '', likelyUsed(s) ? 'yes' : 'no', s.pending ? 'yes' : 'no',
+      st.share === null ? '' : Math.round(st.share * 100) + '%', confidence(s).band, s.acres, s.lower ?? '', s.moderate ?? '', s.above ?? '',
+      openLand(s), s.zoning_local || (s.he || {}).zoning || '', s.zoning_family_label || '', s.newest_year || '', likelyUsed(s) ? 'yes' : 'no',
+      (s.permit || {}).level || '', (s.checks.find(c => c.name === 'Permit activity (APR)') || {}).detail || '', s.pending ? 'yes' : 'no',
+      (s.surplus || {}).agency || '', (s.surplus || {}).status || '',
+      pathCell(s, 'sb9'), pathCell(s, 'sb684'), pathCell(s, 'ab2011'), pathCell(s, 'sb4'),
       whyPromising(s).replace(/<[^>]+>/g, ''),
       s.checks.filter(c => c.status === 'fail').map(c => c.name).join('; '),
       s.checks.filter(c => c.status === 'unknown').map(c => c.name).join('; '),
       (s.flags || []).map(f => f.msg).join('; '), s.lat, s.lon]; });
     const cell = v => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-    const head = [`# Find It Site Screener, built ${DATA.built}. Prototype for screening only; weights are ASSUMPTIONS. Sources and dates are listed on the page.`];
+    const head = [`# Find It Site Screener, built ${DATA.built}. Prototype for screening only; weights are ASSUMPTIONS${customWeights() ? ' (custom weights: ' + JSON.stringify(W) + ')' : ''}. Pathway columns are screens from HCD fact sheets, not legal findings. Sources and dates are listed on the page.`];
     const csv = head.concat([cols.join(',')], rows.map(r => r.map(cell).join(','))).join('\r\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'}));
@@ -649,6 +980,47 @@ function init() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   });
+  // Filters
+  const zsel = document.getElementById('fZoning');
+  const fams = new Set(CITY_ORDER.flatMap(k => DATA.cities[k].sites.map(s => s.zoning_family || 'unknown')));
+  Object.keys(ZONING_NAMES).filter(k => fams.has(k)).forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = ZONING_NAMES[k]; zsel.appendChild(o); });
+  let searchTimer = null;
+  document.getElementById('siteSearch').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => draw({keepView: true}), 180); });
+  ['fAcres', 'fUnits', 'fZoning', 'fTransit', 'fPathway', 'fConf', 'fNoHazard', 'fSurplus'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => draw({keepView: true})));
+  document.getElementById('fReset').addEventListener('click', () => {
+    document.getElementById('siteSearch').value = '';
+    ['fAcres', 'fUnits', 'fZoning', 'fTransit', 'fPathway', 'fConf'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('fNoHazard').checked = false; document.getElementById('fSurplus').checked = true;
+    draw({keepView: true});
+  });
+  // Weights
+  CITY_ORDER.forEach(k => DATA.cities[k].sites.forEach(factorsOf));  // snapshot the default factors before any re-scoring
+  const wbox = document.getElementById('weights');
+  const renderWeights = () => {
+    wbox.innerHTML = Object.keys(DEFAULT_W).map(k => { const neg = DEFAULT_W[k] < 0;
+      return `<div class="w"><label for="w-${k}">${esc(PART_NAMES[k] || k)}</label><input type="range" id="w-${k}" data-k="${k}" min="${neg ? -1 : 0}" max="${neg ? 0 : 0.6}" step="0.05" value="${W[k]}"><span class="val">${(W[k] > 0 ? '+' : '') + W[k].toFixed(2)}</span></div>`; }).join('');
+  };
+  renderWeights();
+  wbox.addEventListener('input', e => {
+    const k = e.target.dataset.k; if (!k) return;
+    W[k] = parseFloat(e.target.value); e.target.nextElementSibling.textContent = (W[k] > 0 ? '+' : '') + W[k].toFixed(2);
+    rescore(); draw({keepView: true});
+  });
+  document.getElementById('wReset').addEventListener('click', () => { W = {...DEFAULT_W}; renderWeights(); rescore(); draw({keepView: true}); });
+  // Compare and reports: buttons live inside popups and cards, so listen once on the document.
+  document.addEventListener('click', e => {
+    const t = e.target.closest('.cmp-toggle, .rep-open, .rep-save, #cmpOpen, #cmpClear, #cmpClose, [data-rm]');
+    if (!t) { if (e.target.id === 'compareModal') document.getElementById('compareModal').hidden = true; return; }
+    if (t.classList.contains('cmp-toggle')) toggleCompare(t.dataset.id);
+    else if (t.classList.contains('rep-open')) openReport(t.dataset.id, false);
+    else if (t.classList.contains('rep-save')) openReport(t.dataset.id, true);
+    else if (t.id === 'cmpOpen') openCompare();
+    else if (t.id === 'cmpClear') { compareSet.clear(); renderCompareBar(); document.querySelectorAll('.cmp-toggle').forEach(b => { b.classList.remove('on'); b.textContent = 'Compare'; }); }
+    else if (t.id === 'cmpClose') document.getElementById('compareModal').hidden = true;
+    else if (t.dataset.rm) toggleCompare(t.dataset.rm);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('compareModal').hidden) document.getElementById('compareModal').hidden = true; });
   const hide = document.getElementById('hideUsed');
   hide.checked = loadHideUsed();
   hide.addEventListener('change', () => { saveHideUsed(hide.checked); draw({keepView: true}); });
@@ -661,12 +1033,15 @@ function init() {
     `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
-  document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors, or Esri tiles where OpenStreetMap is blocked; pick one with the layers button on the map. Inside Claude artifacts no basemap loads and the drawn layers give the geography.`;
+  document.getElementById('built').textContent = `Built ${DATA.built}. Tests: python -m unittest discover -s tests -t . in findit-map. Street basemap © OpenStreetMap contributors, or Esri tiles where OpenStreetMap is blocked; pick one with the layers button on the map. Inside Claude artifacts no basemap loads and the drawn layers give the geography.`;
   ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
   if (!selected.size) CITY_ORDER.forEach(k => selected.add(k));  // a build without the demo cities opens on every city it has
   draw();
 }
-init();
+try { init(); } catch (e) {
+  document.body.insertAdjacentHTML('afterbegin', `<div class="testdata" style="margin:12px">The page hit an error while starting: ${esc(e.message)}. Rebuild with build.py or report it with the browser console open.</div>`);
+  throw e;
+}
 </script>
 <!--ARTIFACT-END-->
 </html>
