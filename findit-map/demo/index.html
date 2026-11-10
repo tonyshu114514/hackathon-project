@@ -753,7 +753,7 @@ h1,h2,h3,h4{margin:0;letter-spacing:-.01em}
 .notice{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin:0 0 12px;padding:6px 0;border-bottom:1px dashed var(--line)}
 .notice .ico{width:13px;height:13px;color:var(--warn)}
 .notice a,.notice button{color:var(--accent-2);background:none;border:0;padding:0;font:inherit;font-size:11.5px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
-.bm-status{position:absolute;right:10px;top:50px;z-index:800;background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh-sm);padding:3px 9px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bm-status{background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh-sm);padding:4px 10px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;max-width:min(260px,60vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bm-status i{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
 .bm-status.alt i{background:var(--warn)}
 .disc{font-size:13px;line-height:1.55;color:var(--ink-2)}
@@ -823,15 +823,24 @@ aside.detail{border-left:1px solid var(--line)}
 /* ------------------------------------------------------------------ map */
 .mapwrap{position:relative;z-index:0;min-width:0;min-height:0;background:var(--bg)}  /* isolates Leaflet's internal z-indexes */
 #map{position:absolute;inset:0}
-.maptools{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:800;display:flex;gap:6px;align-items:center;max-width:calc(100% - 140px);flex-wrap:wrap;justify-content:center;pointer-events:none}
+/* Floating layers inside the map, all within the map wrapper's stacking context (.mapwrap z-index:0):
+   - Leaflet's corners (z 1000) hold every button and the basemap pill, stacked by Leaflet with its own margins.
+   - The filter-pill row (z 800) sits between the two top corners; layoutMapTools() sets its insets from the corners'
+     measured size, and drops it below them when the gap is too narrow.
+   - The bottom row (.mapfoot, z 800) holds the legend and the compare bar side by side, wrapping instead of overlapping,
+     and clears the attribution in the bottom-right corner. */
+.maptools{position:absolute;top:10px;left:10px;right:10px;z-index:800;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;pointer-events:none}
+.mapfoot{position:absolute;left:10px;right:10px;bottom:28px;z-index:800;display:flex;flex-wrap:wrap-reverse;align-items:flex-end;gap:8px;pointer-events:none}
+.mapfoot>*{pointer-events:auto}
 .maptools>*{pointer-events:auto}
 .pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh-sm);padding:5px 11px;font-size:12px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
 .pill b{color:var(--ink)}
 .pill .x{border:0;background:transparent;color:var(--muted);cursor:pointer;padding:0 2px;line-height:1;font-size:14px}
-.edge{position:absolute;top:10px;z-index:810}
-.edge.l{left:10px}.edge.r{right:10px}
-.edge .btn{box-shadow:var(--sh-sm)}
-.legend{position:absolute;left:10px;bottom:26px;z-index:800;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-sm);padding:8px 10px;font-size:11.5px;color:var(--ink-2);display:grid;gap:4px}
+.leaflet-control.edge-ctl{border:0!important;box-shadow:none!important;background:transparent;overflow:visible}
+.edge-ctl .btn{box-shadow:var(--sh-sm)}
+.leaflet-control[hidden]{display:none}
+.leaflet-control.bm-ctl{border:0!important;background:transparent;box-shadow:none!important}
+.legend{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-sm);padding:8px 10px;font-size:11.5px;color:var(--ink-2);display:grid;gap:4px}
 .legend div{display:flex;align-items:center;gap:7px}
 .legend .num{width:16px;height:16px;font-size:9px}
 .leaflet-container{background:var(--bg);font:inherit}
@@ -970,7 +979,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 .detail-empty .ico{width:34px;height:34px;color:var(--line-2)}
 
 /* ------------------------------------------------------------------ compare */
-.cmpbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1200;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:8px 10px 8px 14px;display:flex;gap:8px;align-items:center;font-size:12.5px;max-width:92vw;flex-wrap:wrap}
+.cmpbar{margin:0 auto;max-width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:8px 10px 8px 14px;display:flex;gap:8px;align-items:center;font-size:12.5px;max-width:92vw;flex-wrap:wrap}
 .cmpbar[hidden]{display:none}
 .cmpbar .chip{cursor:pointer;background:var(--panel-2);border-color:var(--line-2);color:var(--ink-2)}
 .modal{position:fixed;inset:0;z-index:1300;background:rgba(2,6,23,.55);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
@@ -1009,10 +1018,11 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
   .grab{display:flex;justify-content:center;padding:8px 0 0;cursor:pointer}
   .grab i{width:40px;height:4px;border-radius:2px;background:var(--line-2);display:block}
   .legend{display:none}
-  .maptools{top:auto;bottom:66px;max-width:calc(100% - 20px)}
+  .bm-status{max-width:calc(100vw - 70px)}
   .kpis{grid-template-columns:1fr 1fr}
   .modal{padding:8px}.modal .box{padding:14px}.modal h2{padding-right:120px}
-  .cmpbar{bottom:64px;max-width:96vw}
+  .leaflet-bottom{bottom:56px}  /* keep the attribution above the collapsed bottom sheet */
+  .mapfoot{bottom:80px}
 }
 @media (min-width:901px){.grab,.scrim,.m-only{display:none!important}}
 </style>
@@ -1157,16 +1167,16 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 
 <div class="mapwrap">
   <div id="map" aria-label="Map of sites"></div>
-  <div class="edge l" id="sideOpenWrap" hidden><button type="button" class="btn" id="sideOpen"><svg class="ico"><use href="#i-filter"/></svg>Filters</button></div>
-  <div class="edge r" id="detailOpenWrap" hidden><button type="button" class="btn" id="detailOpen"><svg class="ico"><use href="#i-panel"/></svg>Sites</button></div>
   <div class="maptools" id="maptools" aria-live="polite"></div>
-  <div class="bm-status" id="bmStatus" role="status" title="Street basemap in use"><i></i><span>Basemap: OpenStreetMap</span></div>
+  <div class="mapfoot" id="mapfoot">
   <div class="legend" id="legend" aria-label="Map legend">
     <div><span class="num">1</span>Top 10 to check first</div>
     <div><span class="sdot ok"></span>Available site</div>
     <div><span class="sdot used"></span>Likely already used</div>
     <div><span class="sdot pend"></span>Pending project</div>
     <div><span class="sdot sla"></span>Surplus Land Act notice</div>
+  </div>
+  <div class="cmpbar" id="compareBar" hidden aria-live="polite"></div>
   </div>
 </div>
 
@@ -1199,7 +1209,6 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 </div>
 </div>
 
-<div class="cmpbar" id="compareBar" hidden aria-live="polite"></div>
 <div class="modal" id="discModal" hidden role="dialog" aria-modal="true" aria-labelledby="discTitle"><div class="box" style="width:min(860px,96vw)">
   <div class="tools"><button type="button" class="btn" id="discClose"><svg class="ico"><use href="#i-close"/></svg>Close</button></div>
   <h2 id="discTitle">Disclosures &amp; methodology</h2>
@@ -1333,6 +1342,39 @@ const HomeControl = L.Control.extend({onAdd() {
   return b;
 }});
 new HomeControl({position: 'topleft'}).addTo(map);
+// Panel re-open buttons and the basemap status live in Leaflet's corners, so they stack under each other with the
+// corner's own margins and can never overlap the zoom, home or layers controls. Top-left: Filters, zoom, home.
+// Top-right: Sites, layers, basemap status.
+const HtmlControl = L.Control.extend({onAdd() {
+  const d = L.DomUtil.create('div', this.options.className);
+  d.innerHTML = this.options.html;
+  if (this.options.id) d.id = this.options.id;
+  if (this.options.hidden) d.hidden = true;
+  L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+  return d;
+}});
+const toFront = c => { const el = c.getContainer(), corner = el.parentNode; corner.insertBefore(el, corner.firstChild); return c; };
+toFront(new HtmlControl({position: 'topleft', className: 'leaflet-control edge-ctl', id: 'sideOpenWrap', hidden: true,
+  html: '<button type="button" class="btn" id="sideOpen"><svg class="ico"><use href="#i-filter"/></svg>Filters</button>'}).addTo(map));
+toFront(new HtmlControl({position: 'topright', className: 'leaflet-control edge-ctl', id: 'detailOpenWrap', hidden: true,
+  html: '<button type="button" class="btn" id="detailOpen"><svg class="ico"><use href="#i-panel"/></svg>Sites</button>'}).addTo(map));
+new HtmlControl({position: 'topright', className: 'leaflet-control bm-ctl',
+  html: '<div class="bm-status" id="bmStatus" role="status" title="Street basemap in use"><i></i><span>Basemap: OpenStreetMap</span></div>'}).addTo(map);
+setBasemapStatus();
+function layoutMapTools() {
+  const tools = document.getElementById('maptools'), el = map.getContainer();
+  const tl = el.querySelector('.leaflet-top.leaflet-left'), tr = el.querySelector('.leaflet-top.leaflet-right');
+  if (!tools || !tl || !tr) return;
+  const a = tl.getBoundingClientRect(), b = tr.getBoundingClientRect();
+  const left = Math.round(a.width) + 10, right = Math.round(b.width) + 10;
+  if (el.clientWidth - left - right >= 200) Object.assign(tools.style, {top: '10px', left: left + 'px', right: right + 'px'});
+  else Object.assign(tools.style, {top: Math.round(Math.max(a.height, b.height)) + 8 + 'px', left: '10px', right: '10px'});
+}
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(() => layoutMapTools());
+  map.getContainer().querySelectorAll('.leaflet-top').forEach(c => ro.observe(c));
+  ro.observe(map.getContainer());
+} else { window.addEventListener('resize', layoutMapTools); map.on('resize', layoutMapTools); }
 // Dots for the sites outside the top 10 live in a cluster group when the plugin loaded (it comes from the same CDN as
 // Leaflet); otherwise a plain layer group, so the page works offline-from-cache without clustering.
 const dotLayer = (L.markerClusterGroup ? L.markerClusterGroup({
@@ -1513,7 +1555,7 @@ function renderCompareBar() {
   bar.hidden = !ids.length;
   if (!ids.length) return;
   bar.innerHTML = `<b>Compare</b> ${ids.map(id => { const s = siteById(id); return `<span class="chip" data-rm="${esc(id)}" title="Remove from comparison" role="button" tabindex="0">${esc(s ? s.name : id)} ✕</span>`; }).join(' ')}
-    <button type="button" class="btn primary sm" id="cmpOpen" ${ids.length < 2 ? 'disabled title="Add a second site"' : ''}>Compare ${ids.length} sites</button>
+    <button type="button" class="btn primary sm" id="cmpOpen" ${ids.length < 2 ? 'disabled title="Add a second site to compare"' : ''}>${ids.length < 2 ? 'Add one more site' : `Compare ${ids.length} sites`}</button>
     <button type="button" class="btn sm ghost" id="cmpClear">Clear</button>`;
 }
 function statusOf(s, name) { return s.checks.find(c => c.name === name) || {status: 'unknown', detail: ''}; }
@@ -1807,6 +1849,7 @@ function draw(opts = {}) {
      <div class="kpi sla"><b>${n(s => s.surplus)}</b><span>surplus-land notices</span></div>`;
   renderCharts(sites);
   renderMapTools(sites.length, total);
+  layoutMapTools();
   syncQuick();
 
   const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
@@ -2201,7 +2244,8 @@ function hbars(rows, opts = {}) {
   rows.forEach(r => {
     const segs = r.segments || [{v: r.v, color: opts.color || 'var(--c-accent)'}];
     const rowH = segs.length * lineH;
-    parts.push(`<text class="lab" x="${labW - 8}" y="${y + rowH / 2 + 4}" text-anchor="end">${esc(r.label)}</text>`);
+    const maxCh = Math.max(6, Math.floor((labW - 10) / 5.8)), lab = r.label.length > maxCh ? r.label.slice(0, maxCh - 1).trimEnd() + '…' : r.label;
+    parts.push(`<text class="lab" x="${labW - 8}" y="${y + rowH / 2 + 4}" text-anchor="end"><title>${esc(r.label)}</title>${esc(lab)}</text>`);
     segs.forEach((sg, i) => {
       const by = y + i * lineH + (lineH - barH) / 2;
       const w = sg.v > 0 ? Math.max(2, sg.v / max * barW) : 0;
