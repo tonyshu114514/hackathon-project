@@ -50,6 +50,8 @@ ol.top .detail{display:none;padding:0 10px 10px;border-top:1px solid var(--line)
 ol.top>li.sel .detail{display:block}
 ol.top .detail .pop{font-size:12.5px}
 .rightstats{font-size:12px;color:var(--muted);margin:0 0 6px}
+.export{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 10px;font:inherit;font-size:12.5px;cursor:pointer;margin:0 0 10px}
+.export:hover{background:var(--bg)}
 aside{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;min-width:0;
   padding-block:18px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
 #map{height:100%;min-height:320px}
@@ -219,6 +221,7 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid
 <aside class="right" aria-label="Top 10 sites">
   <h1 id="rightTitle">Top 10 sites to check first</h1>
   <p class="rightstats" id="rightstats"></p>
+  <button type="button" class="export" id="exportCsv" title="Every site in the selected cities, ranked, with its checks, as a spreadsheet">Download the ranked list (CSV)</button>
   <p class="hint">Open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are never ranked. The map shows every site; only the ten best appear here. Stars rate each site against all Orange County sites: 5 is roughly the top 3%, 1 the bottom half (bands under Assumptions). Click a site to go to it on the map and see its details.</p>
   <ol class="top" id="top10"></ol>
 </aside>
@@ -619,6 +622,32 @@ function init() {
     const li = head.closest('li[data-id]');
     if (li.classList.contains('sel')) { li.classList.remove('sel'); head.setAttribute('aria-expanded', 'false'); map.closePopup(); return; }
     focusSite(li.dataset.id);
+  });
+  // CSV of every site in the selected cities, best first, so a planner can take the list to a meeting or a spreadsheet.
+  document.getElementById('exportCsv').addEventListener('click', () => {
+    const cities = CITY_ORDER.filter(k => selected.has(k)).map(k => DATA.cities[k]);
+    if (!cities.length) { alert('Pick at least one city first.'); return; }
+    const sites = rankSelected(cities).slice().sort((a, b) => (a.promising_rank || 1e9) - (b.promising_rank || 1e9) || b.promising - a.promising);
+    const cols = ['rank', 'site', 'city', 'apn', 'stars', 'rating', 'score', 'share_of_attainable_points', 'acres',
+      'lower_income_units', 'moderate_units', 'above_moderate_units', 'open_land', 'newest_building', 'likely_already_used',
+      'pending_project', 'why', 'checks_failed', 'checks_unknown', 'data_flags', 'lat', 'lon'];
+    const openLand = s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${s.he.existing_use} (city-reported use)` : '';
+    const rows = sites.map(s => { const st = stars(s); return [
+      s.promising_rank || '', s.name, cityOf[s.id], s.apn || '', likelyUsed(s) ? '' : st.n, st.label, s.promising,
+      st.share === null ? '' : Math.round(st.share * 100) + '%', s.acres, s.lower ?? '', s.moderate ?? '', s.above ?? '',
+      openLand(s), s.newest_year || '', likelyUsed(s) ? 'yes' : 'no', s.pending ? 'yes' : 'no',
+      whyPromising(s).replace(/<[^>]+>/g, ''),
+      s.checks.filter(c => c.status === 'fail').map(c => c.name).join('; '),
+      s.checks.filter(c => c.status === 'unknown').map(c => c.name).join('; '),
+      (s.flags || []).map(f => f.msg).join('; '), s.lat, s.lon]; });
+    const cell = v => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const head = [`# Find It Site Screener, built ${DATA.built}. Prototype for screening only; weights are ASSUMPTIONS. Sources and dates are listed on the page.`];
+    const csv = head.concat([cols.join(',')], rows.map(r => r.map(cell).join(','))).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'}));
+    a.download = `findit-sites-${cities.map(c => c.slug).join('-')}-${DATA.built}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   });
   const hide = document.getElementById('hideUsed');
   hide.checked = loadHideUsed();

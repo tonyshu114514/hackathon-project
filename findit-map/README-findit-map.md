@@ -10,6 +10,9 @@ Table A submission, plus unincorporated county land), ranked and starred:
   ranked. A site is marked when the city reported permit activity to HCD on that APN since the cutoff
   year, or a building on it is dated at or after the cutoff year. A switch hides them.
 
+A button above the list downloads every site in the selected cities as a CSV, best first, with stars, score,
+capacity, failed and unknown checks, data flags and coordinates.
+
 The map also draws context layers you can switch on and off: OCTA bus routes, FEMA flood zones,
 fire hazard zones, landslide zones, high-quality transit areas, DTSC cleanup sites and existing LIHTC
 housing. Each city shows its RHNA progress, and each site is named by its HCD project name, county

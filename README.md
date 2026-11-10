@@ -23,6 +23,8 @@ A static web map (`findit-map/`) that:
 - Scores each site, shows the score as a share of attainable points with 1 to 5 stars, and lists the top 10 for whichever cities are selected.
 - Marks "likely already used" sites (HCD-reported permit activity since 2021, or a building dated 2021+) and pending projects, with a filter to hide them.
 - Draws every check's source and fetch date on the page, and labels every weight and cutoff as an ASSUMPTION.
+- Downloads the ranked list for the selected cities as a CSV (rank, stars, score, capacity, failed and unknown checks, flags) for a meeting or a spreadsheet.
+- Keeps working when a data server is down (the page says "unknown" and names the layer) and when OpenStreetMap blocks the street map (it switches to Esri tiles and says so).
 
 **Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
 **Live demo:** open `findit-map/demo/index.html` from this repo in any browser (prebuilt, four cities, real data).
@@ -42,7 +44,7 @@ cd hackathon-project/findit-map
 # ./run.sh --all         # all 30 jurisdictions, 30 to 60 minutes
 ```
 
-Needs Python 3.10+ and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Open `findit-map/demo/index.html`. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).
+Needs Python 3.10 or newer (tested on 3.15) and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Open `findit-map/demo/index.html`. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).
 
 ## Sources and assumptions
 

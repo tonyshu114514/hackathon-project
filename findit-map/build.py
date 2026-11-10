@@ -185,7 +185,8 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
                      "(no outline or duplicate APN). See 'Data checks'.")
 
     # Footprints
-    fps = load(f"{slug}_footprints") or {}
+    fps_raw = load(f"{slug}_footprints")  # None: never fetched (skipped, or the OC server was down); {}: fetched, nothing found
+    fps = fps_raw or {}
     fp_total = sum(len(v or []) for v in fps.values())
     fp_year = fp_addr = None
     if fp_total:
@@ -193,8 +194,11 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
         fp_year = find_field(list(any_fp["attributes"].keys()), (), (("year",),))
         fp_addr = find_field(list(any_fp["attributes"].keys()), ("Address",), (("addr",),))
     elif sites and any(x["attributes"].get("HE_Existing_Use") for x in sites):
-        notes.append("Building footprints were not fetched for this city (the OC footprint server was unavailable), so "
+        notes.append("Building footprints were not fetched for this city (skipped, or the OC footprint server was unavailable), so "
                      "open land is scored from the existing use the city reported in its inventory (ASSUMPTION).")
+    elif sites and fps_raw is None:
+        notes.append("Building footprints were not fetched for this city (skipped, or the OC footprint server was unavailable), "
+                     "and its inventory lists no existing use, so open land is unknown and left out of the score.")
     elif sites:
         notes.append("Building footprints returned nothing for this city, so coverage is unknown.")
 
@@ -509,7 +513,7 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     for r, s in enumerate(sorted(st, key=lambda s: (-s["stale"], -(s["coverage"] or 0)))[:5], 1):
         s["stale_rank"] = r
     if sites and not any(s["new_build"] or s["apr_hit"] for s in out):
-        notes.append(f"No site here has HCD-reported permit activity or a building dated {A['stale_year_cutoff']['value']} or later, "
+        notes.append(f"No site here has HCD-reported permit activity or a building dated {A['stale_year_cutoff']} or later, "
                      "so none is marked likely already used.")
 
     xs = [x for s in out for poly in s["polys"] for ring in poly for x, _ in ring]
