@@ -218,7 +218,8 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
                 year_by_apn[k].append(y)
     print(f"  parcels: APN={p_apn} year={p_year} matched={len(year_by_apn)}")
     if sites and not year_by_apn:
-        notes.append("Year built did not match any site APN here, so the stale ranking uses building coverage only (weak signal).")
+        notes.append("Year built did not match any site APN here, so the 'newest building' check is unknown for every site and "
+                     "likely-used marking relies on HCD permit activity alone.")
 
     # Zoning
     zrows = load(f"{slug}_zoning") or []
@@ -232,6 +233,8 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     places = load(f"{slug}_places") or {}
     if cleanup_raw is None:
         notes.append(f"{SOURCES['envirostor']['label']} did not download, so contamination shows unknown.")
+    if lihtc_raw is None:
+        notes.append(f"{SOURCES['lihtc']['label']} did not download, so existing affordable housing shows unknown.")
     for k, l in layers.items():
         if not l.ok:
             notes.append(f"{SOURCES[k]['label']} did not download, so that check shows unknown.")
@@ -424,9 +427,12 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
 
         nearby = [at for pt, at in lihtc if ft.distance(pt) <= A["lihtc_radius_feet"]]
         li_units = int(sum(num(at.get("LI_UNITS")) or 0 for at in nearby))
-        checks.append(check("Existing affordable", "info",
-                            f"{len(nearby)} LIHTC propert{'y' if len(nearby) == 1 else 'ies'} ({li_units} low-income units) "
-                            f"within 1/2 mile." if nearby else "No LIHTC property within 1/2 mile.", "lihtc"))
+        if lihtc_raw is None:
+            checks.append(check("Existing affordable", "unknown", "HUD LIHTC data did not download for this city.", "lihtc"))
+        else:
+            checks.append(check("Existing affordable", "info",
+                                f"{len(nearby)} LIHTC propert{'y' if len(nearby) == 1 else 'ies'} ({li_units} low-income units) "
+                                f"within 1/2 mile." if nearby else "No LIHTC property within 1/2 mile.", "lihtc"))
 
         # Display name: HCD project name, the city's own site address, then assessor address, OpenStreetMap place, footprint address.
         address = addr_by_apn.get(apn_d)
@@ -502,8 +508,9 @@ def build_city(slug, meta, notes_all, apr_idx, apr_names):
     st = [s for s in out if s["stale"]]
     for r, s in enumerate(sorted(st, key=lambda s: (-s["stale"], -(s["coverage"] or 0)))[:5], 1):
         s["stale_rank"] = r
-    if sites and not any(s["new_build"] or s["apr_hit"] for s in out) and st:
-        notes.append("No site has a recent building or APR permit activity; the 'stale' list is ranked on coverage only.")
+    if sites and not any(s["new_build"] or s["apr_hit"] for s in out):
+        notes.append(f"No site here has HCD-reported permit activity or a building dated {A['stale_year_cutoff']['value']} or later, "
+                     "so none is marked likely already used.")
 
     xs = [x for s in out for poly in s["polys"] for ring in poly for x, _ in ring]
     ys = [y for s in out for poly in s["polys"] for ring in poly for _, y in ring]

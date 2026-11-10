@@ -420,7 +420,7 @@ function draw(opts = {}) {
   const multi = cities.length > 1;
   document.querySelectorAll('#cityList input').forEach(i => { i.checked = selected.has(i.value); });
   document.getElementById('cityBtnText').textContent = cities.length === 0 ? 'No cities selected'
-    : cities.length === CITY_ORDER.length ? `All ${cities.length} cities` : `${cities.length} ${cities.length === 1 ? 'city' : 'cities'}: ${cities.map(c => c.name).join(', ')}`;
+    : cities.length === CITY_ORDER.length && cities.length > 1 ? `All ${cities.length} cities` : `${cities.length} ${cities.length === 1 ? 'city' : 'cities'}: ${cities.map(c => c.name).join(', ')}`;
   document.getElementById('selchips').innerHTML = cities.map(c =>
     `<span class="chip" style="color:${cityColor(c.slug)};border-color:${cityColor(c.slug)}">${esc(c.name)}</span>`).join('');
   allLayer.clearLayers(); topLayer.clearLayers(); boundaryLayer.clearLayers(); byId = {};
@@ -582,6 +582,7 @@ function init() {
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
   document.getElementById('built').textContent = `Built ${DATA.built}. Street basemap © OpenStreetMap contributors where it loads; it is blocked inside Claude artifacts, where the drawn layers give the geography.`;
   ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
+  if (!selected.size) CITY_ORDER.forEach(k => selected.add(k));  // a build without the demo cities opens on every city it has
   draw();
 }
 init();

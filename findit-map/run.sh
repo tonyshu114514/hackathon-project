@@ -12,6 +12,10 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 PY=${PYTHON:-python3}
+if ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+  echo "Find It needs Python 3.10 or newer; '$PY' is $("$PY" --version 2>&1). Set PYTHON=/path/to/python3 and re-run." >&2
+  exit 1
+fi
 if [ ! -x .venv/bin/python ]; then
   echo "Creating virtualenv..."
   "$PY" -m venv .venv

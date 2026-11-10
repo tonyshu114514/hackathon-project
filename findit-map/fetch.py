@@ -135,12 +135,18 @@ def fetch_city(slug, meta):
     bbox = (min(xs) - 0.003, min(ys) - 0.003, max(xs) + 0.003, max(ys) + 0.003)
 
     # Building footprints: one small query per site, saved as it goes so a crash can resume.
-    furl, _ = layer("footprints", meta)
+    # The OC footprint server has been unreliable, so a failure here never stops the run: coverage is then unknown.
     fp_path = CACHE / f"{slug}_footprints.json"
     fps = json.loads(fp_path.read_text()) if fp_path.exists() else {}
-    todo = [] if "footprints" in SKIP else [s for s in sites if str(s["attributes"].get(oid)) not in fps]
+    furl = None
     if "footprints" in SKIP:
         print("  footprints: skipped (--skip footprints); coverage will be unknown")
+    else:
+        try:
+            furl, _ = layer("footprints", meta)
+        except Exception as e:
+            print(f"  ! footprints layer unavailable ({e}); coverage will be unknown")
+    todo = [] if furl is None else [s for s in sites if str(s["attributes"].get(oid)) not in fps]
     for i, s in enumerate(todo, 1):
         key = str(s["attributes"].get(oid))
         rings = (s.get("geometry") or {}).get("rings")
@@ -152,14 +158,18 @@ def fetch_city(slug, meta):
         if i % 25 == 0 or i == len(todo):
             fp_path.write_text(json.dumps(fps))
             print(f"  footprints: {i}/{len(todo)}")
-    if sites and "footprints" not in SKIP and sum(len(v or []) for v in fps.values()) == 0:
+    if sites and furl is not None and sum(len(v or []) for v in fps.values()) == 0:
         print("  ! zero footprints for every site: the spatial query may be failing. Coverage will be unknown.")
 
     # Parcels (year built) and SCAG zoning, matched by APN.
     apns = [digits(s["attributes"].get(apn_f)) for s in sites if apn_f]
     apns = [a for a in apns if a]
     for key, exact, store in ([] if not sites else (("parcels", ("ASSESSMENT_NO",), "parcels"), ("zoning", ("APN24",), "zoning"))):
-        lurl, lm = layer(key, meta)
+        try:
+            lurl, lm = layer(key, meta)
+        except Exception as e:
+            print(f"  ! {key} failed ({e}). Year built and zoning from this layer will show unknown.")
+            continue
         f = (FIELD_OVERRIDES.get("parcel_apn") if key == "parcels" else None) or \
             arcgis.find_field(lm["fields"], exact=exact, contains=(("apn",),))
         if not f or not apns:
@@ -177,7 +187,11 @@ def fetch_city(slug, meta):
             for clause in in_clauses(f, [like_sample(fmt, a) for a in apns]):
                 out += arcgis.query_once(lurl, where=clause, geometry=False)
             return out
-        rows = cached(f"{slug}_{store}", get)
+        try:
+            rows = cached(f"{slug}_{store}", get)
+        except Exception as e:
+            print(f"  ! {key} failed ({e}). Year built and zoning from this layer will show unknown.")
+            continue
         got = {digits(r["attributes"].get(f)) for r in rows}
         print(f"  {key}: matched {len(got & set(apns))}/{len(set(apns))} site APNs")
 
@@ -264,7 +278,7 @@ def fetch_apr(meta):
         meta["apr"] = {"url": apr.PAGE, "label": f"HCD Housing Element APR data ({res.get('name')})",
                        "fetched": date.today().isoformat(), "resource_id": res["id"]}
         save_meta(meta)
-        print(f"  kept {len(rows)} rows for our three cities")
+        print(f"  kept {len(rows)} rows for the {len(CITIES)} Orange County jurisdictions")
     except Exception as e:
         print(f"  ! APR failed ({e}). The permit check will show unknown.")
 

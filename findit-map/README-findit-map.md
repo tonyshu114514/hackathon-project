@@ -3,11 +3,12 @@
 A map of housing-element sites across 30 Orange County jurisdictions (every city with a statewide
 Table A submission, plus unincorporated county land), ranked and starred:
 
-- **Top 5 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
-  minus hazard, contamination and pollution-burden penalties.
-- **Top 5 likely already used**: listed sites that may no longer be available. The signals are, in
-  order of weight: permit activity the city reported to HCD on that APN, a building dated at or
-  after the cutoff year, then high footprint coverage.
+- **Top 10 to check first**: open land, lower-income capacity, size, transit and high-opportunity area,
+  minus hazard, contamination and pollution-burden penalties. Ranked across every selected city,
+  numbered in green on the map and listed on the right.
+- **Likely already used**: listed sites that may no longer be available, drawn as red markers and never
+  ranked. A site is marked when the city reported permit activity to HCD on that APN since the cutoff
+  year, or a building on it is dated at or after the cutoff year. A switch hides them.
 
 The map also draws context layers you can switch on and off: OCTA bus routes, FEMA flood zones,
 fire hazard zones, landslide zones, high-quality transit areas, DTSC cleanup sites and existing LIHTC
