@@ -89,11 +89,24 @@ h1,h2,h3,h4{margin:0;letter-spacing:-.01em}
 .note{background:var(--unk-bg);color:var(--unk);font-size:12px;border-radius:var(--r-sm);padding:7px 10px;margin-top:6px;line-height:1.45}
 .callout{border-radius:var(--r-sm);padding:8px 10px;font-size:12px;line-height:1.45}
 .callout.warn{background:var(--warn-bg);color:var(--warn)}.callout.bad{background:var(--bad-bg);color:var(--bad);font-weight:600}.callout.sla{background:var(--sla-bg);color:var(--ink)}
+.notice{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin:0 0 12px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.notice .ico{width:13px;height:13px;color:var(--warn)}
+.notice a,.notice button{color:var(--accent-2);background:none;border:0;padding:0;font:inherit;font-size:11.5px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.bm-status{position:absolute;right:10px;top:50px;z-index:800;background:var(--panel);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh-sm);padding:3px 9px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bm-status i{width:7px;height:7px;border-radius:50%;background:var(--good);flex:none}
+.bm-status.alt i{background:var(--warn)}
+.disc{font-size:13px;line-height:1.55;color:var(--ink-2)}
+.disc h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:18px 0 6px}
+.disc h3:first-child{margin-top:4px}
+.disc p{margin:0 0 8px}.disc ul{margin:4px 0 8px;padding-left:18px}.disc li{margin:2px 0}.disc a{word-break:break-word}
+.disc .lead{background:var(--warn-bg);color:var(--warn);border-radius:var(--r-sm);padding:10px 12px;font-weight:500}
+.disc .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+@media (max-width:700px){.disc .grid2{grid-template-columns:1fr}}
 button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ------------------------------------------------------------------ shell */
 .shell{height:100%;display:grid;grid-template-rows:var(--top) minmax(0,1fr)}
-.topbar{display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line);z-index:50}
+.topbar{position:relative;z-index:1150;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--panel);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:10px;margin-right:6px}
 .brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff;box-shadow:var(--sh-sm)}
 .brand .logo .ico{stroke:#fff;width:17px;height:17px}
@@ -107,10 +120,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .dd-btn{display:flex;align-items:center;gap:8px;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);border-radius:var(--r-sm);padding:6px 10px;font-weight:600;cursor:pointer;max-width:320px;font-size:12.5px}
 .dd-btn:hover{border-color:var(--muted)}
 .dd-btn span:first-of-type{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dd-panel{position:absolute;z-index:1000;left:0;top:calc(100% + 6px);width:420px;max-width:90vw;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-md);padding:10px}
+.dd-panel{position:absolute;z-index:10;left:0;top:calc(100% + 6px);width:440px;max-width:calc(100vw - 24px);max-height:calc(100vh - var(--top) - 16px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-lg);padding:10px;display:flex;flex-direction:column}
 .dd-tools{display:flex;gap:6px;margin-bottom:8px}
 .dd-tools .input{flex:1}
-.dd-list{max-height:300px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.dd-panel[hidden]{display:none}  /* the flex display above must not override the hidden attribute */
+.dd-list{max-height:min(320px,calc(100vh - var(--top) - 120px));overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;scrollbar-width:thin}
+.dd-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px;color:var(--muted)}
 .dd-list label{display:flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 6px;border-radius:6px;cursor:pointer}
 .dd-list label:hover{background:var(--panel-2)}
 .dd-list label.hide{display:none}
@@ -145,7 +160,7 @@ aside.detail{border-left:1px solid var(--line)}
 .hint{color:var(--muted);font-size:12px;margin:0 0 8px;line-height:1.45}
 
 /* ------------------------------------------------------------------ map */
-.mapwrap{position:relative;min-width:0;min-height:0;background:var(--bg)}
+.mapwrap{position:relative;z-index:0;min-width:0;min-height:0;background:var(--bg)}  /* isolates Leaflet's internal z-indexes */
 #map{position:absolute;inset:0}
 .maptools{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:800;display:flex;gap:6px;align-items:center;max-width:calc(100% - 140px);flex-wrap:wrap;justify-content:center;pointer-events:none}
 .maptools>*{pointer-events:auto}
@@ -320,6 +335,8 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 @media (max-width:900px){
   :root{--top:52px}
   .topbar{gap:8px;padding:0 10px}.brand h1{font-size:14px}.brand small{display:none}.topbar .search{display:none}.topbar .divider{display:none}.topbar .hide-m{display:none}
+  .dd{position:static}.dd-panel{position:fixed;left:10px;right:10px;width:auto;top:calc(var(--top) + 6px)}.dd-list{grid-template-columns:1fr}
+  .brand h1{display:none}.brand{margin-right:0}.dd-btn{max-width:58vw}.topbar .actions{gap:2px}
   .app,.app.side-off,.app.detail-off,.app.side-off.detail-off{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
   aside.side{position:fixed;top:var(--top);bottom:0;left:0;width:min(86vw,340px);z-index:1100;border-right:1px solid var(--line);box-shadow:var(--sh-lg);transform:translateX(-100%);transition:transform 220ms var(--ease)}
   .side-on aside.side{transform:none}
@@ -373,6 +390,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
       <div class="dd-tools"><input type="search" class="input" id="citySearch" placeholder="Filter cities" aria-label="Filter cities">
         <button type="button" class="btn sm" id="cityAll">All</button><button type="button" class="btn sm" id="cityNone">Clear</button></div>
       <div class="dd-list" id="cityList" role="group" aria-label="Cities"></div>
+      <div class="dd-foot"><span id="cityFoot"></span><button type="button" class="btn sm primary" id="cityDone">Done</button></div>
     </div>
   </div>
   <div class="search"><svg class="ico"><use href="#i-search"/></svg><input type="search" class="input" id="siteSearch" placeholder="Search address, site name, agency or APN" aria-label="Search sites by address, name, agency or APN"></div>
@@ -381,6 +399,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
     <button type="button" class="btn hide-m" id="cmpTop" title="Open the side-by-side comparison"><svg class="ico"><use href="#i-compare"/></svg>Compare <span class="cnt" id="cmpCount" hidden>0</span></button>
     <button type="button" class="btn hide-m" id="exportCsv" title="Every site in the selected cities, ranked, with its checks, as a spreadsheet"><svg class="ico"><use href="#i-download"/></svg>CSV</button>
     <span class="divider"></span>
+    <button type="button" class="btn icon ghost" id="discBtn" aria-label="Disclosures and methodology" title="Disclosures &amp; methodology" aria-haspopup="dialog"><svg class="ico lg"><use href="#i-info"/></svg></button>
     <button type="button" class="btn icon ghost" id="themeToggle" aria-label="Switch between light and dark theme" title="Theme"><svg class="ico lg"><use href="#i-moon"/></svg></button>
     <button type="button" class="btn icon ghost hide-m" id="detailToggle" aria-label="Show or hide the site panel" aria-pressed="true" title="Site panel"><svg class="ico lg"><use href="#i-panel"/></svg></button>
   </div>
@@ -392,8 +411,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
     <button type="button" class="btn icon ghost" id="sideClose" aria-label="Hide this panel"><svg class="ico"><use href="#i-close"/></svg></button></div>
   <div class="testdata" id="testBanner" hidden></div>
   <div class="scroll">
-    <div class="callout warn" style="margin-bottom:12px">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a professional.</div>
-    <div class="callout warn" id="basemapNote" hidden style="margin-bottom:12px"></div>
+    <p class="notice"><svg class="ico"><use href="#i-info"/></svg><span>Screening tool only · Assumptions apply · <button type="button" class="disc-open">Disclosures &amp; methodology</button></span></p>
     <div class="selchips" id="selchips" aria-live="polite" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px"></div>
     <div class="m-only" style="display:flex;gap:6px;margin-bottom:12px"><button type="button" class="btn sm" id="cmpTopM"><svg class="ico"><use href="#i-compare"/></svg>Compare</button><button type="button" class="btn sm" id="exportCsvM"><svg class="ico"><use href="#i-download"/></svg>Download CSV</button></div>
 
@@ -471,17 +489,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 
     <details class="acc"><summary><svg class="ico chev"><use href="#i-chev"/></svg>Data notes and checks</summary>
       <div class="body"><ul class="notes" id="notes" style="list-style:none;margin:0;padding:0"></ul><div id="validation" style="margin-top:8px"></div></div></details>
-    <details class="acc"><summary><svg class="ico chev"><use href="#i-chev"/></svg>Assumptions</summary><div class="body"><ul id="assumptions"></ul></div></details>
-    <details class="acc"><summary><svg class="ico chev"><use href="#i-chev"/></svg>Sources and dates</summary><div class="body"><ul id="sources"></ul></div></details>
-    <details class="acc"><summary><svg class="ico chev"><use href="#i-chev"/></svg>What this does not check</summary>
-      <div class="body"><ul>
-        <li>Ownership and willingness to sell. Parcel data has no owner field here.</li>
-        <li>Which state law (SB 9, SB 684, AB 2011, SB 4) applies. The pathway screens are signals from HCD fact sheets, not each law's legal tests.</li>
-        <li>Contamination beyond DTSC EnviroStor (State Water Board GeoTracker leak sites are not loaded), and any Phase I review.</li>
-        <li>Water and sewer capacity, and city objective standards.</li>
-        <li>APR rows are typed by city staff. An APN that does not match is not proof of no activity.</li>
-      </ul></div></details>
-    <p class="dim" id="built" style="margin-top:12px"></p>
+    <p class="dim" style="margin-top:12px">Assumptions, sources, what is not checked and the build date are under <button type="button" class="disc-open notice" style="display:inline;border:0;padding:0;margin:0;color:var(--accent-2);background:none;cursor:pointer;text-decoration:underline">Disclosures &amp; methodology</button>.</p>
   </div>
 </aside>
 <div class="scrim" id="scrim"></div>
@@ -491,6 +499,7 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
   <div class="edge l" id="sideOpenWrap" hidden><button type="button" class="btn" id="sideOpen"><svg class="ico"><use href="#i-filter"/></svg>Filters</button></div>
   <div class="edge r" id="detailOpenWrap" hidden><button type="button" class="btn" id="detailOpen"><svg class="ico"><use href="#i-panel"/></svg>Sites</button></div>
   <div class="maptools" id="maptools" aria-live="polite"></div>
+  <div class="bm-status" id="bmStatus" role="status" title="Street basemap in use"><i></i><span>Basemap: OpenStreetMap</span></div>
   <div class="legend" id="legend" aria-label="Map legend">
     <div><span class="num">1</span>Top 10 to check first</div>
     <div><span class="sdot ok"></span>Available site</div>
@@ -530,6 +539,37 @@ ol.sites .rating .lbl{font-size:11px;color:var(--muted)}
 </div>
 
 <div class="cmpbar" id="compareBar" hidden aria-live="polite"></div>
+<div class="modal" id="discModal" hidden role="dialog" aria-modal="true" aria-labelledby="discTitle"><div class="box" style="width:min(860px,96vw)">
+  <div class="tools"><button type="button" class="btn" id="discClose"><svg class="ico"><use href="#i-close"/></svg>Close</button></div>
+  <h2 id="discTitle">Disclosures &amp; methodology</h2>
+  <div class="disc">
+    <p class="lead">Prototype for screening only. Not legal, zoning or real estate advice. Rankings use ASSUMPTION weights; confirm every site with the city and a qualified professional before acting on it.</p>
+    <h3>How a site is scored</h3>
+    <p>Each site earns points for open land, listed lower-income capacity, size, transit access, a high-opportunity location and a tax-credit area, and loses points for a FEMA flood zone, fire hazard zones, a landslide zone, a cleanup site on or near the parcel and a high pollution burden. The score is shown as a share of the points attainable with the data the site has, so a missing term is not a penalty, and that share sets the 1 to 5 stars. Weights, cutoffs and star bands are team assumptions, listed below and adjustable in the left panel.</p>
+    <h3>Likely already used</h3>
+    <p>A site is marked likely used when the city reported permit activity on its APN to HCD since 2021 (graded strong for a permit or completion, moderate for an entitlement) or a building on it is dated 2021 or later. ADU-only activity is a caution, not a removal. Likely-used sites are never ranked. Cities type APNs by hand, so a miss is not proof of no activity and a hit can be wrong.</p>
+    <h3>Development pathway screens</h3>
+    <p>SB 9, SB 4, AB 2011 and SB 684 / SB 1123 are screened with signals taken from HCD's Housing Law Fact Sheets (April 2026) against the layers loaded: zoning family, lot size, fire, flood and cleanup data, public ownership and site activity. A law reads <b>No</b> when a checkable test fails and <b>Unknown</b> otherwise. It never reads "yes": ownership, tenancy, historic status, street width, industrial neighbours and the other protected lands in Gov. Code § 65913.4(a)(6) are in no public dataset we load. Each test's sentence and source is on the site's Pathways tab.</p>
+    <h3>What this does not check</h3>
+    <ul>
+      <li>Ownership and willingness to sell. Parcel data has no owner field here.</li>
+      <li>Which state law (SB 9, SB 684, AB 2011, SB 4) applies. The pathway screens are signals from HCD fact sheets, not each law's legal tests.</li>
+      <li>Contamination beyond DTSC EnviroStor (State Water Board GeoTracker leak sites are not loaded), and any Phase I review.</li>
+      <li>Water and sewer capacity, and city objective standards.</li>
+      <li>APR rows are typed by city staff. An APN that does not match is not proof of no activity.</li>
+    </ul>
+    <h3>Surplus Land Act notices</h3>
+    <p>Public agencies' notices come from HCD's statewide list. Nearly all are archived, meaning the 60-day window has passed; the land may still be available, so the agency is the one to ask. Where no county parcel matches the APN, the outline is an approximate circle of the listed acreage (ASSUMPTION) and is marked as such.</p>
+    <h3>Map and basemap</h3>
+    <p id="bmNote">The street basemap is © OpenStreetMap contributors. OpenStreetMap's volunteer servers refuse some connections (VPNs, shared networks); the page then switches to Esri street tiles and the status pill on the map says so. Pick a basemap with the layers button. Inside Claude artifacts no basemap loads and the drawn layers give the geography.</p>
+    <h3>Assumptions (every number we chose)</h3>
+    <ul id="assumptions"></ul>
+    <h3>Sources and fetch dates</h3>
+    <ul id="sources"></ul>
+    <h3>Build</h3>
+    <p id="built"></p>
+  </div>
+</div></div>
 <div class="modal" id="compareModal" hidden role="dialog" aria-modal="true" aria-labelledby="cmpTitle"><div class="box">
   <div class="tools"><label class="toggle" style="margin-right:6px"><input type="checkbox" id="cmpOnlyDiff"> Differences only</label><button type="button" class="btn" id="cmpClose"><svg class="ico"><use href="#i-close"/></svg>Close</button></div>
   <h2 id="cmpTitle">Compare sites</h2>
@@ -578,12 +618,21 @@ const BASEMAPS = {
 };
 let basemap = BASEMAPS['OpenStreetMap'].addTo(map);
 L.control.layers(BASEMAPS, null, {position: 'topright'}).addTo(map);
-map.on('baselayerchange', e => { basemap = e.layer; });
+map.on('baselayerchange', e => { basemap = e.layer; setBasemapStatus(); });
+function basemapName() { return Object.keys(BASEMAPS).find(k => BASEMAPS[k] === basemap) || 'basemap'; }
+function setBasemapStatus(why) {
+  const el = document.getElementById('bmStatus'); if (!el) return;
+  const name = basemapName(), alt = name !== 'OpenStreetMap';
+  el.classList.toggle('alt', alt);
+  el.querySelector('span').textContent = `Basemap: ${name}${why ? ' · OSM unavailable' : ''}`;
+  el.title = why || `Street basemap: ${name}. Pick another with the layers button.`;
+  const note = document.getElementById('bmNote');
+  if (why && note) note.textContent = why + ' Pick a basemap with the layers button on the map.';
+}
 function useBasemap(name, why) {
   if (basemap === BASEMAPS[name]) return;
   map.removeLayer(basemap); basemap = BASEMAPS[name].addTo(map);
-  const n = document.getElementById('basemapNote');
-  if (why && n) { n.textContent = why; n.hidden = false; }
+  setBasemapStatus(why);
 }
 (function probeOsm() {
   const blockedMsg = 'OpenStreetMap blocked the street map on this connection (common on VPNs and shared networks), so the map ' +
@@ -1005,6 +1054,7 @@ function draw(opts = {}) {
   const cities = slugs.map(k => DATA.cities[k]);
   const multi = cities.length > 1;
   document.querySelectorAll('#cityList input').forEach(i => { i.checked = selected.has(i.value); });
+  const foot = document.getElementById('cityFoot'); if (foot) foot.textContent = `${cities.length} of ${CITY_ORDER.length} selected`;
   document.getElementById('cityBtnText').textContent = cities.length === 0 ? 'No cities selected'
     : cities.length === CITY_ORDER.length && cities.length > 1 ? `All ${cities.length} cities` : `${cities.length} ${cities.length === 1 ? 'city' : 'cities'}: ${cities.map(c => c.name).join(', ')}`;
   document.getElementById('selchips').innerHTML = cities.map(c =>
@@ -1172,6 +1222,16 @@ function init() {
     list.querySelectorAll('label').forEach(l => l.classList.toggle('hide', q && !l.textContent.toLowerCase().includes(q)));
   });
   document.getElementById('cityAll').addEventListener('click', () => { CITY_ORDER.forEach(k => selected.add(k)); draw(); });
+  document.getElementById('cityDone').addEventListener('click', () => { setPanel(false); btn.focus(); });
+  // Disclosures & methodology: one dialog, opened from the top bar or any inline link.
+  const disc = document.getElementById('discModal');
+  const openDisc = () => { disc.hidden = false; document.getElementById('discClose').focus(); };
+  const closeDisc = () => { disc.hidden = true; document.getElementById('discBtn').focus(); };
+  document.getElementById('discBtn').addEventListener('click', openDisc);
+  document.querySelectorAll('.disc-open').forEach(b => b.addEventListener('click', openDisc));
+  document.getElementById('discClose').addEventListener('click', closeDisc);
+  disc.addEventListener('click', e => { if (e.target === disc) closeDisc(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !disc.hidden) closeDisc(); });
   document.getElementById('cityNone').addEventListener('click', () => { selected.clear(); draw(); });
   document.getElementById('top10').addEventListener('click', e => {
     const head = e.target.closest('.head'); if (!head) return;
@@ -1275,7 +1335,7 @@ function init() {
     `<li><b>ASSUMPTION ${esc(k)}</b>: ${esc(typeof a.value === 'object' ? JSON.stringify(a.value) : a.value)}. ${esc(a.why)}</li>`).join('');
   document.getElementById('sources').innerHTML = Object.values(DATA.sources).map(s =>
     `<li>${esc(s.label)}. <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a>. Fetched ${esc(s.fetched)}.</li>`).join('');
-  document.getElementById('built').textContent = `Built ${DATA.built}. Tests: python -m unittest discover -s tests -t . in findit-map. Street basemap © OpenStreetMap contributors, or Esri tiles where OpenStreetMap is blocked; pick one with the layers button on the map. Inside Claude artifacts no basemap loads and the drawn layers give the geography.`;
+  document.getElementById('built').textContent = `Data built ${DATA.built}. Unit tests: python -m unittest discover -s tests -t . in findit-map.`;
   renderCompareBar();
   ['irvine', 'santa-ana', 'costa-mesa', 'anaheim'].filter(k => DATA.cities[k]).forEach(k => selected.add(k));
   if (!selected.size) CITY_ORDER.forEach(k => selected.add(k));  // a build without the demo cities opens on every city it has

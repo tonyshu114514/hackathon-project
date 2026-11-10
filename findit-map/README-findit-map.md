@@ -16,16 +16,21 @@ confidence, capacity, zoning, permit grade, pathway screens, failed and unknown 
 
 ## The page
 
-- **Top bar**: city picker (multi-select, with search), site search, Compare (with a count of the sites queued), CSV
-  download, theme switch, and a button that hides or shows the site panel.
-- **Left panel** (collapsible, a slide-in drawer on phones): the disclaimer, live overview tiles and four small charts
+- **Top bar**: city picker (multi-select, with search and a Done button; it floats above the map and scrolls when
+  the list is long), site search, Compare (with a count of the sites queued), CSV download, an information button that
+  opens **Disclosures & methodology** (the prototype disclaimer, how scoring and likely-used work, the pathway-screen
+  caveats, what is not checked, surplus-notice notes, basemap notes, every assumption, every source with its fetch
+  date, and the build date), theme switch, and a button that hides or shows the site panel.
+- **Left panel** (collapsible, a slide-in drawer on phones): a one-line "Screening tool only · Assumptions apply"
+  notice linking to the disclosures, live overview tiles and four small charts
   computed from the sites currently on screen (star ratings of available sites, hazard concerns and cautions by
   hazard, pathway screen results by law, SCAG zoning families), quick-filter chips, a scenario preset menu, advanced
   filters, map layers, RHNA progress, scoring weights, data notes and checks, assumptions, sources.
 - **Map**: numbered pins for the top 10, dots for every other site (clustered into counts when zoomed out; the cluster
   border turns red when it holds a likely-used site), parcel outlines that brighten on hover from the list or the map,
-  city borders, context layers, a legend, zoom-home, and the basemap picker. A pill row over the map shows the count
-  and every active filter, each removable with one click.
+  city borders, context layers, a legend, zoom-home, and the basemap picker. A small status pill under the layers
+  button names the basemap in use and says "OSM unavailable" when the page has switched to Esri tiles. A pill row over
+  the map shows the count and every active filter, each removable with one click.
 - **Right panel**: the ranked top-10 list, or one site's detail in tabs: Overview (facts, why it ranks, sources), Score
   (score ring, share of attainable points, term-by-term bars, confidence), Pathways (the four law screens with a
   pass/fail/unknown meter and expandable tests), Risks (hazard, contamination and use checks as cards, then context
@@ -167,7 +172,8 @@ Also watch for these lines from `fetch.py`:
 
 The grey-and-yellow "Access blocked" tiles come from OpenStreetMap's volunteer tile servers, which refuse some
 connections (VPNs and shared or flagged IP addresses are the usual reason). The page checks one tile when it opens
-and switches to Esri street tiles automatically when that happens, with a note in the left panel. You can also pick a
+and switches to Esri street tiles automatically when that happens; the status pill on the map then reads
+"Basemap: Esri streets · OSM unavailable" and the Disclosures dialog explains why. You can also pick a
 basemap yourself with the layers button at the top right of the map, or turn the VPN off and reload.
 
 ## Data sources
