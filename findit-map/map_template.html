@@ -433,6 +433,61 @@ details.more summary .dim{font-weight:500}
 details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
 .srcs{margin-top:0}
 .legend{padding:8px 11px;gap:5px}
+/* Suitability, data and status kept visually distinct: provisional ratings are dimmed and labelled, the status line is
+   its own row, and unscored terms are listed under the score. */
+.stars.prov .on{opacity:.55}
+.lbl.prov{font-size:10.5px!important;font-weight:600;color:var(--warn)!important;border:1px dashed color-mix(in srgb,var(--warn) 60%,transparent);border-radius:999px;padding:0 6px;cursor:help}
+.hero-status{display:flex;gap:8px;align-items:baseline;margin-top:8px;font-size:12px;color:var(--ink-2);line-height:1.45}
+.hero-status .k{flex:none;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.hero-status.st-used span:last-child{color:var(--bad)}.hero-status.st-pending span:last-child{color:var(--bad)}
+.parts.gaps{margin-top:2px;border-top:1px dashed var(--line-2)}
+.parts li.gap{color:var(--muted)}.parts li.gap b{color:var(--muted);font-weight:500}
+.sub-h{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:10px 0 6px}
+.sub-h:first-child{margin-top:2px}
+.vtable.cov{font-size:11.5px}.vtable.cov th{text-align:left;font-weight:600;color:var(--muted);padding:3px 4px;font-size:10.5px}
+.vtable.cov td:last-child{text-align:left}
+.disc .vtable.cov{font-size:12.5px}
+/* shortlist */
+.seg{display:flex;gap:2px;padding:3px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-sm);margin:0 0 14px}
+.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:600;padding:6px 8px;border-radius:6px;cursor:pointer}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-selected=true]{background:var(--panel);color:var(--ink);box-shadow:var(--sh-sm)}
+.seg .cnt{background:var(--unk-bg);color:var(--ink-2);border-radius:999px;font-size:10.5px;padding:0 6px;line-height:16px;font-weight:700}
+.seg button[aria-selected=true] .cnt{background:var(--accent);color:var(--accent-ink)}
+ol.sites>li{position:relative}
+ol.sites .head{grid-template-columns:24px minmax(0,1fr) auto 22px}
+.save-btn{position:absolute;top:11px;right:10px;width:26px;height:26px;display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;transition:color var(--t),background var(--t)}
+.save-btn:hover{background:var(--panel-2);color:var(--ink)}
+.save-btn.on{color:var(--accent)}.save-btn.on .ico{fill:currentColor}
+.save-toggle.on{border-color:var(--accent);color:var(--accent-2);background:var(--accent-soft)}.save-toggle.on .ico{fill:currentColor}
+.num.muted{background:var(--unk-bg);color:var(--muted)}
+.sl-tools{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.sl-link{display:flex;flex-direction:column;gap:4px;margin:0 0 12px}
+.sl-link[hidden],.sl-shared[hidden],#savedPane[hidden],#topPane[hidden]{display:none}
+.sl-link .input{font-size:11.5px}
+.sl-shared{border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--accent-soft);border-radius:var(--r-md);padding:10px 12px;margin:0 0 12px;font-size:12.5px}
+.sl-shared-list{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 8px}
+.sl-shared-acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sl-foot{margin-top:12px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:1400;background:var(--ink);color:var(--panel);border-radius:var(--r-sm);padding:8px 14px;font-size:12.5px;box-shadow:var(--sh-lg);max-width:min(520px,92vw)}
+.toast[hidden]{display:none}
+/* due-diligence checklist: user-entered status and notes are tagged "Your", dataset facts "Public data" */
+.tag{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px}
+.tag.pub{background:var(--unk-bg);color:var(--unk)}
+.tag.you{background:var(--accent-soft);color:var(--accent-2)}
+.ck-head{border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);padding:10px 12px;margin-bottom:12px;font-size:12.5px}
+.ck-head .bar{margin-top:8px}
+.ck-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ck-item{border:1px solid var(--line);border-left:3px solid var(--line-2);border-radius:var(--r-sm);padding:9px 10px 8px 11px;background:var(--panel)}
+.ck-item.ck-doing{border-left-color:var(--accent)}.ck-item.ck-done{border-left-color:var(--good)}.ck-item.ck-issue{border-left-color:var(--warn)}
+.ck-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px}
+.ck-top b{font-weight:600}
+.ck-sel{width:auto;flex:none;padding:4px 26px 4px 8px;font-size:12px}
+.ck-data{margin:6px 0 2px;font-size:11.5px;color:var(--muted);line-height:1.45}
+.ck-note summary{font-size:11.5px;color:var(--accent-2);cursor:pointer;list-style:none;margin-top:2px}
+.ck-note summary::-webkit-details-marker{display:none}
+.ck-note textarea{margin-top:6px;resize:vertical;font-size:12px;min-height:44px}
+.tabs .ck-cnt{background:var(--accent-soft);color:var(--accent-2);border-radius:999px;font-size:10px;padding:0 6px;margin-left:4px;font-weight:700}
 
 @media (max-width:1280px){:root{--side:300px;--detail:380px}}
 @media (max-width:1100px){:root{--side:290px;--detail:360px}.topbar .search{max-width:300px}}
@@ -482,6 +537,10 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24"><path d="M4 18 10 11l4 4 6-8"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 5h16"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></symbol>
   <symbol id="i-table" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></symbol>
 </svg>
@@ -526,7 +585,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
 
     <section class="sec" aria-labelledby="h-quick"><h3 id="h-quick">Filter <button type="button" class="btn sm ghost right" id="fReset">Reset</button></h3>
       <div class="quick" id="quick" role="group" aria-label="Quick filters">
-        <button type="button" class="qchip" data-q="available" aria-pressed="false">Available</button>
+        <button type="button" class="qchip" data-q="available" aria-pressed="false" title="Hide likely-used and pending sites. Ownership and willingness to sell are not verified.">No reported activity</button>
         <button type="button" class="qchip" data-q="stars4" aria-pressed="false">4+ stars</button>
         <button type="button" class="qchip" data-q="transit" aria-pressed="false">Near transit</button>
         <button type="button" class="qchip" data-q="acres1" aria-pressed="false">1+ acres</button>
@@ -536,11 +595,11 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
       </div>
       <select class="select" id="fPreset" aria-label="Screening scenario">
         <option value="">Scenario…</option>
-        <option value="calllist" title="Available, high confidence, 0.5+ acres, 4+ stars">Acquisitions call list</option>
+        <option value="calllist" title="No reported activity, high confidence, 0.5+ acres, 4+ stars">Acquisitions call list</option>
         <option value="hazard" title="Sites with a flood, fire, landslide or contamination concern">City hazard review</option>
-        <option value="sb684" title="SB 684 / SB 1123 not ruled out, available">Small-lot homes (SB 684 / 1123)</option>
-        <option value="ab2011" title="AB 2011 not ruled out, available">Commercial corridors (AB 2011)</option>
-        <option value="sb4" title="SB 4 not ruled out, available">Faith &amp; college land (SB 4)</option>
+        <option value="sb684" title="SB 684 / SB 1123 not ruled out, no reported activity">Small-lot homes (SB 684 / 1123)</option>
+        <option value="ab2011" title="AB 2011 not ruled out, no reported activity">Commercial corridors (AB 2011)</option>
+        <option value="sb4" title="SB 4 not ruled out, no reported activity">Faith &amp; college land (SB 4)</option>
         <option value="surplus" title="Surplus Land Act notices only">Public surplus land</option>
       </select>
     </section>
@@ -580,7 +639,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
       <summary><svg class="ico chev"><use href="#i-chev"/></svg><svg class="ico"><use href="#i-layers"/></svg>Map layers &amp; legend</summary>
       <div class="body"><div class="layers" id="layers"></div>
         <div class="mini-legend" aria-label="Site markers">
-          <span><span class="num">1</span>Top 10</span><span><span class="sdot ok"></span>Available</span><span><span class="sdot used"></span>Likely used</span>
+          <span><span class="num">1</span>Top 10</span><span><span class="sdot ok"></span>No reported activity</span><span><span class="sdot used"></span>Likely used</span>
           <span><span class="sdot pend"></span>Pending</span><span><span class="sdot sla"></span>Surplus notice</span><span><span class="cl-mini">12</span>Grouped sites</span>
         </div></div>
     </details>
@@ -600,7 +659,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
     </details>
 
     <details class="acc"><summary><svg class="ico chev"><use href="#i-chev"/></svg><svg class="ico"><use href="#i-info"/></svg>Data notes &amp; checks<span class="dim" id="notesCount" style="margin-left:auto"></span></summary>
-      <div class="body"><ul class="notes" id="notes" style="list-style:none;margin:0;padding:0"></ul><div id="validation" style="margin-top:8px"></div></div></details>
+      <div class="body"><h4 class="sub-h">Data coverage by city</h4><div id="coverage"></div><h4 class="sub-h">Notes</h4><ul class="notes" id="notes" style="list-style:none;margin:0;padding:0"></ul><h4 class="sub-h">Record checks</h4><div id="validation" style="margin-top:4px"></div></div></details>
     <button type="button" class="disc-open linkbtn" style="margin-top:14px"><svg class="ico"><use href="#i-info"/></svg>Methodology, assumptions &amp; sources</button>
   </div>
 </aside>
@@ -612,7 +671,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
   <div class="mapfoot" id="mapfoot">
   <div class="legend" id="legend" aria-label="Map legend">
     <div><span class="num">1</span>Top 10 to check first</div>
-    <div><span class="sdot ok"></span>Available site</div>
+    <div><span class="sdot ok"></span>No reported activity</div>
     <div><span class="sdot used"></span>Likely already used</div>
     <div><span class="sdot pend"></span>Pending project</div>
     <div><span class="sdot sla"></span>Surplus Land Act notice</div>
@@ -630,9 +689,29 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
   </div>
   <div id="listView" style="display:flex;flex-direction:column;min-height:0;flex:1">
     <div class="scroll">
+      <div class="seg" role="tablist" aria-label="Site lists" id="listTabs">
+        <button type="button" role="tab" data-view="top" aria-selected="true">Top 10</button>
+        <button type="button" role="tab" data-view="saved" aria-selected="false"><svg class="ico"><use href="#i-bookmark"/></svg>Shortlist <span class="cnt" id="slCount">0</span></button>
+      </div>
+      <div id="savedPane" hidden>
+        <div class="sl-shared" id="slShared" hidden></div>
+        <div class="sl-tools" id="slTools">
+          <button type="button" class="btn sm" id="slShare" title="Copy a link that opens this shortlist (sites only; checklists stay in your browser)"><svg class="ico"><use href="#i-link"/></svg>Share link</button>
+          <button type="button" class="btn sm" id="slCsv" title="Shortlisted sites with every column of the full CSV plus your checklist progress"><svg class="ico"><use href="#i-download"/></svg>CSV</button>
+          <button type="button" class="btn sm" id="slJson" title="A file with your shortlist and checklists, to back up or move to another browser"><svg class="ico"><use href="#i-download"/></svg>Backup file</button>
+          <button type="button" class="btn sm" id="slImportBtn" title="Load a shortlist backup file (merges with what is here)"><svg class="ico"><use href="#i-upload"/></svg>Import</button>
+          <button type="button" class="btn sm ghost" id="slClear">Clear</button>
+          <input type="file" id="slImport" accept="application/json,.json" hidden>
+        </div>
+        <div class="sl-link" id="slLinkBox" hidden><input class="input" id="slLink" readonly aria-label="Shareable link"><span class="dim" id="slLinkMsg"></span></div>
+        <ol class="sites" id="slList"></ol>
+        <p class="hint sl-foot">Saved in this browser only. Shortlists and checklists are your own notes, not verified data.</p>
+      </div>
+      <div id="topPane">
       <div class="listhead"><span id="rightstats"></span>
         <button type="button" class="tip disc-open" title="Ranked on open land, lower-income capacity, size, transit and high-opportunity area, minus hazard, contamination and pollution penalties. Likely-used sites are never ranked. Stars: 5 is roughly the top 3% of Orange County sites, 1 the bottom half. Click for methodology." aria-label="How sites are ranked"><svg class="ico"><use href="#i-info"/></svg>How ranking works</button></div>
       <ol class="sites" id="top10"></ol>
+      </div>
     </div>
   </div>
   <div id="siteView" style="display:none;flex-direction:column;min-height:0;flex:1">
@@ -642,6 +721,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
       <button type="button" role="tab" data-tab="score" aria-selected="false">Score</button>
       <button type="button" role="tab" data-tab="pathways" aria-selected="false">Pathways</button>
       <button type="button" role="tab" data-tab="risks" aria-selected="false">Risks</button>
+      <button type="button" role="tab" data-tab="checklist" aria-selected="false">Checklist <span class="cnt ck-cnt" id="ddTabCount" hidden></span></button>
       <button type="button" role="tab" data-tab="report" aria-selected="false">Report</button>
     </div>
     <div class="scroll" id="dbody"></div>
@@ -650,6 +730,7 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
 </div>
 </div>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 <div class="modal" id="discModal" hidden role="dialog" aria-modal="true" aria-labelledby="discTitle"><div class="box mbox" style="width:min(860px,96vw)">
   <div class="mhead">
     <h2 id="discTitle">Disclosures &amp; methodology</h2>
@@ -675,7 +756,9 @@ details.more>dl,details.more>ul,details.more>.srcs{margin:0 0 12px}
     <h3>Surplus Land Act notices</h3>
     <p>Public agencies' notices come from HCD's statewide list. Nearly all are archived, meaning the 60-day window has passed; the land may still be available, so the agency is the one to ask. Where no county parcel matches the APN, the outline is an approximate circle of the listed acreage (ASSUMPTION) and is marked as such.</p>
     <h3>Map and basemap</h3>
-    <p id="bmNote">The street basemap is © OpenStreetMap contributors. OpenStreetMap's volunteer servers refuse some connections (VPNs, shared networks); the page then switches to Esri street tiles and the status pill on the map says so. Pick a basemap with the layers button. Inside Claude artifacts no basemap loads and the drawn layers give the geography.</p>
+    <p id="bmNote">The default basemap is USGS The National Map (Topo), a U.S. government service in the public domain that needs no API key. USGS Imagery, Esri streets and Esri dark gray (Esri terms, attribution shown) are in the layers menu, and OpenStreetMap is offered when the page is served over the web: its volunteer servers block requests without a Referer, which includes any page opened as a local file. If the active basemap's tiles fail, the map falls back to the next one and the status pill on the map says so. Inside Claude artifacts no basemap loads and the drawn layers give the geography.</p>
+    <h3>Data coverage by city (cities selected on the map)</h3>
+    <div id="coverageDisc"></div>
     <h3>Assumptions (every number we chose)</h3>
     <ul id="assumptions"></ul>
     <h3>Sources and fetch dates</h3>
@@ -718,44 +801,74 @@ map.createPane('context'); map.getPane('context').style.zIndex = 350;
 map.createPane('border'); map.getPane('border').style.zIndex = 360;
 map.createPane('shade'); map.getPane('shade').style.zIndex = 340;  // under the context layers
 map.createPane('pending'); map.getPane('pending').style.zIndex = 450;  // dots above site polygons, below rank markers
-// Basemaps. OpenStreetMap's volunteer tile servers refuse some connections (VPNs, shared or flagged IPs) by serving an
-// "Access blocked" picture with HTTP 200, so a one-tile probe checks the pixels and swaps to Esri's street tiles when
-// that happens. The layers button on the map lets the user pick any basemap by hand.
+// Basemaps. Default: USGS National Map Topo, a U.S. government service in the public domain that needs no API key, sends
+// CORS headers and has no Referer rule. OpenStreetMap's volunteer servers answer requests without a Referer (any page
+// opened from a file, which is how run.sh and a downloaded demo open) with an "Access blocked" picture and HTTP 200, so
+// Leaflet sees no error; it is offered only on pages served over http(s), and a one-tile probe still checks for the
+// blocked picture. Every tile layer is watched: if the active basemap's tiles fail, the map falls back along FALLBACK and
+// the status pill says why. The layers button lets the user pick any basemap by hand.
+const USGS_ATTR = 'Basemap: <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map" target="_blank" rel="noopener">USGS The National Map</a> (public domain)';
+const ESRI_ATTR = 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, HERE, Garmin, OpenStreetMap contributors, and the GIS user community';
+const SERVED = /^https?:$/.test(location.protocol);  // a Referer is only sent for pages served over http(s)
 const BASEMAPS = {
-  'OpenStreetMap': L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin',
-     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'}),
+  'USGS Topo': L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom: 19, maxNativeZoom: 16, attribution: USGS_ATTR}),
+  'USGS Imagery': L.tileLayer('https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom: 19, maxNativeZoom: 16, attribution: USGS_ATTR}),
   'Esri streets': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    {maxZoom: 19, maxNativeZoom: 18, attribution: 'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors, and the GIS user community'}),
-  'Esri light gray': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-    {maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'}),
-  'No basemap': L.layerGroup(),
+    {maxZoom: 19, maxNativeZoom: 18, attribution: ESRI_ATTR}),
+  'Esri dark gray': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    {maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, HERE, Garmin, OpenStreetMap contributors'}),
 };
-let basemap = BASEMAPS['OpenStreetMap'].addTo(map);
+if (SERVED) BASEMAPS['OpenStreetMap'] = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin',
+   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'});
+BASEMAPS['No basemap'] = L.layerGroup();
+const DEFAULT_BASEMAP = 'USGS Topo';
+const FALLBACK = ['USGS Topo', 'Esri streets', 'USGS Imagery', 'No basemap'];
+const failedBasemaps = new Set();
+let basemap = BASEMAPS[DEFAULT_BASEMAP].addTo(map);
 L.control.layers(BASEMAPS, null, {position: 'topright'}).addTo(map);
-map.on('baselayerchange', e => { basemap = e.layer; setBasemapStatus(); });
+map.on('baselayerchange', e => { basemap = e.layer; setBasemapStatus(); if (basemapName() === 'OpenStreetMap') probeOsm(); });
 function basemapName() { return Object.keys(BASEMAPS).find(k => BASEMAPS[k] === basemap) || 'basemap'; }
+let basemapWhy = '';
 function setBasemapStatus(why) {
+  basemapWhy = why || '';
   const el = document.getElementById('bmStatus'); if (!el) return;
-  const name = basemapName(), alt = name !== 'OpenStreetMap';
-  el.classList.toggle('alt', alt);
-  el.querySelector('span').textContent = `Basemap: ${name}${why ? ' · OSM unavailable' : ''}`;
-  el.title = why || `Street basemap: ${name}. Pick another with the layers button.`;
+  const name = basemapName();
+  el.classList.toggle('alt', Boolean(why));
+  el.querySelector('span').textContent = `Basemap: ${name}${why ? ' · fallback' : ''}`;
+  el.title = why || `Basemap in use: ${name}. Pick another with the layers button.`;
   const note = document.getElementById('bmNote');
   if (why && note) note.textContent = why + ' Pick a basemap with the layers button on the map.';
 }
 function useBasemap(name, why) {
-  if (basemap === BASEMAPS[name]) return;
+  if (!BASEMAPS[name] || basemap === BASEMAPS[name]) return;
   map.removeLayer(basemap); basemap = BASEMAPS[name].addTo(map);
   setBasemapStatus(why);
 }
-(function probeOsm() {
-  const blockedMsg = 'OpenStreetMap blocked the street map on this connection (common on VPNs and shared networks), so the map ' +
-    'shows Esri street tiles instead. Use the layers button at the top right of the map to pick another basemap.';
-  const failMsg = 'OpenStreetMap tiles did not load on this connection, so the map shows Esri street tiles instead.';
-  let errors = 0;
-  BASEMAPS['OpenStreetMap'].on('tileerror', () => { if (++errors >= 4 && basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', failMsg); });
-  const img = new Image(); img.crossOrigin = 'anonymous';
+function fallbackFrom(name, why) {
+  failedBasemaps.add(name);
+  if (basemap !== BASEMAPS[name]) return;
+  const next = FALLBACK.find(k => BASEMAPS[k] && !failedBasemaps.has(k) && k !== name) || 'No basemap';
+  useBasemap(next, `${why} The map switched to ${next}.`);
+}
+// Health watch, per map view (counts reset each time the layer starts loading a new view, so a later outage is still
+// caught): three failed tiles with none loaded, or failures outnumbering loads two to one after six attempts.
+Object.entries(BASEMAPS).forEach(([name, layer]) => {
+  if (!layer.on || !(layer instanceof L.TileLayer)) return;
+  let ok = 0, bad = 0;
+  layer.on('loading', () => { ok = 0; bad = 0; });
+  layer.on('tileload', () => { ok++; });
+  layer.on('tileerror', () => {
+    bad++;
+    if (basemap === layer && ((bad >= 3 && ok === 0) || (bad + ok >= 6 && bad > 2 * ok)))
+      fallbackFrom(name, `${name} tiles did not load on this connection.`);
+  });
+});
+function probeOsm() {
+  const blockedMsg = 'OpenStreetMap blocked its tiles for this page (it requires a Referer header and limits shared networks).';
+  const img = new Image(); img.crossOrigin = 'anonymous'; img.referrerPolicy = 'strict-origin-when-cross-origin';
   img.onload = () => {
     try {
       const c = document.createElement('canvas'); c.width = c.height = img.width || 256;
@@ -773,12 +886,12 @@ function useBasemap(name, why) {
         }
         striped = yellow / h > 0.33 && black / h > 0.33;
       }
-      if (striped && basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', blockedMsg);
+      if (striped) fallbackFrom('OpenStreetMap', blockedMsg);
     } catch (e) { /* canvas unavailable: keep OpenStreetMap */ }
   };
-  img.onerror = () => { if (basemap === BASEMAPS['OpenStreetMap']) useBasemap('Esri streets', failMsg); };
-  img.src = 'https://tile.openstreetmap.org/10/176/409.png';  // one Orange County tile
-})();
+  img.onerror = () => fallbackFrom('OpenStreetMap', 'OpenStreetMap tiles did not load on this connection.');
+  img.src = 'https://tile.openstreetmap.org/10/176/409.png?probe=' + Date.now();  // one Orange County tile
+}
 let lastBounds = null;
 const HomeControl = L.Control.extend({onAdd() {
   const b = L.DomUtil.create('div', 'leaflet-bar'), a = L.DomUtil.create('a', '', b);
@@ -804,7 +917,7 @@ toFront(new HtmlControl({position: 'topleft', className: 'leaflet-control edge-c
 toFront(new HtmlControl({position: 'topright', className: 'leaflet-control edge-ctl', id: 'detailOpenWrap', hidden: true,
   html: '<button type="button" class="btn" id="detailOpen"><svg class="ico"><use href="#i-panel"/></svg>Sites</button>'}).addTo(map));
 new HtmlControl({position: 'topright', className: 'leaflet-control bm-ctl',
-  html: '<div class="bm-status" id="bmStatus" role="status" title="Street basemap in use"><i></i><span>Basemap: OpenStreetMap</span></div>'}).addTo(map);
+  html: '<div class="bm-status" id="bmStatus" role="status" title="Street basemap in use"><i></i><span>Basemap: USGS Topo</span></div>'}).addTo(map);
 setBasemapStatus();
 function layoutMapTools() {
   const tools = document.getElementById('maptools'), el = map.getContainer();
@@ -880,13 +993,38 @@ function attainable(s) {
   if (s.oppcat) max += w.high_opportunity;
   return max;
 }
+// Score terms a site could earn but has no data for. Rank uses earned points, so a gap lowers the rank; stars use the share
+// of attainable points, so a gap does not lower the stars. Any gap therefore makes the rating provisional, and the gap is
+// named wherever the rating appears.
+const GAP_TERMS = [
+  ['open_land', 'open land', s => !('open_land' in s.promising_parts)],
+  ['lower_income_capacity', 'lower-income capacity', s => s.lower === null || s.lower === undefined],
+  ['high_opportunity', 'opportunity area', s => !s.oppcat],
+];
+function scoreGaps(s) { return GAP_TERMS.filter(([, , miss]) => miss(s)).map(([k, label]) => ({key: k, label, max: W[k] || 0})); }
 function stars(s) {
-  if (likelyUsed(s)) return {n: 0, label: 'Not available', share: null, html: '<span class="stars na" aria-label="No stars: likely already used">—</span>'};
+  if (likelyUsed(s)) return {n: 0, label: 'Not rated', share: null, gaps: [], provisional: false, html: '<span class="stars na" aria-label="Not rated: likely already used">—</span>'};
   const bands = (DATA.assumptions.star_bands || {}).value || {5: .5, 4: .34, 3: .2, 2: .06, 1: -99};
   const share = s.promising / attainable(s);
   const n = +([5, 4, 3, 2, 1].find(k => share >= bands[k]) || 1);
-  return {n, label: STAR_LABEL[n], share, html: `<span class="stars" role="img" aria-label="${n} out of 5 stars, ${STAR_LABEL[n]}">` +
+  const gaps = scoreGaps(s), provisional = gaps.length > 0;
+  const why = provisional ? `Provisional: no data for ${gaps.map(g => g.label).join(', ')}` : '';
+  return {n, label: STAR_LABEL[n], share, gaps, provisional, why,
+    html: `<span class="stars${provisional ? ' prov' : ''}" role="img" aria-label="${n} out of 5 stars, ${STAR_LABEL[n]}${provisional ? ', provisional' : ''}"${provisional ? ` title="${esc(why)}"` : ''}>` +
     '<span class="on">' + '★'.repeat(n) + '</span><span class="off">' + '★'.repeat(5 - n) + '</span></span>'};
+}
+// Rating label under the stars: the star word, or "Provisional" (with the missing terms in its tooltip) when data is missing.
+const ratingLbl = st => st.provisional ? `<span class="lbl prov" title="${esc(st.why)}">Provisional</span>` : `<span class="lbl">${esc(st.label)}</span>`;
+// Development status, kept apart from suitability (stars) and data confidence. "No reported activity" is the most the data
+// can say: ownership and willingness to sell are never verified here.
+function siteStatus(s) {
+  const city = DATA.cities[slugOf[s.id]] || {};
+  if (likelyUsed(s)) return {key: 'used', short: 'Likely used', text: 'Likely already used: permit activity or a recent building reported on this site.'};
+  if (s.pending) return {key: 'pending', short: 'Pending', text: city.pendingAll
+    ? `Marked "pending project" by ${city.name}, which marks every inventory site this way (likely a reporting convention): verify with the city.`
+    : 'Pending project: the city reports a project already proposed here.'};
+  if (s.surplus) return {key: 'surplus', short: 'Surplus notice', text: 'Public surplus land notice: ask the agency whether it is still available.'};
+  return {key: 'none', short: 'No reported activity', text: 'No reported permit activity. Ownership and willingness to sell are not verified.'};
 }
 const num = (v, d = 0) => v === null || v === undefined ? null : (+v).toLocaleString(undefined, {maximumFractionDigits: d});
 
@@ -912,7 +1050,7 @@ function alertsOf(s) {
   const hz = s.checks.filter(c => /^(Flood|Fire|Landslide|Contamination)$/.test(c.name));
   hz.filter(c => c.status === 'fail').forEach(c => out.push({cls: 'fail', text: c.name, title: `${c.name} concern: ${c.detail}`, warn: true}));
   if (likelyUsed(s)) out.push({cls: 'fail', text: 'Likely used', title: 'Permit activity or a recent building on this site. Never ranked.'});
-  if (s.pending) out.push({cls: 'pending', text: 'Pending', title: 'The city reports a project already proposed on this site.'});
+  if (s.pending) out.push({cls: 'pending', text: 'Pending', title: siteStatus(s).text});
   hz.filter(c => c.status === 'caution').forEach(c => out.push({cls: 'caution', text: c.name, title: `${c.name} caution: ${c.detail}`, warn: true}));
   if (s.surplus) out.push({cls: 'sla', text: 'Surplus land', title: `Surplus Land Act notice${s.surplus.agency ? ' from ' + s.surplus.agency : ''}.`});
   if ((s.permit || {}).level === 'weak') out.push({cls: 'caution', text: 'ADU permit', title: 'Only ADU permit activity was reported here.'});
@@ -949,6 +1087,7 @@ function whyPromising(s) {
 // per-site scores build.py wrote; a site's rank therefore depends on which cities are selected.
 const selected = new Set();
 const cityOf = {};
+const slugOf = {};
 // One colour per city, used for its border, its shade and its button when selected.
 const CITY_ORDER = DATA ? Object.keys(DATA.cities) : [];
 const isDark = () => document.documentElement.dataset.theme === 'dark' ||
@@ -1002,17 +1141,18 @@ function rankSelected(cities) {
   const all = cities.flatMap(c => c.sites);
   all.forEach(s => { s.promising_rank = null; s.hidden = !passesFilters(s); });
   const visible = all.filter(s => !s.hidden);
-  visible.filter(s => !likelyUsed(s)).sort((a, b) => b.promising - a.promising)
+  // Earned points first (missing data earns nothing, so the order stays conservative), then fewer data gaps, then the
+  // share of attainable points, then name, so ties never depend on the order the data arrived in.
+  visible.filter(s => !likelyUsed(s)).sort((a, b) => (b.promising - a.promising) || (scoreGaps(a).length - scoreGaps(b).length)
+    || ((b.promising / attainable(b)) - (a.promising / attainable(a))) || String(a.name).localeCompare(String(b.name)))
     .forEach((s, i) => { s.promising_rank = i + 1; });
   return visible;
 }
 
 // Side-by-side comparison of up to three sites.
 const compareSet = new Set();
-function siteById(id) {
-  for (const k of CITY_ORDER) { const s = DATA.cities[k].sites.find(x => x.id === id); if (s) return s; }
-  return null;
-}
+const idIndex = new Map();  // site id -> site, filled in init(); a Map lookup instead of scanning every city's sites
+function siteById(id) { return idIndex.get(id) || idIndex.get(String(id)) || null; }
 function toggleCompare(id) {
   if (compareSet.has(id)) compareSet.delete(id);
   else if (compareSet.size >= 3) { alert('Compare up to three sites at a time. Remove one first.'); return; }
@@ -1040,7 +1180,7 @@ function compareHtml(sites) {
     G('Site'),
     ['City', s => esc(cityOf[s.id]), null, s => cityOf[s.id]],
     ['APN', s => fmt(s.apn), null, s => s.apn],
-    ['Status', s => likelyUsed(s) ? '<span class="chip fail">likely already used</span>' : s.pending ? '<span class="chip pending">pending project</span>' : s.surplus ? '<span class="chip sla">surplus notice</span>' : '<span class="chip pass">available</span>', null, s => likelyUsed(s) ? 'used' : s.pending ? 'pending' : s.surplus ? 'surplus' : 'ok'],
+    ['Status', s => likelyUsed(s) ? '<span class="chip fail">likely already used</span>' : s.pending ? '<span class="chip pending">pending project</span>' : s.surplus ? '<span class="chip sla">surplus notice</span>' : '<span class="chip pass">no reported activity</span>', null, s => likelyUsed(s) ? 'used' : s.pending ? 'pending' : s.surplus ? 'surplus' : 'ok'],
     ['Size', s => `${num(s.acres, 2)} acres`, s => s.acres, s => s.acres],
     ['Open land', s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${esc(s.he.existing_use)} <span class="dim">(city-reported use)</span>` : '<i>unknown</i>', s => s.coverage !== null && s.coverage !== undefined ? 1 - s.coverage : null, s => s.coverage ?? (s.he || {}).existing_use],
     ['Listed lower-income capacity', s => s.lower === null || s.lower === undefined ? '<i>not listed</i>' : `${num(s.lower)} units`, s => s.lower, s => s.lower],
@@ -1156,6 +1296,7 @@ ${flags ? `<h2>Data notes</h2><ul>${flags}</ul>` : ''}
 <p class="dim">Screening signals from HCD's Housing Law Fact Sheets (April 2026) against the layers loaded. "No" means a checkable test failed. "Unknown" means nothing failed but a required fact is missing. The tool never assumes eligibility.</p>
 ${paths}
 <h2>Recommended next steps</h2><ol>${nextSteps(s).map(x => `<li>${esc(x)}</li>`).join('')}</ol>
+${ddReportHtml(s)}
 <h2>Sources</h2><ul>${sources}</ul>
 <h2>Assumptions</h2><ul>${assumptions}</ul>
 </body></html>`;
@@ -1272,9 +1413,9 @@ function draw(opts = {}) {
     byId[s.id] = {s, poly};
     if (s.id === currentId) poly.setStyle({weight: 3.5, fillOpacity: Math.min(base.fillOpacity + .2, .6)});
     if (!top) {
-      // Every site outside the top 10 gets a dot: green = available, red = likely already used, red ring = pending project.
+      // Every site outside the top 10 gets a dot: green = no reported activity, red = likely already used, red ring = pending project.
       const kind = used ? 'used' : s.surplus ? 'sla' : s.pending ? 'pend' : 'ok';
-      const word = {ok: 'available', used: 'likely already used', pend: 'pending project', sla: 'Surplus Land Act notice'}[kind];
+      const word = {ok: 'no reported activity', used: 'likely already used', pend: 'pending project', sla: 'Surplus Land Act notice'}[kind];
       const dot = L.marker([s.lat, s.lon], {keyboard: true, title: `${s.name}: ${word}`, kind,
         icon: L.divIcon({className: '', iconSize: [12, 12], html: `<div class="sdot ${kind}" aria-hidden="true"></div>`})});
       dot.bindTooltip(`<b>${esc(s.name)}</b><br>${word}${kind === 'ok' ? ' · ' + stars(s).html + ' ' + esc(stars(s).label) : ''}`, {direction: 'top'});
@@ -1314,7 +1455,7 @@ function draw(opts = {}) {
   const nHaz = n(s => s.checks.some(k => (k.status === 'fail' || k.status === 'caution') && /Flood|Fire|Landslide|Contamination/.test(k.name)));
   document.getElementById('stats').innerHTML =
     `<div class="kpi"><b>${sites.length}</b><span>${filtersActive() ? 'matching' : ''} sites${multi ? ` · ${cities.length} cities` : ''}</span></div>
-     <div class="kpi good"><b>${avail}</b><span>available</span></div>
+     <div class="kpi good" title="No permit activity, recent building or pending project reported. Ownership and willingness to sell are not verified."><b>${avail}</b><span>no reported activity</span></div>
      <div class="kpi bad" title="Permit activity or a building since 2021. Never ranked."><b>${n(likelyUsed)}</b><span>likely used</span></div>
      <div class="kpi warn" title="Sites with a flood, fire, landslide or contamination concern or caution"><b>${nHaz}</b><span>hazard flags</span></div>`;
   document.getElementById('statsSub').innerHTML =
@@ -1326,26 +1467,22 @@ function draw(opts = {}) {
 
   const ranked = sites.filter(s => s.promising_rank).sort((a, b) => a.promising_rank - b.promising_rank);
   const top = ranked.slice(0, TOP_N);
-  if (!currentId) document.getElementById('rightTitle').textContent = cities.length ? `Top ${top.length} sites to check first` : 'Pick a city to see its top sites';
+  const topTitle = cities.length ? `Top ${top.length} sites to check first` : 'Pick a city to see its top sites';
+  document.getElementById('rightTitle').dataset.top = topTitle;
+  if (!currentId) document.getElementById('rightTitle').textContent = listViewMode === 'saved' ? 'Your shortlist' : topTitle;
   document.getElementById('rightstats').innerHTML = (ranked.length
     ? `From <b>${ranked.length}</b> eligible sites${filtersActive() ? ' matching filters' : ''}`
     : cities.length ? (filtersActive() ? 'No site matches the filters.' : 'No sites with enough data to rank.') : 'Pick a city above.')
     + (customWeights() ? ' · <span style="color:var(--accent-2)">custom weights</span>' : '');
-  const card = (s, numHtml) => { const st = stars(s), chips = alertChips(s);
-    return `<li data-id="${esc(s.id)}" class="${s.id === currentId ? 'sel' : ''}">
-    <button type="button" class="head" aria-label="Open ${esc(s.name)}, ${st.n} stars, ${esc(cityOf[s.id])}">
-      ${numHtml}
-      <span class="body"><span class="name">${esc(s.name)}</span>
-        <span class="meta">${esc(cityOf[s.id])} · ${keyMetric(s)}</span>
-        ${chips ? `<span class="alerts">${chips}</span>` : ''}</span>
-      <span class="rating">${st.html}<span class="lbl">${esc(st.label)}</span></span>
-    </button></li>`; };
-  document.getElementById('top10').innerHTML = top.length ? top.map(s => card(s, `<span class="num">${s.promising_rank}</span>`)).join('')
+  document.getElementById('top10').innerHTML = top.length ? top.map(s => siteCard(s, `<span class="num">${s.promising_rank}</span>`)).join('')
     : `<li class="empty">${filtersActive() ? 'No site matches the filters. Loosen them or reset.' : 'Pick a city to see its top sites.'}</li>`;
   if (currentId && !byId[currentId]) { /* the open site was filtered out: keep showing it, the list just no longer ranks it */ }
+  renderShortlist();
   const noteItems = cities.flatMap(c => c.notes.map(t => `<li>${multi ? '<b>' + esc(c.name) + ':</b> ' : ''}${esc(t)}</li>`));
   document.getElementById('notes').innerHTML = noteItems.join('');
   document.getElementById('notesCount').textContent = noteItems.length ? `${noteItems.length} notes` : '';
+  const cov = coverageHtml(cities);
+  document.getElementById('coverage').innerHTML = cov; document.getElementById('coverageDisc').innerHTML = cov || '<p>Pick a city to see its data coverage.</p>';
 }
 
 function toggleCity(slug, on) {
@@ -1359,7 +1496,7 @@ function setPanel(open) {
 }
 
 function selectCard(id, scroll) {
-  document.querySelectorAll('#top10 > li[data-id]').forEach(li => {
+  document.querySelectorAll('#top10 > li[data-id], #slList > li[data-id]').forEach(li => {
     const on = li.dataset.id === id;
     li.classList.toggle('sel', on);
     if (on && scroll) li.scrollIntoView({block: 'nearest', behavior: 'smooth'});
@@ -1367,8 +1504,318 @@ function selectCard(id, scroll) {
 }
 function focusSite(id) { showSite(id, true); }
 
+// CSV rows for any list of sites (the whole selection, or the shortlist with the user's checklist progress).
+// One column set everywhere, so a shortlist file and a full export line up in a spreadsheet.
+function sitesCsv(sites, opts = {}) {
+  const cols = ['rank', 'site', 'city', 'apn', 'stars', 'rating', 'rating_provisional', 'missing_score_terms', 'score', 'share_of_attainable_points',
+    'data_confidence', 'status', 'acres',
+    'lower_income_units', 'moderate_units', 'above_moderate_units', 'open_land', 'zoning', 'zoning_family', 'newest_building', 'likely_already_used',
+    'permit_activity_grade', 'permit_activity_detail', 'pending_project', 'surplus_notice_agency', 'surplus_notice_status',
+    'sb9_screen', 'sb684_sb1123_screen', 'ab2011_screen', 'sb4_screen', 'why', 'checks_failed', 'checks_unknown', 'data_flags', 'lat', 'lon']
+    .concat(opts.extraCols || []);
+  const pathCell = (s, id) => { const p = (s.pathways || []).find(x => x.id === id); return p ? `${PATH_WORD[p.result]} (${p.passes} pass, ${p.fails} fail, ${p.unknowns} unknown)` : ''; };
+  const openLand = s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${s.he.existing_use} (city-reported use)` : '';
+  const rows = sites.map(s => { const st = stars(s); return [
+    s.promising_rank || '', s.name, cityOf[s.id], s.apn || '', likelyUsed(s) ? '' : st.n, st.label, st.provisional ? 'yes' : 'no',
+    st.gaps.map(g => g.label).join('; '), s.promising,
+    st.share === null ? '' : Math.round(st.share * 100) + '%', confidence(s).band, siteStatus(s).short, s.acres, s.lower ?? '', s.moderate ?? '', s.above ?? '',
+    openLand(s), s.zoning_local || (s.he || {}).zoning || '', s.zoning_family_label || '', s.newest_year || '', likelyUsed(s) ? 'yes' : 'no',
+    (s.permit || {}).level || '', (s.checks.find(c => c.name === 'Permit activity (APR)') || {}).detail || '', s.pending ? 'yes' : 'no',
+    (s.surplus || {}).agency || '', (s.surplus || {}).status || '',
+    pathCell(s, 'sb9'), pathCell(s, 'sb684'), pathCell(s, 'ab2011'), pathCell(s, 'sb4'),
+    whyPromising(s).replace(/<[^>]+>/g, ''),
+    s.checks.filter(c => c.status === 'fail').map(c => c.name).join('; '),
+    s.checks.filter(c => c.status === 'unknown').map(c => c.name).join('; '),
+    (s.flags || []).map(f => f.msg).join('; '), s.lat, s.lon].concat(opts.extra ? opts.extra(s) : []); });
+  const cell = v => { const t = String(v ?? ''); return /[",\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const head = [`# Find It Site Screener, built ${DATA.built}. Prototype for screening only; weights are ASSUMPTIONS${customWeights() ? ' (custom weights: ' + JSON.stringify(W) + ')' : ''}. Pathway columns are screens from HCD fact sheets, not legal findings. "status" is what public data reports; ownership is never verified.${opts.note ? ' ' + opts.note : ''} Sources and dates are listed on the page.`];
+  return head.concat([cols.join(',')], rows.map(r => r.map(cell).join(','))).join('\r\n');
+}
+function downloadText(name, text, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([(type.startsWith('text/csv') ? '﻿' : '') + text], {type}));
+  a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+// Data coverage by city: which inventory each city's sites come from and how much of the scored data each has, so
+// cross-city differences in stars and rank can be read in context.
+function coverageHtml(cities) {
+  if (!cities.length) return '';
+  const rows = cities.map(c => {
+    const inv = c.sites.filter(s => !s.surplus), n = inv.length || 1, pc = k => Math.round(100 * k / n) + '%';
+    const src = inv.length ? (inv[0].site_source === 'hcd_sites' ? 'HCD Table A' : inv[0].site_source === 'he_sites' ? 'SCAG' : esc(inv[0].site_source || '?')) : '—';
+    const measured = inv.filter(s => s.coverage !== null && s.coverage !== undefined).length;
+    const reported = inv.filter(s => (s.coverage === null || s.coverage === undefined) && 'open_land' in s.promising_parts).length;
+    return `<tr><td>${esc(c.name)}</td><td>${src}</td><td>${inv.length}</td><td>${pc(inv.filter(s => s.lower !== null && s.lower !== undefined).length)}</td>
+      <td>${measured ? pc(measured) + ' measured' : ''}${measured && reported ? ', ' : ''}${reported ? pc(reported) + ' reported use' : ''}${!measured && !reported ? 'none' : ''}</td>
+      <td>${pc(inv.filter(s => s.oppcat).length)}</td><td>${pc(inv.filter(s => s.pending).length)}${c.pendingAll ? ' *' : ''}</td></tr>`;
+  }).join('');
+  return `<table class="vtable cov"><thead><tr><th>City</th><th>Inventory</th><th>Sites</th><th>Capacity listed</th><th>Open land</th><th>Opportunity</th><th>Pending</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="hint">Missing capacity, open land or opportunity data earns no points (lowers rank) and makes stars provisional.${cities.some(c => c.pendingAll) ? ' * The city marks every inventory site pending; treat it as a reporting convention and verify each site.' : ''}</p>`;
+}
+
+// ====================================================================== shortlist and due-diligence checklist
+// Both live only in this browser (localStorage), keyed by city and APN so they survive rebuilds that renumber records.
+// Nothing here is public data: the page labels it "yours" wherever it appears, and exports say so.
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+};
+const SL_KEY = 'findit.shortlist.v1', DD_KEY = 'findit.checklist.v1';
+const keyIndex = new Map();  // portable site key -> site, filled in init()
+function siteKey(s) {
+  const d = String(s.apn || '').replace(/\D/g, '');
+  return `${slugOf[s.id]}|${s.surplus ? 's' : 'h'}${d.length >= 8 ? d : 'id' + s.id}`;
+}
+let shortlist = (store.get(SL_KEY, []) || []).filter(x => x && typeof x.key === 'string');  // [{key, added}]
+let checklists = store.get(DD_KEY, {}) || {};  // key -> {items: {id: {s, n}}, updated}
+let storageOk = store.set('findit.probe', 1);
+let sharedKeys = null, listViewMode = 'top';
+const isSaved = s => shortlist.some(x => x.key === siteKey(s));
+function saveShortlist() { storageOk = store.set(SL_KEY, shortlist); }
+function saveChecklists() { storageOk = store.set(DD_KEY, checklists); }
+function toast(msg) {
+  const el = document.getElementById('toast'); if (!el) return;
+  el.textContent = msg; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 3200);
+}
+function toggleSaved(id, force) {
+  const s = siteById(id); if (!s) return;
+  const k = siteKey(s), on = shortlist.some(x => x.key === k);
+  const want = force === undefined ? !on : force;
+  if (want && !on) shortlist.push({key: k, added: new Date().toISOString()});
+  if (!want && on) shortlist = shortlist.filter(x => x.key !== k);
+  saveShortlist();
+  if (want !== on) toast(want ? `Saved ${s.name} to your shortlist${storageOk ? '' : ' (this browser blocks storage: it will not survive a reload)'}` : `Removed ${s.name} from your shortlist`);
+  document.querySelectorAll(`[data-save="${CSS.escape(String(id))}"]`).forEach(b => {
+    b.classList.toggle('on', want); b.setAttribute('aria-pressed', String(want));
+    if (b.classList.contains('save-toggle')) b.innerHTML = `<svg class="ico"><use href="#i-bookmark"/></svg>${want ? 'Saved' : 'Save'}`;
+    else b.title = want ? 'Remove from shortlist' : 'Save to shortlist';
+  });
+  renderShortlist();
+}
+function siteCard(s, numHtml, extra = '') {
+  const st = stars(s), chips = alertChips(s), saved = isSaved(s);
+  return `<li data-id="${esc(s.id)}" class="${s.id === currentId ? 'sel' : ''}">
+    <button type="button" class="head" aria-label="Open ${esc(s.name)}, ${st.n} stars, ${esc(cityOf[s.id])}">
+      ${numHtml}
+      <span class="body"><span class="name">${esc(s.name)}</span>
+        <span class="meta">${esc(cityOf[s.id])} · ${keyMetric(s)}</span>
+        ${chips || extra ? `<span class="alerts">${extra}${chips}</span>` : ''}</span>
+      <span class="rating">${st.html}${ratingLbl(st)}</span><span aria-hidden="true"></span>
+    </button>
+    <button type="button" class="save-btn ${saved ? 'on' : ''}" data-save="${esc(s.id)}" aria-pressed="${saved}" aria-label="Save ${esc(s.name)} to shortlist" title="${saved ? 'Remove from shortlist' : 'Save to shortlist'}"><svg class="ico"><use href="#i-bookmark"/></svg></button></li>`;
+}
+// Open a site from the shortlist even when its city is not on the map: add the city, redraw, then open it.
+function openSiteAnywhere(id) {
+  const slug = slugOf[id];
+  if (slug && !selected.has(slug)) { selected.add(slug); draw({keepView: true}); }
+  showSite(id, true);
+}
+function setListView(mode) {
+  listViewMode = mode;
+  document.querySelectorAll('#listTabs [data-view]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === mode)));
+  document.getElementById('topPane').hidden = mode !== 'top';
+  document.getElementById('savedPane').hidden = mode !== 'saved';
+  if (!currentId) document.getElementById('rightTitle').textContent = mode === 'saved' ? 'Your shortlist' : document.getElementById('rightTitle').dataset.top || 'Top sites to check first';
+}
+function ddProgress(s) {
+  const items = ddItems(s), saved = (checklists[siteKey(s)] || {}).items || {};
+  const st = items.map(i => (saved[i.id] || {}).s || 'todo');
+  return {total: items.length, done: st.filter(x => x === 'done').length, issue: st.filter(x => x === 'issue').length,
+    started: st.some(x => x !== 'todo') || items.some(i => ((saved[i.id] || {}).n || '').trim())};
+}
+function renderShortlist() {
+  const list = document.getElementById('slList'); if (!list) return;
+  const sites = shortlist.map(x => keyIndex.get(x.key)).filter(Boolean);
+  const missing = shortlist.length - sites.length;
+  document.getElementById('slCount').textContent = shortlist.length;
+  document.getElementById('slTools').querySelectorAll('#slShare, #slCsv, #slClear').forEach(b => { b.disabled = !shortlist.length; });
+  list.innerHTML = sites.length ? sites.map(s => {
+    const p = ddProgress(s);
+    const prog = p.started ? `<span class="chip ${p.issue ? 'caution' : p.done === p.total ? 'pass' : 'unknown'}" title="Your checklist (not verified data)"><svg class="ico xs"><use href="#i-list"/></svg>${p.done}/${p.total}${p.issue ? ` · ${p.issue} issue${p.issue > 1 ? 's' : ''}` : ''}</span>` : '';
+    return siteCard(s, s.promising_rank ? `<span class="num">${s.promising_rank}</span>` : '<span class="num muted" title="Not ranked in the current selection">–</span>', prog);
+  }).join('')
+    : `<li class="empty">No saved sites yet. Use <svg class="ico xs"><use href="#i-bookmark"/></svg> on a site to save it here.</li>`;
+  if (missing) list.insertAdjacentHTML('beforeend', `<li class="empty">${missing} saved site${missing > 1 ? 's are' : ' is'} not in this build's data (another city or an older build).</li>`);
+  renderShared();
+}
+function renderShared() {
+  const box = document.getElementById('slShared'); if (!box) return;
+  if (!sharedKeys) { box.hidden = true; return; }
+  const found = sharedKeys.map(k => keyIndex.get(k)).filter(Boolean), newOnes = found.filter(s => !isSaved(s));
+  box.hidden = false;
+  box.innerHTML = `<b>Shared shortlist</b> · ${found.length} site${found.length === 1 ? '' : 's'}${sharedKeys.length > found.length ? ` (${sharedKeys.length - found.length} not in this build)` : ''}
+    <div class="sl-shared-list">${found.map(s => `<button type="button" class="linkbtn" data-open="${esc(s.id)}">${esc(s.name)}</button>`).join('')}</div>
+    <div class="sl-shared-acts">${newOnes.length ? `<button type="button" class="btn sm primary" id="slAcceptShared">Add ${newOnes.length} to my shortlist</button>` : '<span class="dim">All already in your shortlist.</span>'}
+      <button type="button" class="btn sm ghost" id="slDismissShared">Dismiss</button></div>`;
+}
+function shareLink() {
+  const base = location.href.split('#')[0];
+  return `${base}#shortlist=${encodeURIComponent(shortlist.map(x => x.key).join(','))}`;
+}
+function backupJson() {
+  return JSON.stringify({format: 'findit-shortlist', version: 1, data_built: DATA.built, exported: new Date().toISOString(),
+    note: 'Shortlist and due-diligence checklist entered by a user in Find It. User notes, not verified public data.',
+    sites: shortlist.map(x => { const s = keyIndex.get(x.key); return {key: x.key, added: x.added, name: s ? s.name : null, city: s ? cityOf[s.id] : null, apn: s ? s.apn : null}; }),
+    checklists}, null, 2);
+}
+function importBackup(text) {
+  let j; try { j = JSON.parse(text); } catch (e) { toast('That file is not a Find It shortlist backup (not JSON).'); return; }
+  if (!j || j.format !== 'findit-shortlist' || !Array.isArray(j.sites)) { toast('That file is not a Find It shortlist backup.'); return; }
+  let added = 0, merged = 0;
+  j.sites.forEach(x => { if (x && typeof x.key === 'string' && !shortlist.some(y => y.key === x.key)) { shortlist.push({key: x.key, added: x.added || new Date().toISOString()}); added++; } });
+  Object.entries(j.checklists || {}).forEach(([k, v]) => {
+    if (!v || typeof v !== 'object' || typeof v.items !== 'object') return;
+    const mine = checklists[k];
+    if (!mine || String(v.updated || '') > String(mine.updated || '')) { checklists[k] = {items: v.items, updated: v.updated || new Date().toISOString()}; merged++; }
+  });
+  saveShortlist(); saveChecklists(); renderShortlist();
+  if (currentId) { const s = siteById(currentId); if (s) renderDetail(s); }
+  toast(`Imported: ${added} new site${added === 1 ? '' : 's'}, ${merged} checklist${merged === 1 ? '' : 's'} updated.`);
+}
+function initShortlist() {
+  document.getElementById('listTabs').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setListView(b.dataset.view); });
+  document.getElementById('slShare').addEventListener('click', async () => {
+    const link = shareLink(), box = document.getElementById('slLinkBox'), inp = document.getElementById('slLink'), msg = document.getElementById('slLinkMsg');
+    box.hidden = false; inp.value = link; inp.select();
+    let copied = false; try { await navigator.clipboard.writeText(link); copied = true; } catch (e) { /* clipboard needs https or a user gesture */ }
+    msg.textContent = copied ? 'Copied. The link carries the sites only; checklists stay in your browser.' : 'Copy this link. It carries the sites only; checklists stay in your browser.';
+    if (copied) toast('Shortlist link copied');
+  });
+  document.getElementById('slCsv').addEventListener('click', () => {
+    const sites = shortlist.map(x => keyIndex.get(x.key)).filter(Boolean);
+    const extraCols = ['your_checklist_done', 'your_checklist_issues', 'your_checklist_notes'];
+    const extra = s => { const p = ddProgress(s), its = (checklists[siteKey(s)] || {}).items || {};
+      return [`${p.done}/${p.total}`, ddItems(s).filter(i => (its[i.id] || {}).s === 'issue').map(i => i.label).join('; '),
+        ddItems(s).filter(i => ((its[i.id] || {}).n || '').trim()).map(i => `${i.label}: ${its[i.id].n.trim()}`).join(' | ')]; };
+    downloadText(`findit-shortlist-${DATA.built}.csv`, sitesCsv(sites, {extraCols, extra, note: 'Columns starting "your_" are entered by the user, not verified data.'}), 'text/csv;charset=utf-8');
+  });
+  document.getElementById('slJson').addEventListener('click', () => downloadText(`findit-shortlist-backup-${new Date().toISOString().slice(0, 10)}.json`, backupJson(), 'application/json'));
+  document.getElementById('slImportBtn').addEventListener('click', () => document.getElementById('slImport').click());
+  document.getElementById('slImport').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    f.text().then(importBackup); e.target.value = '';
+  });
+  document.getElementById('slClear').addEventListener('click', () => {
+    if (!shortlist.length || !confirm(`Remove all ${shortlist.length} sites from your shortlist? Checklists you filled in are kept.`)) return;
+    shortlist = []; saveShortlist(); renderShortlist(); draw({keepView: true});
+  });
+  document.getElementById('slShared').addEventListener('click', e => {
+    const o = e.target.closest('[data-open]'); if (o) { openSiteAnywhere(o.dataset.open); return; }
+    if (e.target.id === 'slAcceptShared') {
+      sharedKeys.forEach(k => { if (keyIndex.has(k) && !shortlist.some(x => x.key === k)) shortlist.push({key: k, added: new Date().toISOString()}); });
+      saveShortlist(); sharedKeys = null; history.replaceState(null, '', location.href.split('#')[0]); renderShortlist(); draw({keepView: true}); toast('Shared sites added to your shortlist');
+    } else if (e.target.id === 'slDismissShared') { sharedKeys = null; history.replaceState(null, '', location.href.split('#')[0]); renderShared(); }
+  });
+  // A shared link (#shortlist=...) opens the shortlist view with the shared sites and selects their cities.
+  const m = location.hash.match(/(?:^#|&)shortlist=([^&]*)/);
+  if (m) {
+    sharedKeys = decodeURIComponent(m[1]).split(',').map(x => x.trim()).filter(Boolean).slice(0, 200);
+    sharedKeys.forEach(k => { const s = keyIndex.get(k); if (s) selected.add(slugOf[s.id]); });
+    setListView('saved');
+  }
+  window.addEventListener('storage', e => {  // another tab changed the shortlist or a checklist
+    if (e.key === SL_KEY) { shortlist = store.get(SL_KEY, []) || []; renderShortlist(); }
+    if (e.key === DD_KEY) { checklists = store.get(DD_KEY, {}) || {}; if (currentId) { const s = siteById(currentId); if (s) renderDetail(s); } }
+  });
+}
+
+// Due-diligence checklist. Each step shows what the public data loaded here says (or that it says nothing), and a status
+// and note that only the user sets.
+const DD_STATUS = {todo: 'Not started', doing: 'In progress', done: 'Done', issue: 'Issue found'};
+function ddItems(s) {
+  const he = s.he || {}, chk = n => s.checks.find(c => c.name === n) || {status: 'unknown', detail: ''};
+  const hz = ['Flood', 'Fire', 'Landslide'].map(n => `${n}: ${STATUS_WORD[chk(n).status]}`).join(' · ');
+  const ps = s.pathways || [];
+  const items = [
+    {id: 'owner', label: 'Ownership and title', how: 'Confirm the owner of record with the County Assessor or a title report.',
+     data: he.publicly_owned ? `City inventory: ${he.publicly_owned}.` : 'No owner field in the public data loaded here.'},
+    {id: 'seller', label: 'Owner contacted, willing to sell or partner', how: 'Record who you spoke with and their answer.',
+     data: s.surplus ? `Surplus Land Act notice from ${s.surplus.agency || 'a public agency'} (${s.surplus.status || 'status unknown'}).` : 'Not in public data.'},
+    {id: 'zoning', label: 'Zoning and general plan confirmed', how: 'Check current zoning, overlays and objective standards with the planning counter.',
+     data: `Zoning: ${s.zoning_local || he.zoning || 'unknown'}${s.zoning_family_label ? ` (${s.zoning_family_label})` : ''}${he.max_density ? `, max ${he.max_density} units/acre` : ''}.`},
+    {id: 'eligibility', label: 'Development pathway eligibility', how: 'Confirm which streamlining law applies (SB 9, SB 684 / SB 1123, AB 2011, SB 4) with the city or counsel.',
+     data: ps.length ? ps.map(p => `${p.law}: ${PATH_WORD[p.result]}`).join(' · ') + '. Screens only; eligibility is never confirmed here.' : 'No pathway screen for this site.'},
+    {id: 'environment', label: 'Environmental review (Phase I ESA)', how: 'Order a Phase I; check GeoTracker as well as EnviroStor.',
+     data: `Contamination: ${STATUS_WORD[chk('Contamination').status]}. ${chk('Contamination').detail}`.trim()},
+    {id: 'hazards', label: 'Flood, fire and geologic hazards', how: 'Confirm hazard zones, insurance and mitigation cost.', data: hz + '.'},
+    {id: 'utilities', label: 'Water, sewer and dry utilities capacity', how: 'Ask the water and sewer districts for a will-serve or capacity letter.',
+     data: 'Not in the public data loaded here.'},
+    {id: 'agency', label: 'City or agency contact', how: 'Housing or planning staff contact and what they said.',
+     data: `${cityOf[s.id]}${s.surplus && s.surplus.agency ? `; notice agency ${s.surplus.agency}` : ''}.`},
+  ];
+  if (s.pending || likelyUsed(s)) items.splice(1, 0, {id: 'status', label: 'Site status confirmed', how: 'Confirm whether the reported project or permit activity is real and current.',
+    data: siteStatus(s).text});
+  return items;
+}
+function ddHead(s) {
+  const p = ddProgress(s), upd = (checklists[siteKey(s)] || {}).updated;
+  return `<div><span class="tag you">Your progress</span> <b>${p.done} of ${p.total} done</b>${p.issue ? ` · <span style="color:var(--warn)">${p.issue} issue${p.issue > 1 ? 's' : ''}</span>` : ''}</div>
+      <div class="bar" aria-hidden="true"><span style="width:${Math.round(100 * p.done / p.total)}%"></span></div>
+      <p class="hint" style="margin:6px 0 0">Saved in this browser only${upd ? ` · last change ${esc(upd.slice(0, 10))}` : ''}. Your statuses and notes are not verified data; "Public data" lines are what the loaded datasets say.${storageOk ? '' : ' <b>This browser blocks storage, so changes will not survive a reload; use the shortlist backup file.</b>'}</p>`;
+}
+function detailChecklist(s) {
+  const k = siteKey(s), saved = (checklists[k] || {}).items || {};
+  const rows = ddItems(s).map(i => { const v = saved[i.id] || {}, st = v.s || 'todo', note = v.n || '';
+    return `<li class="ck-item ck-${st}">
+      <div class="ck-top"><b>${esc(i.label)}</b>
+        <select class="select ck-sel" data-dd="${esc(i.id)}" aria-label="Your status: ${esc(i.label)}">${Object.entries(DD_STATUS).map(([v2, l]) => `<option value="${v2}" ${v2 === st ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <p class="ck-data"><span class="tag pub">Public data</span>${esc(i.data)}</p>
+      <details class="ck-note" ${note ? 'open' : ''}><summary>${note ? 'Your note' : 'Add a note'}</summary>
+        <textarea class="input" rows="2" data-dd-note="${esc(i.id)}" placeholder="${esc(i.how)}" aria-label="Your note: ${esc(i.label)}">${esc(note)}</textarea></details>
+    </li>`; }).join('');
+  return `<div class="ck-head">${ddHead(s)}</div>
+    <ol class="ck-list">${rows}</ol>`;
+}
+function updateDdBadge(s) {
+  const b = document.getElementById('ddTabCount'); if (!b) return;
+  const p = ddProgress(s); b.hidden = !p.started; b.textContent = `${p.done}/${p.total}`;
+}
+function setDd(s, id, patch) {
+  const k = siteKey(s);
+  const cur = checklists[k] || {items: {}};
+  cur.items[id] = Object.assign({s: 'todo', n: ''}, cur.items[id] || {}, patch);
+  cur.updated = new Date().toISOString();
+  checklists[k] = cur; saveChecklists();
+  if (!isSaved(s)) { shortlist.push({key: k, added: cur.updated}); saveShortlist(); toast(`Started a checklist: ${s.name} saved to your shortlist`);
+    document.querySelectorAll(`[data-save="${CSS.escape(String(s.id))}"]`).forEach(b => { b.classList.add('on'); b.setAttribute('aria-pressed', 'true'); if (b.classList.contains('save-toggle')) b.innerHTML = '<svg class="ico"><use href="#i-bookmark"/></svg>Saved'; }); }
+  updateDdBadge(s); renderShortlist();
+}
+function initChecklist() {
+  const body = document.getElementById('dbody');
+  body.addEventListener('change', e => {
+    const sel = e.target.closest('[data-dd]'); if (!sel || !currentId) return;
+    const s = siteById(currentId); setDd(s, sel.dataset.dd, {s: sel.value});
+    sel.closest('.ck-item').className = `ck-item ck-${sel.value}`;
+    const head = body.querySelector('.ck-head'); if (head) head.innerHTML = ddHead(s);
+  });
+  let t = null;
+  body.addEventListener('input', e => {
+    const ta = e.target.closest('[data-dd-note]'); if (!ta || !currentId) return;
+    const s = siteById(currentId), id = ta.dataset.ddNote, val = ta.value;
+    clearTimeout(t); t = setTimeout(() => { setDd(s, id, {n: val.slice(0, 2000)}); const head = body.querySelector('.ck-head'); if (head) head.innerHTML = ddHead(s); }, 300);
+  });
+}
+function ddReportHtml(s) {
+  const its = (checklists[siteKey(s)] || {}).items || {}, p = ddProgress(s);
+  if (!p.started) return '';
+  return `<h2>Your due-diligence progress (entered by you, not verified data)</h2>
+<table><tr><th>Step</th><th>Your status</th><th>Your note</th><th>Public data</th></tr>${ddItems(s).map(i => { const v = its[i.id] || {};
+  return `<tr><td><b>${esc(i.label)}</b></td><td>${DD_STATUS[v.s || 'todo']}</td><td>${esc(v.n || '')}</td><td class="dim">${esc(i.data)}</td></tr>`; }).join('')}</table>`;
+}
+
 function init() {
   if (!DATA) { document.querySelector('.app').innerHTML = '<p style="padding:20px">No data. Run <code>python build.py</code>.</p>'; return; }
+  if (DATA.packed) {  // build.py packs checks and pathway tests into index arrays (see pack_payload); rebuild the objects
+    const T = DATA.pathway_texts, S = DATA.packed.statuses;
+    Object.values(DATA.cities).forEach(c => c.sites.forEach(s => {
+      s.checks = s.checks.map(a => Array.isArray(a) ? {name: T[a[0]], status: S[a[1]], detail: T[a[2]], source: T[a[3]]} : a);
+      (s.pathways || []).forEach(p => {
+        p.tests = p.tests.map(a => Array.isArray(a) ? Object.assign({name: a[0], status: S[a[2]], detail: a[1]}, a[3] ? {assumption: true} : {}) : a);
+      });
+    }));
+  }
   if (DATA.pathway_texts) {  // build.py stores each distinct pathway sentence and each law's sources once; put them back
     Object.values(DATA.cities).forEach(c => c.sites.forEach(s => (s.pathways || []).forEach(p => {
       Object.assign(p, (DATA.pathway_laws || {})[p.id] || {});
@@ -1386,7 +1833,10 @@ function init() {
   const list = document.getElementById('cityList');
   Object.entries(DATA.cities).forEach(([slug, c]) => {
     c.slug = slug;
-    c.sites.forEach(s => { cityOf[s.id] = c.name; });
+    c.sites.forEach(s => { cityOf[s.id] = c.name; slugOf[s.id] = slug; idIndex.set(s.id, s); keyIndex.set(siteKey(s), s); });
+    // A city whose inventory marks (nearly) every site pending is reporting a convention, not per-site projects.
+    const inv = c.sites.filter(s => !s.surplus);
+    c.pendingAll = inv.length >= 5 && inv.filter(s => s.pending).length / inv.length >= 0.9;
     const lab = document.createElement('label');
     lab.innerHTML = `<input type="checkbox" value="${esc(slug)}"><span class="sw" style="background:${cityColor(slug)}"></span>${esc(c.name)}<span class="n">${c.sites.length}</span>`;
     lab.querySelector('input').addEventListener('change', e => toggleCity(slug, e.target.checked));
@@ -1412,12 +1862,18 @@ function init() {
   disc.addEventListener('click', e => { if (e.target === disc) closeDisc(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !disc.hidden) closeDisc(); });
   document.getElementById('cityNone').addEventListener('click', () => { selected.clear(); draw(); });
-  document.getElementById('top10').addEventListener('click', e => {
-    const head = e.target.closest('.head'); if (!head) return;
-    showSite(head.closest('li[data-id]').dataset.id, true);
+  ['top10', 'slList'].forEach(listId => {
+    const el = document.getElementById(listId);
+    el.addEventListener('click', e => {
+      const sv = e.target.closest('[data-save]'); if (sv) { toggleSaved(sv.dataset.save); return; }
+      const head = e.target.closest('.head'); if (!head) return;
+      openSiteAnywhere(head.closest('li[data-id]').dataset.id);
+    });
+    el.addEventListener('mouseover', e => { const li = e.target.closest('li[data-id]'); if (li) hoverSite(li.dataset.id, true); });
+    el.addEventListener('mouseout', e => { const li = e.target.closest('li[data-id]'); if (li) hoverSite(li.dataset.id, false); });
   });
-  document.getElementById('top10').addEventListener('mouseover', e => { const li = e.target.closest('li[data-id]'); if (li) hoverSite(li.dataset.id, true); });
-  document.getElementById('top10').addEventListener('mouseout', e => { const li = e.target.closest('li[data-id]'); if (li) hoverSite(li.dataset.id, false); });
+  initShortlist();
+  initChecklist();
   document.getElementById('cmpOnlyDiff').addEventListener('change', e => { const t = document.getElementById('cmpTable'); if (t) t.classList.toggle('only-diff', e.target.checked); });
   document.getElementById('dtabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
   document.getElementById('dtabs').addEventListener('keydown', e => {
@@ -1426,37 +1882,16 @@ function init() {
     const nx = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; showTab(nx.dataset.tab); nx.focus(); e.preventDefault();
   });
   document.getElementById('detailBack').addEventListener('click', () => showList());
-  document.getElementById('siteHero').addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) showTab(g.dataset.goto); });
+  document.getElementById('siteHero').addEventListener('click', e => {
+    const g = e.target.closest('[data-goto]'); if (g) showTab(g.dataset.goto);
+    const sv = e.target.closest('[data-save]'); if (sv) toggleSaved(sv.dataset.save);
+  });
   // CSV of every site in the selected cities, best first, so a planner can take the list to a meeting or a spreadsheet.
   document.getElementById('exportCsv').addEventListener('click', () => {
     const cities = CITY_ORDER.filter(k => selected.has(k)).map(k => DATA.cities[k]);
     if (!cities.length) { alert('Pick at least one city first.'); return; }
     const sites = rankSelected(cities).slice().sort((a, b) => (a.promising_rank || 1e9) - (b.promising_rank || 1e9) || b.promising - a.promising);
-    const cols = ['rank', 'site', 'city', 'apn', 'stars', 'rating', 'score', 'share_of_attainable_points', 'data_confidence', 'acres',
-      'lower_income_units', 'moderate_units', 'above_moderate_units', 'open_land', 'zoning', 'zoning_family', 'newest_building', 'likely_already_used',
-      'permit_activity_grade', 'permit_activity_detail', 'pending_project', 'surplus_notice_agency', 'surplus_notice_status',
-      'sb9_screen', 'sb684_sb1123_screen', 'ab2011_screen', 'sb4_screen', 'why', 'checks_failed', 'checks_unknown', 'data_flags', 'lat', 'lon'];
-    const pathCell = (s, id) => { const p = (s.pathways || []).find(x => x.id === id); return p ? `${PATH_WORD[p.result]} (${p.passes} pass, ${p.fails} fail, ${p.unknowns} unknown)` : ''; };
-    const openLand = s => s.coverage !== null && s.coverage !== undefined ? pct(1 - s.coverage) : (s.he || {}).existing_use ? `${s.he.existing_use} (city-reported use)` : '';
-    const rows = sites.map(s => { const st = stars(s); return [
-      s.promising_rank || '', s.name, cityOf[s.id], s.apn || '', likelyUsed(s) ? '' : st.n, st.label, s.promising,
-      st.share === null ? '' : Math.round(st.share * 100) + '%', confidence(s).band, s.acres, s.lower ?? '', s.moderate ?? '', s.above ?? '',
-      openLand(s), s.zoning_local || (s.he || {}).zoning || '', s.zoning_family_label || '', s.newest_year || '', likelyUsed(s) ? 'yes' : 'no',
-      (s.permit || {}).level || '', (s.checks.find(c => c.name === 'Permit activity (APR)') || {}).detail || '', s.pending ? 'yes' : 'no',
-      (s.surplus || {}).agency || '', (s.surplus || {}).status || '',
-      pathCell(s, 'sb9'), pathCell(s, 'sb684'), pathCell(s, 'ab2011'), pathCell(s, 'sb4'),
-      whyPromising(s).replace(/<[^>]+>/g, ''),
-      s.checks.filter(c => c.status === 'fail').map(c => c.name).join('; '),
-      s.checks.filter(c => c.status === 'unknown').map(c => c.name).join('; '),
-      (s.flags || []).map(f => f.msg).join('; '), s.lat, s.lon]; });
-    const cell = v => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
-    const head = [`# Find It Site Screener, built ${DATA.built}. Prototype for screening only; weights are ASSUMPTIONS${customWeights() ? ' (custom weights: ' + JSON.stringify(W) + ')' : ''}. Pathway columns are screens from HCD fact sheets, not legal findings. Sources and dates are listed on the page.`];
-    const csv = head.concat([cols.join(',')], rows.map(r => r.map(cell).join(','))).join('\r\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'}));
-    a.download = `findit-sites-${cities.map(c => c.slug).join('-')}-${DATA.built}.csv`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    downloadText(`findit-sites-${cities.map(c => c.slug).join('-')}-${DATA.built}.csv`, sitesCsv(sites), 'text/csv;charset=utf-8');
   });
   // Shell: theme, collapsible panels, mobile drawer and sheet
   initShell();
@@ -1536,7 +1971,7 @@ function init() {
 
 // ====================================================================== redesign: detail panel
 // One site at a time in the right panel, in tabs, instead of a popup on the map.
-const TABS = ['overview', 'score', 'pathways', 'risks', 'report'];
+const TABS = ['overview', 'score', 'pathways', 'risks', 'checklist', 'report'];
 let currentTab = 'overview';
 const isMobile = () => matchMedia('(max-width: 900px)').matches;
 
@@ -1601,11 +2036,13 @@ function renderDetail(s) {
     <div class="hero-top"><div style="min-width:0">
       <div class="kv">${s.promising_rank ? `<span class="rank">#${s.promising_rank}</span>` : ''}<span>${esc(cityOf[s.id])}</span>${s.address && s.address !== s.name ? `<span>· ${esc(s.address)}</span>` : ''}</div>
       <h2>${esc(s.name)}</h2></div>
-      <div class="rating">${st.html}<span class="lbl">${esc(st.label)}</span></div></div>
+      <div class="rating">${st.html}${ratingLbl(st)}</div></div>
     <div class="hero-metric"><span>${keyMetric(s)}</span>${confChip(s)}</div>
+    <div class="hero-status st-${siteStatus(s).key}"><span class="k">Status</span><span>${esc(siteStatus(s).text)}</span></div>
     ${alertsOf(s).length ? `<div class="tags">${alertChips(s, 9)}</div>` : ''}
     ${elig}
     <div class="acts">
+      <button type="button" class="btn sm save-toggle ${isSaved(s) ? 'on' : ''}" data-save="${esc(s.id)}" aria-pressed="${isSaved(s)}"><svg class="ico"><use href="#i-bookmark"/></svg>${isSaved(s) ? 'Saved' : 'Save'}</button>
       <button type="button" class="btn sm cmp-toggle ${compareSet.has(s.id) ? 'on' : ''}" data-id="${esc(s.id)}">${compareSet.has(s.id) ? '<svg class="ico"><use href="#i-check"/></svg>In comparison' : '<svg class="ico"><use href="#i-compare"/></svg>Compare'}</button>
       <button type="button" class="btn sm zoom-to" data-id="${esc(s.id)}"><svg class="ico"><use href="#i-pin"/></svg>Zoom</button>
       <button type="button" class="btn sm rep-open" data-id="${esc(s.id)}"><svg class="ico"><use href="#i-print"/></svg>Report</button>
@@ -1615,7 +2052,9 @@ function renderDetail(s) {
      <div class="tabpanel" data-tab="score">${detailScore(s)}</div>
      <div class="tabpanel" data-tab="pathways">${detailPathways(s)}</div>
      <div class="tabpanel" data-tab="risks">${detailRisks(s)}</div>
+     <div class="tabpanel" data-tab="checklist">${detailChecklist(s)}</div>
      <div class="tabpanel" data-tab="report">${detailReport(s)}</div>`;
+  updateDdBadge(s);
   showTab(currentTab);
 }
 
@@ -1680,11 +2119,12 @@ function detailScore(s) {
     <div class="scorecard">
       <div>${ring || '<div class="big" style="color:var(--muted)">—</div>'}</div>
       <div><div class="big">${s.promising.toFixed(2)} <small>screen score</small></div>
-        <div style="margin-top:4px">${st.html} <b>${esc(st.label)}</b></div>
+        <div style="margin-top:4px">${st.html} <b>${esc(st.label)}</b>${st.provisional ? ' <span class="chip unknown">provisional</span>' : ''}</div>
         <div class="dim" style="margin-top:2px">${share === null ? 'Not rated: likely already used.' : `Earned ${Math.round(share * 100)}% of the ${attainable(s).toFixed(2)} points attainable with this site's data${customWeights() ? ', with custom weights' : ''}.`}</div></div>
     </div>
     <div class="sec"><h3>What makes up the score</h3><ul class="parts">${partRows || '<li><span>No scoreable data</span></li>'}</ul>
-      <p class="hint" style="margin-top:8px">Weights are team ASSUMPTIONS · adjust under Scoring weights.</p></div>
+      ${st.gaps.length ? `<ul class="parts gaps">${st.gaps.map(g => `<li class="gap"><span>${esc(g.label.charAt(0).toUpperCase() + g.label.slice(1))}</span><span class="dim">no data · not scored</span><b>up to +${g.max.toFixed(2)}</b></li>`).join('')}</ul>` : ''}
+      <p class="hint" style="margin-top:8px">${st.gaps.length ? 'Rank counts only earned points, so missing data lowers the rank; stars use the share of attainable points, so the rating is provisional until the gap is filled. ' : ''}Weights are team ASSUMPTIONS · adjust under Scoring weights.</p></div>
     <div class="sec"><h3>Data confidence</h3><p style="margin:0;font-size:12.5px">${confChip(s)} <span class="dim" title="Confidence describes how much of the data is present, not how good the site is.">${c.known} of ${c.total} checks have data</span></p></div>`;
 }
 
@@ -1765,7 +2205,7 @@ function renderCharts(sites) {
   sites.forEach(s => { const k = s.zoning_family || 'unknown'; zoneCounts[k] = (zoneCounts[k] || 0) + 1; });
   const zr = Object.entries(zoneCounts).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([k, v]) => ({label: ZONING_NAMES[k] || k, v}));
   box.innerHTML = `
-    <div class="chart"><h4>Star ratings <small>${avail.length} available sites</small></h4>${hbars(starRows, {labW: 118, color: 'var(--c-accent)', aria: 'Sites by star rating'})}</div>
+    <div class="chart"><h4>Star ratings <small>${avail.length} rated sites</small></h4>${hbars(starRows, {labW: 118, color: 'var(--c-accent)', aria: 'Sites by star rating'})}</div>
     <div class="chart"><h4>Hazard checks <small>sites flagged</small></h4>${hbars(hz, {labW: 90, aria: 'Sites with a hazard concern or caution, by hazard'})}</div>
     <div class="chart"><h4>Pathway screens <small title="&quot;Not ruled out&quot; is the screen's Unknown: nothing failed, but a required fact is missing.">${sites.length} sites · not ruled out = unknown</small></h4>${hbars(pw, {labW: 104, aria: 'Pathway screen results by law'})}</div>
     <div class="chart"><h4>Zoning families <small>SCAG codes</small></h4>${hbars(zr, {labW: 124, aria: 'Sites by SCAG zoning family'})}</div>`;
@@ -1776,7 +2216,7 @@ function renderMapTools(shown, total) {
   const pills = [];
   const add = (key, text) => pills.push(`<span class="pill">${text}<button type="button" class="x" data-clear="${key}" aria-label="Clear ${esc(text)}">×</button></span>`);
   if (F.q) add('q', `“${esc(F.q)}”`);
-  if (F.avail) add('avail', 'Available only');
+  if (F.avail) add('avail', 'No reported activity');
   if (F.minStars) add('stars', `${F.minStars}+ stars`);
   if (F.acres !== null) add('acres', `${F.acres}+ acres`);
   if (F.units !== null) add('units', `${F.units}+ lower-income units`);

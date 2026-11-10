@@ -20,7 +20,8 @@ A static web map (`findit-map/`) that:
 
 - Pulls each city's housing-element sites from SCAG and HCD's statewide inventory, then joins county parcels (year built, address), SCAG zoning, OC flood, fire and landslide zones, Caltrans transit areas, OCTA bus routes, HCD permit records, the CTCAC/HCD opportunity map, CalEnviroScreen 5.0, HUD tax-credit areas, DTSC cleanup sites and HUD LIHTC properties.
 - Validates every record before scoring (duplicates, impossible values, acreage mismatches, pending projects).
-- Scores each site, shows the score as a share of attainable points with 1 to 5 stars, and lists the top 10 for whichever cities are selected.
+- Scores each site, shows the score as a share of attainable points with 1 to 5 stars, and lists the top 10 for whichever cities are selected. Rank counts only earned points (missing data earns nothing), and any rating that rests on missing capacity, open-land or opportunity data is labelled **Provisional** with the missing terms named. Suitability (stars), data confidence and development status are shown as three separate things.
+- Says **"no reported activity"**, never "available": public data can show permit activity or a pending project, but ownership and willingness to sell are never verified. A **data-coverage table** per city shows which inventory each city comes from (SCAG or HCD) and how much capacity, open-land and opportunity data it has, and flags cities that mark every site "pending" as a reporting convention.
 - Marks "likely already used" sites (HCD-reported permit activity since 2021, or a building dated 2021+) and pending projects, with a filter to hide them.
 - Draws every check's source and fetch date on the page, and labels every weight and cutoff as an ASSUMPTION.
 - Adds public agencies' **Surplus Land Act notices** (HCD's statewide list) as extra candidate sites, drawn in blue, with the agency, status and notice link. Most notices are archived; the page says so and tells the user to ask the agency.
@@ -31,11 +32,18 @@ A static web map (`findit-map/`) that:
 - **Adjustable scoring weights** (sliders, defaults are the ASSUMPTION weights) and a **data-confidence** chip on every site (the share of its checks that have data).
 - **Site reports**: a printable, downloadable HTML report per site with facts, checks, score breakdown, pathway screens, data notes, recommended next steps, sources and assumptions.
 - **A dashboard layout with progressive disclosure**: top bar with the city picker, search, Compare and CSV; a collapsible left panel that shows only the essentials by default (four key numbers, quick-filter chips and preset scenarios) and keeps charts (star ratings, hazard flags, pathway screens, zoning families), advanced filters, map layers and legend, RHNA progress, scoring weights and data notes in collapsed sections; a large map with marker clustering, hover highlighting, a legend and a home button; and a right panel that shows the ranked list as compact cards (name, city, capacity and acreage, stars, and up to two alerts with hazards first) or one site's detail in tabs (Overview, Score, Pathways, Risks, Report), with hazards and "eligibility unconfirmed" always visible at the top and longer explanations behind tooltips and "More" sections. Light and dark themes; on a phone the panels become a drawer and a bottom sheet.
+- **Shortlist**: save any site with the bookmark button; the list survives a reload (stored in the browser, no account), can be shared as a link that opens the same sites for a colleague, downloaded as a CSV (with the user's checklist progress), and backed up or moved with a JSON file.
+- **Due-diligence checklist** per site (ownership and title, owner contact, zoning, pathway eligibility, Phase I, hazards, utilities, agency contact, and status when a project or permit is reported): each step shows what the public data says next to the user's own status and notes, clearly labelled as user input, and the site report includes it.
 - Downloads the ranked list for the selected cities as a CSV (rank, stars, score, confidence, capacity, zoning, permit grade, pathway screens, failed and unknown checks, flags) for a meeting or a spreadsheet.
-- Keeps working when a data server is down (the page says "unknown" and names the layer) and when OpenStreetMap blocks the street map (it switches to Esri tiles and says so). Unit tests cover validation, permit grading, pathway rules and the surplus import.
+- Uses a **public-domain basemap** (USGS The National Map) that needs no API key; USGS imagery, Esri streets, Esri dark gray and (on served pages) OpenStreetMap are in the layers menu. If the active basemap's tiles fail, the map falls back to the next one and says so. Keeps working when a data server is down (the page says "unknown" and names the layer).
+- Tested: unit tests for validation, permit grading, pathway rules, the surplus import and payload packing, and browser tests (Playwright, real Chrome) for map rendering, basemap fallback, city selection, filters, site detail, compare, reports, CSV, shortlist sharing, the checklist and overlapping controls on desktop and mobile.
 
 **Demo video:** [`findit-demo.mp4`](findit-demo.mp4) (40 s, captioned walkthrough of the real-data map)
-**Live demo:** the prebuilt map `findit-map/demo/index.html` (built 2026-11-09: Irvine, Santa Ana, Costa Mesa, Anaheim, real data including measured building coverage and 46 surplus-land notices). To open it from GitHub: click the file, press **Download raw file** (it is too large for GitHub to preview), then open the download in any browser. Do not open `map_template.html`; that is the empty template and only says "No data".
+**Live demo:** <https://tonyshu114514.github.io/hackathon-project/> (GitHub Pages; opens the prebuilt map `findit-map/demo/index.html`, built 2026-11-09 for Irvine, Santa Ana, Costa Mesa and Anaheim from real data, including measured building coverage and 46 surplus-land notices). Nothing to install. The same page also works offline: download `findit-map/demo/index.html` (**Download raw file** on GitHub) and open it in any browser. Do not open `map_template.html`; that is the empty template and only says "No data".
+
+### Deploying the live demo (GitHub Pages)
+
+The repository is ready to serve as is: `index.html` at the root forwards to `findit-map/demo/index.html`, and `.nojekyll` tells Pages to serve files untouched. One-time setup by a repository admin: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main`, folder `/ (root)` → Save**. GitHub publishes in a minute or two at `https://<owner>.github.io/<repo>/`. To update the live demo, change `findit-map/map_template.html`, run `python refresh_demo.py` in `findit-map/` (or rebuild and copy `site/index.html` to `demo/index.html` for new data), and push. Shared shortlist links work on the live site: the `#shortlist=...` part of the address is passed through.
 
 ## How Claude is used
 
@@ -50,7 +58,8 @@ cd hackathon-project/findit-map
 ./run.sh                 # four demo cities, about 10 minutes; opens site/index.html
 # ./run.sh --city brea   # one city in two or three minutes
 # ./run.sh --all         # all 35 jurisdictions, 30 to 60 minutes
-cd findit-map && .venv/bin/python -m unittest discover -s tests -t .   # 33 unit tests
+.venv/bin/python -m unittest discover -s tests -t .   # 38 unit tests
+.venv/bin/pip install -r requirements-dev.txt && .venv/bin/python -m unittest discover -s tests_browser -t .   # 16 browser tests (uses Google Chrome)
 ```
 
 Needs Python 3.10 or newer (tested on 3.15) and internet access for the first run. No accounts, API keys or environment variables. Dependencies are pinned in `findit-map/requirements.txt`. No time to fetch? Download `findit-map/demo/index.html` (see Live demo above) and open it. Windows steps, flags and troubleshooting are in [`findit-map/README-findit-map.md`](findit-map/README-findit-map.md).

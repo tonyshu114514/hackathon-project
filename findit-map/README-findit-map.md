@@ -21,25 +21,28 @@ confidence, capacity, zoning, permit grade, pathway screens, failed and unknown 
   opens **Disclosures & methodology** (the prototype disclaimer, how scoring and likely-used work, the pathway-screen
   caveats, what is not checked, surplus-notice notes, basemap notes, every assumption, every source with its fetch
   date, and the build date), theme switch, and a button that hides or shows the site panel.
-- **Left panel** (collapsible, a slide-in drawer on phones): a one-line "Screening tool only · Assumptions apply"
-  notice linking to the disclosures, live overview tiles and four small charts
-  computed from the sites currently on screen (star ratings of available sites, hazard concerns and cautions by
-  hazard, pathway screen results by law, SCAG zoning families), quick-filter chips, a scenario preset menu, advanced
-  filters, map layers, RHNA progress, scoring weights, data notes and checks, assumptions, sources.
+- **Left panel** (collapsible, a slide-in drawer on phones): four key numbers (sites, no reported activity, likely
+  used, hazard flags) with pending and surplus counts, quick-filter chips and a scenario menu. Collapsed under "More":
+  four charts computed from the sites on screen (star ratings, hazard concerns and cautions, pathway screens, SCAG
+  zoning families), advanced filters, map layers and legend, RHNA progress, scoring weights, and data notes with the
+  data-coverage table by city and the record checks.
 - **Map**: numbered pins for the top 10, dots for every other site (clustered into counts when zoomed out; the cluster
   border turns red when it holds a likely-used site), parcel outlines that brighten on hover from the list or the map,
   city borders, context layers, a legend, zoom-home, and the basemap picker. A small status pill under the layers
-  button names the basemap in use and says "OSM unavailable" when the page has switched to Esri tiles. A pill row over
+  button names the basemap in use and says "fallback" when the page has switched basemaps. A pill row over
   the map shows the count and every active filter, each removable with one click.
-- **Right panel**: the ranked top-10 list, or one site's detail in tabs: Overview (facts, why it ranks, sources), Score
-  (score ring, share of attainable points, term-by-term bars, confidence), Pathways (the four law screens with a
-  pass/fail/unknown meter and expandable tests), Risks (hazard, contamination and use checks as cards, then context
-  checks), Report (next steps, open or download the report). Back returns to the list. On phones this panel is a bottom
-  sheet: tap the handle to open it halfway or fully.
+- **Right panel**: a **Top 10 | Shortlist** switch over the ranked list, or one site's detail. The detail header keeps
+  suitability (stars, "Provisional" when data is missing), data confidence and development **Status** apart, shows every
+  alert, and says "Eligibility unconfirmed" with the pathway count. Tabs: Overview (key facts, more facts, data notes,
+  sources), Score (score ring, share of attainable points, term-by-term bars, the terms not scored for lack of data,
+  confidence), Pathways (the four law screens with a pass/fail/unknown meter and expandable tests), Risks (hazard,
+  contamination and use checks as cards, then context checks), Checklist (the due-diligence steps below), Report (next
+  steps, open or download the report). Back returns to the list. On phones this panel is a bottom sheet: tap the handle
+  to open it halfway or fully.
 
 ## Finding, filtering, comparing
 
-- **Search** by address, site name, agency or APN (digits only is fine). **Quick filters**: available only, 4+ stars,
+- **Search** by address, site name, agency or APN (digits only is fine). **Quick filters**: no reported activity, 4+ stars,
   near transit, 1+ acres, no hazard concerns, high confidence, surplus land only. **Scenarios** set several filters at
   once: acquisitions call list, city hazard review, small-lot homes (SB 684 / SB 1123), commercial corridors (AB 2011),
   faith and college land leads (SB 4), public surplus land. **Advanced filters**: minimum acres, minimum lower-income
@@ -59,6 +62,27 @@ confidence, capacity, zoning, permit grade, pathway screens, failed and unknown 
   fetch dates, pathway screens, data notes, recommended next steps, sources, assumptions); "Download report" saves it
   as a standalone HTML file. Print to PDF from the browser.
 - **⌂** on the map zooms back to the selected cities.
+
+## Shortlist, sharing and the due-diligence checklist
+
+Nothing here needs an account, and nothing is sent anywhere: the shortlist and checklists are stored in the browser
+(`localStorage`, keyed by city and APN so they survive data rebuilds). If the browser blocks storage the page says so.
+
+- **Save** a site with the bookmark button on its card or in its detail header. **Shortlist** (next to Top 10) lists
+  saved sites with their rank in the current selection and checklist progress; a saved site in a city that is not
+  selected opens with its city added to the map.
+- **Share link** copies an address ending in `#shortlist=...`. Whoever opens it sees a "Shared shortlist" banner with
+  the sites and can add them to their own list. The link carries site keys only, never checklist notes.
+- **CSV** downloads the shortlisted sites with every column of the full export plus `your_checklist_done`,
+  `your_checklist_issues` and `your_checklist_notes` (marked as user-entered in the file header).
+- **Backup file** downloads a JSON file with the shortlist and every checklist; **Import** merges one back in (newer
+  checklist edits win). Use it to move work to another browser or to a colleague.
+- **Checklist** tab, per site: ownership and title; owner contacted / willing to sell; zoning and general plan; pathway
+  eligibility; environmental review (Phase I); flood, fire and geologic hazards; water, sewer and dry utilities; city or
+  agency contact; and, when a project or permit is reported, site status. Each step shows a **Public data** line (what
+  the loaded datasets say, or that they say nothing) next to **your** status (not started, in progress, done, issue
+  found) and note. Starting a checklist saves the site to the shortlist, and the site report prints the checklist in a
+  section headed "entered by you, not verified data".
 
 ## Permit activity grades
 
@@ -108,13 +132,24 @@ agency. `fetch.py --skip surplus` leaves them out.
 ## Tests
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -t .
+.venv/bin/python -m unittest discover -s tests -t .              # unit tests, a few seconds
+.venv/bin/pip install -r requirements-dev.txt                     # Playwright, for the browser tests
+.venv/bin/python -m unittest discover -s tests_browser -t .      # browser tests, about a minute
+FINDIT_PAGE=site/index.html .venv/bin/python -m unittest discover -s tests_browser -t .   # test your own build
+FINDIT_BROWSER=chromium ...                                       # use Playwright's Chromium (playwright install chromium)
 ```
 
 Unit tests cover record validation, permit grading (including the ADU rule), pathway rules (no law ever returns
-"yes"; hazards fail every law; unknown layers stay unknown) and the surplus import (acreage parsing, exact city
-match, contact column dropped, approximate outlines). A browser smoke test of the page lives outside the repo in the
-team's tooling; the demo page was checked in Chromium on 2026-11-09 with no console errors.
+"yes"; hazards fail every law; unknown layers stay unknown), the surplus import (acreage parsing, exact city
+match, contact column dropped, approximate outlines) and payload packing (lossless round trip).
+
+Browser tests (`tests_browser/test_ui.py`) open the page in real Chrome from a local server (and once from `file://`)
+and check: the page loads with sites, the USGS basemap and no console errors; the basemap falls back when its tiles
+fail; OpenStreetMap is not offered on `file://`; city selection, quick filters, pills and reset; the six detail tabs and
+the provisional rating; compare; the site report; the CSV columns; shortlist persistence, share link and backup import;
+checklist persistence and labelling; no overlapping map controls at 1440×900, 1280×640 and 1024×700 with each
+combination of panels open and closed; the phone drawer, sheet and detail; and load and redraw time. Map tiles are
+answered with a blank image so the tests do not depend on tile servers; Leaflet loads from cdnjs, so they need internet.
 
 The map also draws context layers you can switch on and off: OCTA bus routes, FEMA flood zones,
 fire hazard zones, landslide zones, high-quality transit areas, DTSC cleanup sites and existing LIHTC
@@ -168,13 +203,22 @@ Also watch for these lines from `fetch.py`:
   show "unknown" for most sites.
 - `zero footprints for every site`. The spatial query may be failing, and coverage will be unknown.
 
-## If the street map says "Access blocked"
+## Basemap
 
-The grey-and-yellow "Access blocked" tiles come from OpenStreetMap's volunteer tile servers, which refuse some
-connections (VPNs and shared or flagged IP addresses are the usual reason). The page checks one tile when it opens
-and switches to Esri street tiles automatically when that happens; the status pill on the map then reads
-"Basemap: Esri streets · OSM unavailable" and the Disclosures dialog explains why. You can also pick a
-basemap yourself with the layers button at the top right of the map, or turn the VPN off and reload.
+The default basemap is **USGS The National Map, Topo** (`basemap.nationalmap.gov`): a U.S. government service in the
+public domain, with no API key, CORS enabled and no Referer rule. Its tiles stop at zoom 16 and are upscaled beyond
+that. The layers button offers USGS Imagery (aerial, public domain), Esri streets and Esri dark gray (Esri terms of
+use; attribution shown) and, when the page is served over http(s), OpenStreetMap.
+
+Why not OpenStreetMap by default: its volunteer tile servers answer any request without a `Referer` header with an
+"Access blocked" picture **and HTTP 200** (checked 2026-11-09: 6.7 KB blocked image instead of the 47.8 KB tile). Pages
+opened from a file (`run.sh` opens `site/index.html` that way, and so does a downloaded demo) send no Referer, so every
+tile was blocked and Leaflet saw no error. OSM is therefore not offered on `file://` pages; on served pages a one-tile
+probe still detects the blocked picture. CARTO's free tiles now return "API key required", so they are not used.
+
+Fallback: each basemap is watched per map view. If the active one fails (three tile errors with none loaded, or
+failures outnumbering loads two to one), the map switches along USGS Topo → Esri streets → USGS Imagery → no basemap,
+and the status pill and the Disclosures dialog say which and why. No API keys are used anywhere, so none can leak.
 
 ## Data sources
 
@@ -246,16 +290,37 @@ to estimate capacity (label it as an estimate).
 
 Counts per city print during `build.py` and appear on the page under "Data checks".
 
-## Stars
+## Stars, rank and "provisional"
 
-Each available site gets 1 to 5 stars from its screen score as a share of the points it could earn
+Each site that is not likely used gets 1 to 5 stars from its screen score as a share of the points it could earn
 with the data it has (so a site with no listed capacity is not penalised for the missing term). The
 bands are set at county-wide percentiles and listed in `ASSUMPTIONS["star_bands"]`: 5 stars is roughly
 the top 3% of Orange County sites, 1 star the bottom half. Likely-used sites get no stars.
 
-## Page size
+The **rank** (top 10) is stricter: it orders by earned points, so a missing term earns nothing, then by fewer data
+gaps, share of attainable points and name (ties never depend on data order). Because the two can disagree, any rating
+missing open-land, lower-income capacity or opportunity-area data is labelled **Provisional**: the stars are dimmed, the
+label says so, and the Score tab lists each term not scored and its maximum points. In the 2026-11-09 demo this is
+mostly Santa Ana, whose HCD inventory lists no capacity by income level for any site.
 
-With all 35 jurisdictions the built page is roughly 15 MB (hazard-overlay geometry plus the per-site checks and
-pathway screens; repeated pathway sentences are stored once). It opens with four
-cities selected; pick more from the city menu. To shrink it, raise the simplify tolerance in
-`overlays()` in `build.py`.
+**Status** is separate from both: "likely used", "pending", "surplus notice" or "no reported activity". The last never
+means available: ownership and willingness to sell are not in public data. When a city marks (nearly) every inventory
+site "pending", as Santa Ana does, the page treats it as a reporting convention and says to verify each site. The
+**data-coverage table** (Data notes, and the Disclosures dialog) shows, per selected city, the inventory source, sites,
+and the share with listed capacity, open land (measured from footprints or from reported use), opportunity data and
+pending status.
+
+## Page size and speed
+
+`build.py` packs the page payload (`findit/pack.py`): every distinct check and pathway sentence is stored once and each
+check or test becomes a short array of indexes; the page rebuilds the objects at load. It is lossless (a unit test and
+a full comparison of the four-city build against `data/results.json` confirm it) and cut the four-city page from
+3.3 MB to 1.9 MB. `data/results.json` keeps the readable form.
+
+Scale check (2026-11-10, Chrome on a MacBook): a synthetic page with the four cities copied 8× (3,752 sites, 32 cities,
+13 MB) showed its ranked list 0.6 s after navigation, drew every city at once in 0.21 s, applied a filter in 0.16 s and
+opened a site in 9 ms. The page opens with four cities selected; pick more from the city menu. GitHub Pages serves it
+gzip-compressed. To shrink it further, raise the simplify tolerance in `overlays()` in `build.py`.
+
+`python refresh_demo.py` re-applies `map_template.html` to `demo/index.html` (packing it the same way) without
+touching its data; `--check` reports whether the demo is current.

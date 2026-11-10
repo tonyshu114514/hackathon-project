@@ -15,6 +15,7 @@ from shapely.strtree import STRtree
 from findit import apr, gtfs, pathways, permits
 from findit.arcgis import find_field
 from findit.geom import to_feet, to_polys, to_shape, union
+from findit.pack import pack_payload
 from findit.validate import validate_sites
 from findit.sources import ASSUMPTIONS, CITIES, FIELD_OVERRIDES, SOURCES
 
@@ -636,7 +637,7 @@ def main():
     here = pathlib.Path(__file__).parent
     page = here.joinpath("map_template.html").read_text()
     page = page.replace("/*__LEAFLET_CSS__*/", here.joinpath("findit", "leaflet.css").read_text())
-    page = page.replace("/*__DATA__*/null", json.dumps(payload).replace("</", "<\\/"))
+    page = page.replace("/*__DATA__*/null", json.dumps(pack_payload(payload), separators=(",", ":")).replace("</", "<\\/"))
     out_html.parent.mkdir(parents=True, exist_ok=True)
     out_html.write_text(page)
     mb = len(page.encode()) / 1e6
